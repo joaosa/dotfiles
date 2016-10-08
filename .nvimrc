@@ -21,6 +21,7 @@ Plug 'jiangmiao/auto-pairs'
 Plug 'zweifisch/pipe2eval'
 Plug 'rking/ag.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+" vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/SyntaxRange'
