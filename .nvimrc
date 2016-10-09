@@ -67,6 +67,8 @@ set showcmd
 " set colorscheme
 set background=dark
 colorscheme solarized
+" have transparent background (if needed)
+highlight Normal ctermbg=none
 " rainbow paranthesis
 let g:rainbow_active=1
 " do not change to the file dir on vim-startify
