@@ -107,7 +107,7 @@ local appBindings = {
   e = 'Evernote',
   w = 'Google Chrome Canary',
   l = 'Slack',
-  i = 'iTerm'
+  q = 'iTerm'
 }
 
 for key, appName in pairs(appBindings) do
