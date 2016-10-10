@@ -95,7 +95,6 @@ let g:indent_guides_auto_colors=0
 highlight IndentGuidesOdd ctermbg=234
 highlight IndentGuidesEven ctermbg=235
 " indent SQL
-" set formatprg=~/Repos/pgFormatter/pg_format\ -p\ '\\$\\{\\w*\\}/g'\ -s\ 2\ -
 set formatprg=~/Repos/pgFormatter/pg_format\ -s\ 2\ -p\ '(\\$\|{\|})'\ -
 
 " Navigation
