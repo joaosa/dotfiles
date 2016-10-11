@@ -126,8 +126,8 @@ nnoremap ˚ <Esc>[sve<C-g>
 
 " Syntax
 " snippets
-autocmd FileType js UltiSnipsAddFiletypes javascript-es6
-autocmd FileType js UltiSnipsAddFiletypes javascript-jasmine
+autocmd FileType javascript UltiSnipsAddFiletypes javascript-es6
+autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine
 
 " recommended Syntastic settings
 set statusline+=%#warningmsg#
