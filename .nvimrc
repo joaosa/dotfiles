@@ -16,6 +16,7 @@ Plug 'beloglazov/vim-online-thesaurus'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'airblade/vim-gitgutter'
 Plug 'nathanaelkane/vim-indent-guides'
+Plug 'takac/vim-hardtime'
 Plug 'luochen1990/rainbow', { 'for': ['clojure', 'lisp'] }
 Plug 'jiangmiao/auto-pairs'
 Plug 'zweifisch/pipe2eval'
@@ -107,6 +108,9 @@ inoremap <up> <nop>
 inoremap <down> <nop>
 inoremap <left> <nop>
 inoremap <right> <nop>
+
+" enable hard mode on all buffers
+let g:hardtime_default_on = 1
 
 " Spelling
 " check spelling on markdown
