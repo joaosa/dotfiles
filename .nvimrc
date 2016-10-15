@@ -100,6 +100,8 @@ highlight IndentGuidesEven ctermbg=235
 set formatprg=~/Repos/pgFormatter/pg_format\ -s\ 2\ -p\ '(\\$\|{\|})'\ -
 
 " Navigation
+" enable hard mode on all buffers
+let g:hardtime_default_on = 1
 " disable arrow keys in normal and insert mode
 nnoremap <up> <nop>
 nnoremap <down> <nop>
