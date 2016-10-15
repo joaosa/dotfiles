@@ -26,6 +26,7 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/SyntaxRange'
+" language syntax
 Plug 'kylef/apiblueprint.vim'
 Plug 'rust-lang/rust.vim'
 Plug 'kchmck/vim-coffee-script'
