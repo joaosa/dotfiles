@@ -20,7 +20,7 @@ Plug 'takac/vim-hardtime'
 Plug 'luochen1990/rainbow', { 'for': ['clojure', 'lisp'] }
 Plug 'jiangmiao/auto-pairs'
 Plug 'zweifisch/pipe2eval'
-Plug 'rking/ag.vim'
+Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
@@ -223,6 +223,6 @@ set scrolloff=5
 " clear the highlight from the last search
 nnoremap <Esc><Esc> :noh<CR><Esc>
 " use ag
-nnoremap <leader>a :Ag<space>
+nnoremap <leader>a :Ack<space>
 " use fzf
 nnoremap <leader>t :FZF<CR>
