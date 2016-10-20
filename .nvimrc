@@ -28,6 +28,7 @@ Plug 'scrooloose/syntastic'
 Plug 'vim-scripts/SyntaxRange'
 " language syntax
 Plug 'kylef/apiblueprint.vim'
+Plug 'derekwyatt/vim-scala'
 Plug 'rust-lang/rust.vim'
 Plug 'kchmck/vim-coffee-script'
 " don't forget to `npm i -g livedown`
