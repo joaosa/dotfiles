@@ -40,6 +40,7 @@ Plug 'neilagabriel/vim-geeknote'
 Plug 'lervag/vimtex'
 Plug 'radenling/vim-dispatch-neovim'
 Plug 'tpope/vim-dispatch'
+Plug 'janko-m/vim-test'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
@@ -174,6 +175,9 @@ function! MyFugitive()
   return ''
 endfunction
 let g:tmuxline_theme = 'lightline'
+
+" vim test
+let test#strategy = 'dispatch'
 
 " use dispatch
 nnoremap <leader>dc :Dispatch<Space>
