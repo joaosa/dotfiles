@@ -224,7 +224,5 @@ set smartcase
 set scrolloff=5
 " clear the highlight from the last search
 nnoremap <Esc><Esc> :noh<CR><Esc>
-" use ag
-nnoremap <leader>a :Ack<space>
 " use fzf
 nnoremap <leader>t :FZF<CR>
