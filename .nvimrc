@@ -24,7 +24,7 @@ Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
-Plug 'scrooloose/syntastic'
+Plug 'neomake/neomake'
 Plug 'vim-scripts/SyntaxRange'
 " language syntax
 Plug 'kylef/apiblueprint.vim'
@@ -135,17 +135,9 @@ nnoremap ˚ <Esc>[sve<C-g>
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-es6
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine
 
-" recommended Syntastic settings
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-" let syntastic use loclists (vim-unimpaired ]l [l)
-let g:syntastic_always_populate_loc_list=1
-let g:syntastic_auto_loc_list=0
-let g:syntastic_check_on_open=1
-let g:syntastic_check_on_wq=0
-" don't forget to `npm i -g eslint`
-let g:syntastic_javascript_checkers=['eslint']
+" checking
+autocmd! BufWritePost * Neomake
+let g:neomake_javascript_enabled_makers = ['eslint']
 
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.nvimrc<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
