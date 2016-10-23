@@ -114,9 +114,6 @@ inoremap <down> <nop>
 inoremap <left> <nop>
 inoremap <right> <nop>
 
-" enable hard mode on all buffers
-let g:hardtime_default_on = 1
-
 " Spelling
 " check spelling on markdown
 autocmd BufRead,BufNewFile *.md set filetype=markdown
