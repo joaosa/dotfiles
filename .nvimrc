@@ -75,8 +75,6 @@ colorscheme solarized
 highlight Normal ctermbg=none
 " rainbow paranthesis
 let g:rainbow_active=1
-" do not change to the file dir on vim-startify
-let g:startify_change_to_dir=0
 " refer to files from the vcs root
 let g:startify_change_to_vcs_root=1
 
