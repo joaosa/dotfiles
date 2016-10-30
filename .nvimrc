@@ -165,6 +165,11 @@ let g:tmuxline_theme = 'lightline'
 
 " vim test
 let test#strategy = 'dispatch'
+nmap <silent> <localleader>t :TestNearest<CR>
+nmap <silent> <localleader>T :TestFile<CR>
+nmap <silent> <localleader>a :TestSuite<CR>
+nmap <silent> <localleader>l :TestLast<CR>
+nmap <silent> <localleader>g :TestVisit<CR>
 
 " use dispatch
 nnoremap <leader>dc :Dispatch<Space>
