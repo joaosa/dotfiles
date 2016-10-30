@@ -35,7 +35,6 @@ Plug 'kchmck/vim-coffee-script'
 " don't forget to `npm i -g livedown`
 Plug 'shime/vim-livedown', { 'for': ['markdown'] }
 Plug 'bkad/CamelCaseMotion'
-Plug 'michaeljsmith/vim-indent-object'
 Plug 'tpope/vim-commentary'
 Plug 'neilagabriel/vim-geeknote'
 Plug 'lervag/vimtex'
