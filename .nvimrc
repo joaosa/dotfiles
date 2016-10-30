@@ -28,6 +28,7 @@ Plug 'neomake/neomake'
 Plug 'vim-scripts/SyntaxRange'
 " language syntax
 Plug 'kylef/apiblueprint.vim'
+Plug 'elixir-lang/vim-elixir'
 Plug 'derekwyatt/vim-scala'
 Plug 'rust-lang/rust.vim'
 Plug 'kchmck/vim-coffee-script'
