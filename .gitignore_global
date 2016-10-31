@@ -1,3 +1,4 @@
+# ref https://gist.github.com/octocat/9257657
 # Compiled source #
 ###################
 *.com
@@ -33,6 +34,7 @@ ehthumbs.db
 Icon?
 Thumbs.db
 
+# ref https://github.com/github/gitignore/blob/master/Global/Tags.gitignore
 # Ignore tags created by etags, ctags, gtags (GNU global) and cscope
 TAGS
 .TAGS
