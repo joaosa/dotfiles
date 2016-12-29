@@ -26,19 +26,22 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'neomake/neomake'
 Plug 'vim-scripts/SyntaxRange'
+" autocompletion
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
 " language syntax
 Plug 'kylef/apiblueprint.vim'
 Plug 'elixir-lang/vim-elixir'
 Plug 'derekwyatt/vim-scala'
 Plug 'rust-lang/rust.vim'
 Plug 'kchmck/vim-coffee-script'
-" don't forget to `npm i -g livedown`
-Plug 'shime/vim-livedown', { 'for': ['markdown'] }
+Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown'] }
+Plug 'ludovicchabant/vim-gutentags'
+Plug 'ramitos/jsctags'
 Plug 'bkad/CamelCaseMotion'
 Plug 'tpope/vim-commentary'
 Plug 'neilagabriel/vim-geeknote'
 Plug 'lervag/vimtex'
-Plug 'radenling/vim-dispatch-neovim'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
 Plug 'tpope/vim-endwise'
@@ -129,6 +132,14 @@ nnoremap ¬ <C-g>u<Esc>[s1z=`]a<C-g>u
 nnoremap ˚ <Esc>[sve<C-g>
 
 " Syntax
+" Use deoplete.
+let g:deoplete#enable_at_startup = 1
+let g:deoplete#sources = {}
+let g:deoplete#sources['javascript'] = ['file', 'ultisnips', 'ternjs']
+" Use tern_for_vim.
+let g:tern#command = ["tern"]
+let g:tern#arguments = ["--persistent"]
+
 " snippets
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-es6
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine
@@ -138,7 +149,7 @@ autocmd! BufWritePost * Neomake
 let g:neomake_javascript_enabled_makers = ['eslint']
 
 " reload nvimrc
-noremap <silent> <leader>V :source ~/.nvimrc<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
+noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
 
 " set the status line
 " component_visible_condition - so that fugitive's arrow doesn't appear all the time
@@ -194,7 +205,7 @@ autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
 autocmd FileType geeknote setlocal nonumber
 " http://stackoverflow.com/questions/5017009/confusion-about-vim-folding-how-to-disable
 autocmd FileType geeknote setlocal nofoldenable
-let g:GeeknoteFormat = 'markdown'
+" let g:GeeknoteFormat = 'markdown'
 nnoremap <leader>ed :Geeknote<CR>
 nnoremap <leader>ew :GeeknoteSaveAsNote<CR>
 nnoremap <leader>en :GeeknoteCreateNote<Space>
