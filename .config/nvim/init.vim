@@ -29,6 +29,7 @@ Plug 'vim-scripts/SyntaxRange'
 " autocompletion
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
+Plug 'SevereOverfl0w/deoplete-github'
 " language syntax
 Plug 'kylef/apiblueprint.vim'
 Plug 'elixir-lang/vim-elixir'
@@ -46,6 +47,7 @@ Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-rhubarb'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
@@ -135,10 +137,22 @@ nnoremap ˚ <Esc>[sve<C-g>
 " Use deoplete.
 let g:deoplete#enable_at_startup = 1
 let g:deoplete#sources = {}
+let g:deoplete#keyword_patterns = {}
+let g:deoplete#omni#input_patterns = {}
+
 let g:deoplete#sources['javascript'] = ['file', 'ultisnips', 'ternjs']
 " Use tern_for_vim.
 let g:tern#command = ["tern"]
 let g:tern#arguments = ["--persistent"]
+
+let pattern = '.+'
+let g:deoplete#sources.gitcommit = ['github']
+let g:deoplete#keyword_patterns.gitcommit = pattern
+let g:deoplete#omni#input_patterns.gitcommit = pattern
+
+call deoplete#util#set_pattern(
+  \ g:deoplete#omni#input_patterns,
+  \ 'gitcommit', [g:deoplete#keyword_patterns.gitcommit])
 
 " snippets
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-es6
