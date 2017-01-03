@@ -29,6 +29,7 @@ Plug 'vim-scripts/SyntaxRange'
 " autocompletion
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
+Plug 'zchee/deoplete-jedi'
 Plug 'SevereOverfl0w/deoplete-github'
 " language syntax
 Plug 'kylef/apiblueprint.vim'
@@ -53,6 +54,10 @@ Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
 call plug#end()
+
+" neovim python
+let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python3/bin/python'
+let g:python3_host_prog = $HOME . '/.pyenv/versions/neovim-python3/bin/python'
 
 " yank and paste with the system clipboard
 set clipboard=unnamed
