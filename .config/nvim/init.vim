@@ -56,7 +56,7 @@ Plug 'tpope/vim-repeat'
 call plug#end()
 
 " neovim python
-let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python3/bin/python'
+let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python2/bin/python'
 let g:python3_host_prog = $HOME . '/.pyenv/versions/neovim-python3/bin/python'
 
 " yank and paste with the system clipboard
