@@ -40,6 +40,8 @@ Plug 'kchmck/vim-coffee-script'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'ludovicchabant/vim-gutentags'
 Plug 'ramitos/jsctags'
+Plug 'majutsushi/tagbar'
+Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
 Plug 'tpope/vim-commentary'
 Plug 'neilagabriel/vim-geeknote'
