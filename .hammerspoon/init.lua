@@ -123,6 +123,17 @@ end
 hs.hotkey.bind(altCmd, 'n', function() os.execute('open ~') end)
 
 -----------------------------------------------
+-- Insert current date
+-----------------------------------------------
+function pasteDate(args)
+  date = os.date("%Y/%m/%d")
+  hs.pasteboard.setContents(date)
+  hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+end
+
+hs.hotkey.bind(altCmd, ']', pasteDate)
+
+-----------------------------------------------
 -- Change language
 -- http://stackoverflow.com/a/23741934
 -----------------------------------------------
