@@ -264,6 +264,8 @@
 			<integer>210</integer>
 			<key>Command</key>
 			<string></string>
+			<key>Cursor Boost</key>
+			<real>0.0</real>
 			<key>Cursor Color</key>
 			<dict>
 				<key>Blue Component</key>
@@ -627,6 +629,8 @@
 				<key>Red Component</key>
 				<real>0.0</real>
 			</dict>
+			<key>Minimum Contrast</key>
+			<real>0.368300039556962</real>
 			<key>Mouse Reporting</key>
 			<true/>
 			<key>Name</key>
@@ -1281,6 +1285,8 @@
 				<key>Red Component</key>
 				<real>0.0</real>
 			</dict>
+			<key>Minimum Contrast</key>
+			<real>0.37544501582278483</real>
 			<key>Mouse Reporting</key>
 			<true/>
 			<key>Name</key>
