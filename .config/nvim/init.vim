@@ -55,6 +55,7 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-dadbod'
 call plug#end()
 
 " neovim python
