@@ -8,6 +8,8 @@
 	<integer>0</integer>
 	<key>AppleSmoothFixedFontsSizeThreshold</key>
 	<integer>1</integer>
+	<key>AppleWindowTabbingMode</key>
+	<string>manual</string>
 	<key>Default Bookmark Guid</key>
 	<string>DA58EEED-F1BA-40F8-AFD9-321FC46C7F68</string>
 	<key>HotKeyBookmark</key>
@@ -60,6 +62,8 @@
 		<key>TB Is Shown</key>
 		<integer>1</integer>
 	</dict>
+	<key>NSWindow Frame SUUpdateAlert</key>
+	<string>330 307 620 392 0 0 1280 800 </string>
 	<key>NSWindow Frame SharedPreferences</key>
 	<string>317 203 796 473 0 0 1280 800 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
@@ -1371,6 +1375,8 @@
 	<true/>
 	<key>NoSyncNeverRemindPrefsChangesLostForFile_selection</key>
 	<integer>0</integer>
+	<key>NoSyncPermissionToShowTip</key>
+	<false/>
 	<key>NoSyncSuppressMissingProfileInArrangementWarning</key>
 	<true/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
@@ -1423,14 +1429,14 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-09-25T15:49:14Z</date>
+	<date>2017-11-03T23:20:32Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>UKCrashReporterLastCrashReportDate</key>
-	<real>1506354688</real>
+	<real>1507302400</real>
 	<key>WordCharacters</key>
 	<string>/-+\~_.</string>
 	<key>iTerm Version</key>
-	<string>3.1.1</string>
+	<string>3.1.2</string>
 </dict>
 </plist>
