@@ -158,7 +158,16 @@ let g:deoplete#sources.gitcommit = ['github']
 let g:deoplete#keyword_patterns.gitcommit = pattern
 let g:deoplete#omni#input_patterns.gitcommit = pattern
 
-call deoplete#util#set_pattern(
+" https://github.com/Shougo/deoplete.nvim/issues/730
+function! s:set_pattern(variable, keys, pattern) abort
+  for key in split(a:keys, ',')
+    if !has_key(a:variable, key)
+      let a:variable[key] = a:pattern
+    endif
+  endfor
+endfunction
+
+call s:set_pattern(
   \ g:deoplete#omni#input_patterns,
   \ 'gitcommit', [g:deoplete#keyword_patterns.gitcommit])
 
