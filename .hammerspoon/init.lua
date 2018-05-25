@@ -126,9 +126,13 @@ hs.hotkey.bind(altCmd, 'n', function() os.execute('open ~') end)
 -- Insert current date
 -----------------------------------------------
 function pasteDate(args)
+  current = hs.pasteboard.getContents()
+
   date = os.date("%Y/%m/%d")
   hs.pasteboard.setContents(date)
   hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+
+  hs.pasteboard.setContents(current)
 end
 
 hs.hotkey.bind(altCmd, ']', pasteDate)
