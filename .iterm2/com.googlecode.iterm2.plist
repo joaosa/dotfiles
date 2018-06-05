@@ -12,6 +12,10 @@
 	<string>manual</string>
 	<key>Default Bookmark Guid</key>
 	<string>DA58EEED-F1BA-40F8-AFD9-321FC46C7F68</string>
+	<key>HideMenuBarInFullscreen</key>
+	<true/>
+	<key>HideTab</key>
+	<true/>
 	<key>HotKeyBookmark</key>
 	<string>DF53DEB0-A4C3-4C00-8420-E67719BA21BA</string>
 	<key>HotKeyTogglesWindow</key>
@@ -65,11 +69,11 @@
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>330 307 620 392 0 0 1280 800 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>317 203 796 473 0 0 1280 800 </string>
+	<string>317 212 937 464 0 0 1280 800 </string>
 	<key>NSWindow Frame UKCrashReporter</key>
 	<string>80 216 592 584 0 0 1280 800 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>0 4 1280 796 0 0 1280 800 </string>
+	<string>0 396 1280 404 0 0 1280 800 </string>
 	<key>New Bookmarks</key>
 	<array>
 		<dict>
@@ -1429,14 +1433,16 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2017-11-03T23:20:32Z</date>
+	<date>2018-06-01T13:27:06Z</date>
 	<key>SUSendProfileInfo</key>
+	<false/>
+	<key>ShowFullScreenTabBar</key>
 	<false/>
 	<key>UKCrashReporterLastCrashReportDate</key>
 	<real>1507302400</real>
 	<key>WordCharacters</key>
 	<string>/-+\~_.</string>
 	<key>iTerm Version</key>
-	<string>3.1.2</string>
+	<string>3.1.6</string>
 </dict>
 </plist>
