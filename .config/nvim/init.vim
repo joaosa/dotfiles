@@ -246,7 +246,7 @@ autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
 autocmd FileType geeknote setlocal nonumber
 " http://stackoverflow.com/questions/5017009/confusion-about-vim-folding-how-to-disable
 autocmd FileType geeknote setlocal nofoldenable
-" let g:GeeknoteFormat = 'markdown'
+let g:GeeknoteFormat="plain"
 nnoremap <leader>ed :Geeknote<CR>
 nnoremap <leader>ew :GeeknoteSaveAsNote<CR>
 nnoremap <leader>en :GeeknoteCreateNote<Space>
