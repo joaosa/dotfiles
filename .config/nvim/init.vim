@@ -56,6 +56,8 @@ Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-dadbod'
+" has to be the last one
+Plug 'ryanoasis/vim-devicons'
 call plug#end()
 
 " neovim python
@@ -191,7 +193,9 @@ let g:lightline = {
       \ [ 'fugitive', 'readonly', 'filename', 'modified' ] ]
       \ },
       \ 'component_function': {
-      \   'fugitive': 'MyFugitive'
+      \   'fugitive': 'MyFugitive',
+      \   'filetype': 'MyFiletype',
+      \   'fileformat': 'MyFileformat'
       \ },
       \ 'separator': { 'left': '⮀', 'right': '⮂' },
       \ 'subseparator': { 'left': '⮁', 'right': '⮃'  }
@@ -199,9 +203,15 @@ let g:lightline = {
 function! MyFugitive()
   if exists('*fugitive#head')
     let _ = fugitive#head()
-    return strlen(_) ? '⭠ '._ : ''
+    return strlen(_) ? '⭠ '. _ : ''
   endif
   return ''
+endfunction
+function! MyFiletype()
+  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''
+endfunction
+function! MyFileformat()
+  return winwidth(0) > 70 ? (&fileformat . ' ' . WebDevIconsGetFileFormatSymbol()) : ''
 endfunction
 let g:tmuxline_theme = 'lightline'
 
