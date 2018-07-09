@@ -5,7 +5,7 @@ syntax enable
 let mapleader=','
 
 " configure plug
-call plug#begin('~/.vim/plugged')
+call plug#begin('~/.config/nvim/plugged')
 Plug 'altercation/vim-colors-solarized'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
