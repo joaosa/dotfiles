@@ -19,7 +19,6 @@ Plug 'nathanaelkane/vim-indent-guides'
 Plug 'takac/vim-hardtime'
 Plug 'luochen1990/rainbow', { 'for': ['clojure', 'lisp'] }
 Plug 'jiangmiao/auto-pairs'
-Plug 'zweifisch/pipe2eval'
 Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " vim-snippets depends on ultisnips
