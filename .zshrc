@@ -58,9 +58,6 @@ alias mmv='noglob zmv -W'
 # postgres
 export PG_DATA=/usr/local/var/postgres
 
-# node
-export NODE_PATH=/usr/local/bin/node
-
 # Go
 export GOPATH="$HOME"
 export PATH="$PATH:${GOPATH//://bin:}/bin"
