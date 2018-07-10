@@ -23,7 +23,7 @@ Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
-Plug 'neomake/neomake'
+Plug 'neomake/neomake', { 'do': 'npm install -g eslint_d babel-eslint eslint-config-airbnb eslint-plugin-jsx-a11y eslint-plugin-react eslint-plugin-import' }
 Plug 'vim-scripts/SyntaxRange'
 " autocompletion
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
@@ -179,6 +179,7 @@ autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine
 " checking
 autocmd! BufWritePost * Neomake
 let g:neomake_javascript_enabled_makers = ['eslint']
+let g:neomake_javascript_eslint_exe = 'eslint_d'
 
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
