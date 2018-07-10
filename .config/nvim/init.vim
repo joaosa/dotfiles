@@ -197,7 +197,7 @@ let g:lightline = {
       \   'fileformat': 'MyFileformat'
       \ },
       \ 'separator': { 'left': '⮀', 'right': '⮂' },
-      \ 'subseparator': { 'left': '⮁', 'right': '⮃'  }
+      \ 'subseparator': { 'left': '⮁', 'right': '⮃' }
       \ }
 function! MyFugitive()
   if exists('*fugitive#head')
