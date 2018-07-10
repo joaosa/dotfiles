@@ -64,7 +64,7 @@ export PATH="$PATH:${GOPATH//://bin:}/bin"
 
 # python
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
 
 # homebrew
 BREW_PREFIX="/usr/local/opt"
