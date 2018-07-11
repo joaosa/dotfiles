@@ -236,6 +236,12 @@ nnoremap <leader>gcm :Gcommit<CR>
 nnoremap <leader>gfm :exec ':Gpull origin ' . fugitive#head()<CR>
 nnoremap <leader>gp :exec ':Gpush origin ' . fugitive#head() . ' -u'<CR>
 nnoremap <leader>gb :Gblame<CR>
+" have fugitive status patch y/n work normally
+augroup nvim_term
+  au!
+  au TermOpen * startinsert
+  au TermClose * stopinsert
+augroup END
 
 " preview markdown with livedown
 autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
