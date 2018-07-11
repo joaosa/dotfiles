@@ -168,8 +168,8 @@ function! s:set_pattern(variable, keys, pattern) abort
 endfunction
 
 call s:set_pattern(
-  \ g:deoplete#omni#input_patterns,
-  \ 'gitcommit', [g:deoplete#keyword_patterns.gitcommit])
+      \ g:deoplete#omni#input_patterns,
+      \ 'gitcommit', [g:deoplete#keyword_patterns.gitcommit])
 
 " snippets
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-es6
