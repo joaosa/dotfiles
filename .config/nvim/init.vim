@@ -47,6 +47,7 @@ Plug 'neilagabriel/vim-geeknote'
 Plug 'lervag/vimtex'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
+Plug 'ciaranm/detectindent'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rhubarb'
@@ -94,14 +95,12 @@ let g:startify_change_to_vcs_root=1
 
 " Indenting
 set autoindent
-" how many columns text is indented with the reindent operations
-set shiftwidth=2
-" expand tabs to spaces
-set expandtab
-" insert mode tab and backspace use 2 spaces
-set softtabstop=2
-" how much actual tabs occupy
-set tabstop=2
+" we're leaving tab expansion (expandtab), tab size for insert mode (softtabstop),
+" how many columns text is indented with the reindent operation (shiftwidth)
+" and how much space actual tabs occupy to detectindent.
+autocmd BufReadPost * :DetectIndent
+let g:detectindent_preferred_expandtab = 1
+let g:detectindent_preferred_indent = 2
 " clear trailing whitespace
 nnoremap <leader><space> :%s/\s\+$//<CR>
 " use vim indent guides
