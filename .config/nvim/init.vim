@@ -202,7 +202,7 @@ let g:lightline = {
 function! MyFugitive()
   if exists('*fugitive#head')
     let _ = fugitive#head()
-    return strlen(_) ? ''. _ : ''
+    return strlen(_) ? ' '. _ : ''
   endif
   return ''
 endfunction
