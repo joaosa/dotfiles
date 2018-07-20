@@ -29,7 +29,6 @@ Plug 'vim-scripts/SyntaxRange'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
 Plug 'zchee/deoplete-jedi'
-Plug 'SevereOverfl0w/deoplete-github'
 " language syntax
 Plug 'kylef/apiblueprint.vim'
 Plug 'elixir-lang/vim-elixir'
@@ -152,24 +151,6 @@ let g:deoplete#sources['javascript'] = ['file', 'ultisnips', 'ternjs']
 " Use tern_for_vim.
 let g:tern#command = ["tern"]
 let g:tern#arguments = ["--persistent"]
-
-let pattern = '.+'
-let g:deoplete#sources.gitcommit = ['github']
-let g:deoplete#keyword_patterns.gitcommit = pattern
-let g:deoplete#omni#input_patterns.gitcommit = pattern
-
-" https://github.com/Shougo/deoplete.nvim/issues/730
-function! s:set_pattern(variable, keys, pattern) abort
-  for key in split(a:keys, ',')
-    if !has_key(a:variable, key)
-      let a:variable[key] = a:pattern
-    endif
-  endfor
-endfunction
-
-call s:set_pattern(
-      \ g:deoplete#omni#input_patterns,
-      \ 'gitcommit', [g:deoplete#keyword_patterns.gitcommit])
 
 " snippets
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-es6
