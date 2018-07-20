@@ -63,6 +63,10 @@ call plug#end()
 let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python2/bin/python'
 let g:python3_host_prog = $HOME . '/.pyenv/versions/neovim-python3/bin/python'
 
+" Fix gutentags when commiting
+" https://github.com/ludovicchabant/vim-gutentags/issues/168
+autocmd BufRead,BufNewFile PULLREQ_EDITMSG let g:gutentags_enabled=0
+
 " yank and paste with the system clipboard
 set clipboard=unnamed
 " do not confuse crontab. see :help crontab
