@@ -264,3 +264,4 @@ set scrolloff=5
 nnoremap <Esc><Esc> :noh<CR><Esc>
 " use fzf
 nnoremap <leader>t :FZF<CR>
+set grepprg=rg\ --vimgrep
