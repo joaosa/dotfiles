@@ -42,8 +42,9 @@ export HISTSIZE=100000 SAVEHIST=100000 HISTFILE=~/.zhistory
 
 # tag-ag
 if (( $+commands[tag] )); then
+  export TAG_SEARCH_PROG=rg  # replace with rg for ripgrep
   tag() { command tag "$@"; source ${TAG_ALIAS_FILE:-/tmp/tag_aliases} 2>/dev/null }
-  alias ag=tag
+  alias rg=tag  # replace with rg for ripgrep
 fi
 
 # git
