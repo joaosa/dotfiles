@@ -74,6 +74,6 @@ export CORE_UTILS="$BREW_PREFIX/libexec/gnubin"
 
 # fuzzy matching
 # setting ag as the default source for fzf
-export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
+export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export PATH="/usr/local/opt/node@8/bin:$PATH"
