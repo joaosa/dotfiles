@@ -136,7 +136,7 @@ autocmd FileType vim set spell
 " check spelling on LaTex
 autocmd BufRead,BufNewFile *.tex set spell
 " check spelling on git commits
-autocmd BufRead,BufNewFile COMMIT_EDITMSG set spell
+autocmd BufRead,BufNewFile PULLREQ_EDITMSG,COMMIT_EDITMSG, set spell
 " http://vi.stackexchange.com/questions/68/autocorrect-spelling-mistakes
 " go back to last misspelled word and pick first suggestion
 " this corresponds to <A-l>
