@@ -56,9 +56,6 @@ alias gSp='git submodule foreach --recursive git checkout master && git submodul
 # move multiple files
 alias mmv='noglob zmv -W'
 
-# postgres
-export PG_DATA=/usr/local/var/postgres
-
 # Go
 export GOPATH="$HOME"
 export PATH="$PATH:${GOPATH//://bin:}/bin"
