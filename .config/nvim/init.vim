@@ -4,6 +4,8 @@ syntax enable
 " Plugins
 let mapleader=','
 
+let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
+
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
 Plug 'altercation/vim-colors-solarized'
@@ -29,6 +31,8 @@ Plug 'vim-scripts/SyntaxRange'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
 Plug 'zchee/deoplete-jedi'
+" fix installing certifi with the python3 host
+Plug 'zchee/deoplete-docker', { 'do': g:python3_host . '/pip install certifi' }
 " language syntax
 Plug 'kylef/apiblueprint.vim'
 Plug 'elixir-lang/vim-elixir'
@@ -61,7 +65,7 @@ call plug#end()
 
 " neovim python
 let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python2/bin/python'
-let g:python3_host_prog = $HOME . '/.pyenv/versions/neovim-python3/bin/python'
+let g:python3_host_prog = g:python3_host . '/python'
 
 " Fix gutentags when committing
 " https://github.com/ludovicchabant/vim-gutentags/issues/168
