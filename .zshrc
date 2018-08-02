@@ -64,11 +64,6 @@ export PATH="$PATH:${GOPATH//://bin:}/bin"
 eval "$(pyenv init -)"
 if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
 
-# homebrew
-BREW_PREFIX="/usr/local/opt"
-export FIND_UTILS="$BREW_PREFIX/findutils/bin"
-export CORE_UTILS="$BREW_PREFIX/libexec/gnubin"
-
 # fuzzy matching
 # setting ag as the default source for fzf
 export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
