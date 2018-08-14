@@ -33,6 +33,7 @@ zstyle ':prezto:load' pmodule \
   'gnu-utility' \
   'utility' \
   'completion' \
+  'docker' \
   'homebrew' \
   'osx' \
   'tmux' \
