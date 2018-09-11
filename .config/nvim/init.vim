@@ -170,7 +170,10 @@ autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine
 " checking
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_eslint_executable = 'eslint_d'
-let g:ale_linters = { 'javascript': ['eslint'] }
+let g:ale_linters = {
+      \'javascript': ['eslint'],
+      \'typescript': ['tslint', 'tsserver'],
+      \}
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
 
