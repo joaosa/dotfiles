@@ -25,7 +25,7 @@ Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
-Plug 'w0rp/ale', { 'do': 'npm install -g eslint_d babel-eslint eslint-config-airbnb eslint-plugin-jsx-a11y eslint-plugin-react eslint-plugin-import' }
+Plug 'w0rp/ale', { 'do': 'npm install -g eslint_d babel-eslint && npx install-peerdeps -g eslint-config-airbnb@16.1.0' }
 Plug 'vim-scripts/SyntaxRange'
 " autocompletion
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
