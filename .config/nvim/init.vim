@@ -164,8 +164,7 @@ let g:tern#command = ["tern"]
 let g:tern#arguments = ["--persistent"]
 
 " snippets
-autocmd FileType javascript UltiSnipsAddFiletypes javascript-es6
-autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine
+autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine-arrow
 
 " checking
 let g:ale_javascript_eslint_use_global = 1
