@@ -33,6 +33,7 @@ Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-te
 Plug 'zchee/deoplete-jedi'
 " fix installing certifi with the python3 host
 Plug 'zchee/deoplete-docker', { 'do': g:python3_host . '/pip install certifi' }
+Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
 " language syntax
 Plug 'kylef/apiblueprint.vim'
 Plug 'elixir-lang/vim-elixir'
@@ -40,6 +41,7 @@ Plug 'derekwyatt/vim-scala'
 Plug 'rust-lang/rust.vim'
 Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
+Plug 'ivy/vim-ginkgo'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'ludovicchabant/vim-gutentags'
 Plug 'ramitos/jsctags'
@@ -172,6 +174,17 @@ let g:ale_javascript_eslint_executable = 'eslint_d'
 let g:ale_linters = {
       \'javascript': ['eslint'],
       \'typescript': ['tslint', 'tsserver'],
+      \'go': ['gometalinter'],
+      \}
+let g:ale_go_gometalinter_options = '
+      \ --aggregate
+      \ --fast
+      \ --sort=line
+      \ --tests
+      \ '
+let g:ale_fix_on_save = 1
+let g:ale_fixers = {
+      \'go': ['gofmt']
       \}
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
