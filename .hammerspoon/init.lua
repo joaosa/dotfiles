@@ -118,19 +118,33 @@ for key, appName in pairs(appBindings) do
 end
 
 -----------------------------------------------
--- Insert current date
+-- Insert dates
 -----------------------------------------------
-function pasteDate(args)
+function pasteString(string)
   current = hs.pasteboard.getContents()
 
-  date = os.date("%Y/%m/%d")
-  hs.pasteboard.setContents(date)
+  hs.pasteboard.setContents(string)
   hs.eventtap.keyStrokes(hs.pasteboard.getContents())
 
   hs.pasteboard.setContents(current)
 end
+function pasteDate(dayDiff)
+  now = os.time()
+  diff = dayDiff * 24 * 60 * 60
+  date = now + diff
 
-hs.hotkey.bind(altCmd, ']', pasteDate)
+  format = "%Y/%m/%d"
+  formattedDate = os.date(format, date)
+  pasteString(formattedDate)
+end
+
+-- https://eastmanreference.com/complete-list-of-applescript-key-codes
+local keyCodes = {18, 19, 20, 21, 23, 22, 26, 28}
+for index, keyCode in ipairs(keyCodes) do
+  hs.hotkey.bind(altCmd, keyCode, function() pasteDate(index) end)
+end
+function pasteToday() pasteDate(0) end
+hs.hotkey.bind(altCmd, ']', pasteToday)
 
 -----------------------------------------------
 -- Change language
