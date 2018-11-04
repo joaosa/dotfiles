@@ -118,11 +118,6 @@ for key, appName in pairs(appBindings) do
 end
 
 -----------------------------------------------
--- Open/Focus Finder
------------------------------------------------
-hs.hotkey.bind(altCmd, 'n', function() os.execute('open ~') end)
-
------------------------------------------------
 -- Insert current date
 -----------------------------------------------
 function pasteDate(args)
