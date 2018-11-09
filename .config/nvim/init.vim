@@ -184,7 +184,7 @@ let g:ale_go_gometalinter_options = '
       \ '
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
-      \'go': ['gofmt']
+      \'go': ['gofmt', 'goimports']
       \}
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
