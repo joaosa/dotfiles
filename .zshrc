@@ -57,7 +57,7 @@ alias gSp='git submodule foreach --recursive git checkout master && git submodul
 alias mmv='noglob zmv -W'
 
 # Go
-export GOPATH="$HOME"
+export GOPATH="$HOME/.go"
 export PATH="$PATH:${GOPATH//://bin:}/bin"
 
 # python
