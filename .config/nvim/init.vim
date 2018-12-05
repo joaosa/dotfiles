@@ -73,7 +73,7 @@ let g:python3_host_prog = g:python3_host . '/python'
 " Fix gutentags when committing
 " https://github.com/ludovicchabant/vim-gutentags/issues/168
 autocmd BufRead,BufNewFile PULLREQ_EDITMSG let g:gutentags_enabled=0
-autocmd FileType gitcommit,diff let g:gutentags_enabled=0
+autocmd FileType gitcommit,gitrebase,diff let g:gutentags_enabled=0
 
 " yank and paste with the system clipboard
 set clipboard=unnamed
