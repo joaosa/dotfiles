@@ -136,6 +136,22 @@ inoremap <down> <nop>
 inoremap <left> <nop>
 inoremap <right> <nop>
 
+" Undo
+" keep undo history across sessions by storing it in a file
+" ref - https://stackoverflow.com/questions/5700389/using-vims-persistent-undo
+let configDir = '~/.config/nvim'
+if has('persistent_undo')
+    let undoDirPath = expand(configDir . '/undo')
+
+    " create dirs
+    call system('mkdir ' . configDir)
+    call system('mkdir ' . undoDirPath)
+
+    " maintain undo history between sessions
+    let &undodir = undoDirPath
+    set undofile
+endif
+
 " Spelling
 " check spelling on markdown
 autocmd BufRead,BufNewFile *.md set filetype=markdown
