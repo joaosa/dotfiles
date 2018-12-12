@@ -4,6 +4,7 @@ syntax enable
 " Plugins
 let mapleader=','
 
+let g:python2_host = $HOME . '/.pyenv/versions/neovim-python2/bin'
 let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
 
 " configure plug
@@ -49,7 +50,7 @@ Plug 'majutsushi/tagbar'
 Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
 Plug 'tpope/vim-commentary'
-Plug 'neilagabriel/vim-geeknote'
+Plug 'neilagabriel/vim-geeknote', { 'do': g:python2_host . '/pip install git+https://github.com/jeffkowalski/geeknote' }
 Plug 'lervag/vimtex'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
