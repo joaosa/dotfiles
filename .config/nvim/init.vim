@@ -20,6 +20,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'airblade/vim-gitgutter'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'takac/vim-hardtime'
+Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'luochen1990/rainbow', { 'for': ['clojure', 'lisp'] }
 Plug 'jiangmiao/auto-pairs'
 Plug 'wincent/ferret'
@@ -89,8 +90,6 @@ set list
 set listchars=tab:▸\ ,trail:▫
 " show line numbers
 set number
-" enable vim hybrid mode
-set relativenumber
 " show where you are
 set ruler
 " show typed commands
