@@ -40,6 +40,12 @@ alias c='git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 # history
 export HISTSIZE=100000 SAVEHIST=100000 HISTFILE=~/.zhistory
 
+# xkcd
+# ref - https://www.commandlinefu.com/commands/view/4167/view-the-newest-xkcd-comic
+xkcd() {
+  wget -qO- http://xkcd.com/ | gtee >(feh $(rg -o 'https://imgs[^/]+/comics/[^"]+\.\w{3}' | cut -f1,2 -d:) &) >(rg -Po '(?<=(\w{3})" title=").*(?=" alt)' | cut -f1,2 -d:) 1>/dev/null
+}
+
 # tag-ag
 if (( $+commands[tag] )); then
   export TAG_SEARCH_PROG=rg  # replace with rg for ripgrep
