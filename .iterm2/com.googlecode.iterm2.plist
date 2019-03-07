@@ -80,7 +80,7 @@
 	<key>NSWindow Frame SessionsPreferences</key>
 	<string>269 126 606 469 0 0 1440 900 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>248 480 928 394 0 0 1440 900 </string>
+	<string>248 422 918 452 0 0 1440 900 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
 	<string>0 0 1440 900 0 0 1440 900 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
@@ -254,13 +254,13 @@
 				<key>Alpha Component</key>
 				<real>0.5</real>
 				<key>Blue Component</key>
-				<real>0.0</real>
+				<integer>0</integer>
 				<key>Color Space</key>
 				<string>sRGB</string>
 				<key>Green Component</key>
 				<real>0.1491314172744751</real>
 				<key>Red Component</key>
-				<real>1</real>
+				<integer>1</integer>
 			</dict>
 			<key>Blinking Cursor</key>
 			<false/>
@@ -301,7 +301,7 @@
 				<key>Alpha Component</key>
 				<real>0.25</real>
 				<key>Blue Component</key>
-				<real>1</real>
+				<integer>1</integer>
 				<key>Color Space</key>
 				<string>sRGB</string>
 				<key>Green Component</key>
@@ -644,7 +644,7 @@
 			<key>Link Color</key>
 			<dict>
 				<key>Alpha Component</key>
-				<real>1</real>
+				<integer>1</integer>
 				<key>Blue Component</key>
 				<real>0.73423302173614502</real>
 				<key>Color Space</key>
@@ -652,7 +652,7 @@
 				<key>Green Component</key>
 				<real>0.35916060209274292</real>
 				<key>Red Component</key>
-				<real>0.0</real>
+				<integer>0</integer>
 			</dict>
 			<key>Minimum Contrast</key>
 			<real>0.368300039556962</real>
@@ -713,7 +713,7 @@
 			<key>Terminal Type</key>
 			<string>xterm-256color</string>
 			<key>Transparency</key>
-			<real>0.0</real>
+			<real>0.060022752530561996</real>
 			<key>Unlimited Scrollback</key>
 			<false/>
 			<key>Use Bold Font</key>
@@ -1464,7 +1464,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2018-11-27T11:11:08Z</date>
+	<date>2019-01-24T14:38:25Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>ShowFullScreenTabBar</key>
@@ -1474,6 +1474,6 @@
 	<key>findMode_iTerm</key>
 	<integer>0</integer>
 	<key>iTerm Version</key>
-	<string>3.2.5</string>
+	<string>3.2.6</string>
 </dict>
 </plist>
