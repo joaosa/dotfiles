@@ -33,6 +33,8 @@ Plug 'vim-scripts/SyntaxRange'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
 Plug 'zchee/deoplete-jedi'
+Plug 'hashivim/vim-terraform'
+Plug 'juliosueiras/vim-terraform-completion'
 " fix installing certifi with the python3 host
 Plug 'zchee/deoplete-docker', { 'do': g:python3_host . '/pip install certifi' }
 Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
@@ -170,16 +172,22 @@ nnoremap ¬ <C-g>u<Esc>[s1z=`]a<C-g>u
 nnoremap ˚ <Esc>[sve<C-g>
 
 " Syntax
-" Use deoplete.
+" deoplete
 let g:deoplete#enable_at_startup = 1
 let g:deoplete#sources = {}
 let g:deoplete#keyword_patterns = {}
 let g:deoplete#omni#input_patterns = {}
 
 let g:deoplete#sources['javascript'] = ['file', 'ultisnips', 'ternjs']
-" Use tern_for_vim.
+" tern_for_vim.
 let g:tern#command = ["tern"]
 let g:tern#arguments = ["--persistent"]
+" terraform
+call deoplete#custom#option('omni_patterns', {
+\ 'complete_method': 'omnifunc',
+\})
+let g:terraform_fmt_on_save=1
+call deoplete#initialize()
 
 " snippets
 autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine-arrow
