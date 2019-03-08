@@ -121,10 +121,6 @@ let g:detectindent_preferred_indent = 2
 nnoremap <leader><space> :%s/\s\+$//<CR>
 " use vim indent guides
 let g:indent_guides_enable_on_vim_startup=1
-" fix the colors on 256 colors terminals
-let g:indent_guides_auto_colors=0
-highlight IndentGuidesOdd ctermbg=234
-highlight IndentGuidesEven ctermbg=235
 " indent SQL
 set formatprg=~/Repos/pgFormatter/pg_format\ -s\ 2\ -p\ '(\\$\|{\|})'\ -
 
