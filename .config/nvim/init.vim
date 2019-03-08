@@ -9,7 +9,7 @@ let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
 
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
-Plug 'altercation/vim-colors-solarized'
+Plug 'lifepillar/vim-solarized8'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'junegunn/goyo.vim'
@@ -29,7 +29,7 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'w0rp/ale', { 'do': 'npm install -g eslint_d babel-eslint && npx install-peerdeps -g eslint-config-airbnb@16.1.0' }
 Plug 'vim-scripts/SyntaxRange'
-" autocompletion
+" auto-completion
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
 Plug 'zchee/deoplete-jedi'
@@ -96,12 +96,15 @@ set number
 set ruler
 " show typed commands
 set showcmd
-" set colorscheme
+" color theme
+set termguicolors
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 set background=dark
-colorscheme solarized
+colorscheme solarized8
 " have transparent background (if needed)
-highlight Normal ctermbg=none
-" rainbow paranthesis
+" highlight Normal ctermbg=none
+" rainbow parenthesis
 let g:rainbow_active=1
 " refer to files from the vcs root
 let g:startify_change_to_vcs_root=1
