@@ -18,6 +18,8 @@
 	<string>manual</string>
 	<key>Default Bookmark Guid</key>
 	<string>DA59EEED-F1BA-40F8-AFD9-321FC46C7F68</string>
+	<key>DimOnlyText</key>
+	<false/>
 	<key>HideMenuBarInFullscreen</key>
 	<true/>
 	<key>HideTab</key>
@@ -80,7 +82,7 @@
 	<key>NSWindow Frame SessionsPreferences</key>
 	<string>269 126 606 469 0 0 1440 900 </string>
 	<key>NSWindow Frame SharedPreferences</key>
-	<string>247 370 796 486 0 0 1440 900 </string>
+	<string>247 392 796 486 0 0 1440 900 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
 	<string>0 496 1440 404 0 0 1440 900 </string>
 	<key>NSWindow Frame iTerm Window 1</key>
@@ -90,6 +92,8 @@
 		<dict>
 			<key>ASCII Anti Aliased</key>
 			<true/>
+			<key>ASCII Ligatures</key>
+			<false/>
 			<key>Ambiguous Double Width</key>
 			<false/>
 			<key>Ansi 0 Color</key>
@@ -718,6 +722,8 @@
 			<string>SauceCodeProNerdFontComplete-Light 12</string>
 			<key>Option Key Sends</key>
 			<integer>0</integer>
+			<key>Place Prompt at First Column</key>
+			<false/>
 			<key>Prompt Before Closing 2</key>
 			<false/>
 			<key>Right Option Key Sends</key>
@@ -754,6 +760,8 @@
 			<false/>
 			<key>Shortcut</key>
 			<string></string>
+			<key>Show Mark Indicators</key>
+			<false/>
 			<key>Silence Bell</key>
 			<true/>
 			<key>Space</key>
@@ -770,6 +778,8 @@
 			<integer>4</integer>
 			<key>Transparency</key>
 			<real>0.03287198604060914</real>
+			<key>Unicode Version</key>
+			<integer>9</integer>
 			<key>Unlimited Scrollback</key>
 			<false/>
 			<key>Use Bold Font</key>
@@ -1434,6 +1444,8 @@
 			<string>SauceCodeProNerdFontComplete-Light 12</string>
 			<key>Option Key Sends</key>
 			<integer>0</integer>
+			<key>Place Prompt at First Column</key>
+			<false/>
 			<key>Prompt Before Closing 2</key>
 			<false/>
 			<key>Right Option Key Sends</key>
@@ -1470,6 +1482,8 @@
 			<false/>
 			<key>Shortcut</key>
 			<string></string>
+			<key>Show Mark Indicators</key>
+			<false/>
 			<key>Silence Bell</key>
 			<true/>
 			<key>Space</key>
@@ -1510,6 +1524,10 @@
 	<true/>
 	<key>NoSyncInstallationId</key>
 	<string>6D34BA1B-5137-4609-80E8-AFFE812CAE7B</string>
+	<key>NoSyncNeverRemindPrefsChangesLostForFile</key>
+	<true/>
+	<key>NoSyncNeverRemindPrefsChangesLostForFile_selection</key>
+	<integer>0</integer>
 	<key>NoSyncPermissionToShowTip</key>
 	<false/>
 	<key>NoSyncTimeOfFirstLaunchOfVersionWithTip</key>
@@ -1518,6 +1536,8 @@
 	<false/>
 	<key>OpenNoWindowsAtStartup</key>
 	<false/>
+	<key>OpenTmuxWindowsIn</key>
+	<integer>0</integer>
 	<key>PMPrintingExpandedStateForPrint2</key>
 	<false/>
 	<key>PasteTabToStringTabStopSize</key>
@@ -1559,6 +1579,8 @@
 	<string>/Users/joao-sousa-andrade/.iterm2</string>
 	<key>Print In Black And White</key>
 	<true/>
+	<key>RetinaInlineImages</key>
+	<true/>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedAlternateAppNameKey</key>
@@ -1568,10 +1590,12 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2019-03-06T13:46:56Z</date>
+	<date>2019-03-08T22:42:31Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>ShowFullScreenTabBar</key>
+	<false/>
+	<key>SmartPlacement</key>
 	<false/>
 	<key>WordCharacters</key>
 	<string>/-+\~_.</string>
