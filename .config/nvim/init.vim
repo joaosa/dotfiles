@@ -35,6 +35,7 @@ Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-te
 Plug 'zchee/deoplete-jedi'
 Plug 'hashivim/vim-terraform'
 Plug 'juliosueiras/vim-terraform-completion'
+Plug 'rodjek/vim-puppet', { 'do': 'gem install puppet-lint' }
 " fix installing certifi with the python3 host
 Plug 'zchee/deoplete-docker', { 'do': g:python3_host . '/pip install certifi' }
 Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
@@ -198,6 +199,7 @@ let g:ale_linters = {
       \'javascript': ['eslint'],
       \'typescript': ['tslint', 'tsserver'],
       \'go': ['gometalinter'],
+      \'puppet': ['puppetlint'],
       \}
 let g:ale_go_gometalinter_options = '
       \ --aggregate
@@ -207,7 +209,8 @@ let g:ale_go_gometalinter_options = '
       \ '
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
-      \'go': ['gofmt', 'goimports']
+      \'go': ['gofmt', 'goimports'],
+      \'puppet': ['puppetlint'],
       \}
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
