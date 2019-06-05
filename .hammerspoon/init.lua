@@ -105,7 +105,7 @@ end
 -----------------------------------------------
 local appBindings = {
   e = 'Evernote',
-  w = 'Google Chrome Canary',
+  w = 'Firefox Developer Edition',
   i = 'Slack',
   q = 'iTerm',
   l = 'Spotify'
