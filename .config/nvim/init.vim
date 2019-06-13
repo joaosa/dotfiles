@@ -37,7 +37,7 @@ Plug 'hashivim/vim-terraform'
 Plug 'juliosueiras/vim-terraform-completion'
 Plug 'rodjek/vim-puppet', { 'do': 'gem install puppet-lint' }
 " fix installing certifi with the python3 host
-Plug 'zchee/deoplete-docker', { 'do': g:python3_host . '/pip install certifi' }
+Plug 'zchee/deoplete-docker'
 Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
 " language syntax
 Plug 'kylef/apiblueprint.vim'
