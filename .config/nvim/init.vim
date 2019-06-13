@@ -257,7 +257,7 @@ endfunction
 let g:tmuxline_theme = 'lightline'
 
 " vim test
-let test#strategy = 'dispatch'
+let test#strategy = 'neovim'
 nmap <silent> <localleader>t :TestNearest<CR>
 nmap <silent> <localleader>T :TestFile<CR>
 nmap <silent> <localleader>a :TestSuite<CR>
