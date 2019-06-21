@@ -59,6 +59,13 @@ alias gcod="git branch | grep dev | cut -f2 -d' ' | xargs git checkout"
 alias gbpm='git branch --merged | grep -v "\*" | grep -v develop | grep -v master | xargs -n 1 git branch -d'
 alias gSp='git submodule foreach --recursive git checkout master && git submodule foreach --recursive git pull origin master'
 
+# docker AWS login
+docker-aws-login() {
+  AWS_REGION="$1"
+  ECR_REPO="$(aws ecr get-authorization-token --region "$AWS_REGION" --output text --query 'authorizationData[].proxyEndpoint')"
+  aws ecr get-login --no-include-email --region "$AWS_REGION" | awk '{print $6}' | docker login -u AWS --password-stdin "$ECR_REPO"
+}
+
 # move multiple files
 alias mmv='noglob zmv -W'
 
