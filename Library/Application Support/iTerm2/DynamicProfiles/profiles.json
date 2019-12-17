@@ -311,7 +311,7 @@
         "Red Component" : "1",
         "Blue Component" : "1"
       },
-      "Transparency" : 0.1284971338757397,
+      "Transparency" : 0.05,
       "Ansi 1 Color" : {
         "Green Component" : "0",
         "Red Component" : "0.8",
@@ -701,7 +701,7 @@
         "Red Component" : "0.02352941",
         "Blue Component" : "0.6039215999999999"
       },
-      "Transparency" : 0.1693324704142012,
+      "Transparency" : 0.1,
       "Background Color" : {
         "Green Component" : "0",
         "Red Component" : "0",
