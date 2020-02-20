@@ -7,6 +7,20 @@ let mapleader=','
 let g:python2_host = $HOME . '/.pyenv/versions/neovim-python2/bin'
 let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
 
+function! InstallDeopleteDeps(info)
+  if a:info.status == 'installed' || a:info.force
+    execute "!" . g:python3_host . "/pip install 'msgpack>=1.0.0'"
+    :UpdateRemotePlugins
+  endif
+endfunction
+
+function! InstallAleTools(info)
+  if a:info.status == 'installed' || a:info.force
+    !npm install -g eslint_d
+    !npx install-peerdeps -g eslint-config-airbnb@16.1.0
+  endif
+endfunction
+
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
 Plug 'lifepillar/vim-solarized8'
@@ -27,10 +41,10 @@ Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
-Plug 'w0rp/ale', { 'do': 'npm install -g eslint_d babel-eslint && npx install-peerdeps -g eslint-config-airbnb@16.1.0' }
+Plug 'dense-analysis/ale', { 'do': function('InstallAleTools') }
 Plug 'vim-scripts/SyntaxRange'
 " auto-completion
-Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'Shougo/deoplete.nvim', { 'do': function('InstallDeopleteDeps') }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
 Plug 'zchee/deoplete-jedi'
 Plug 'hashivim/vim-terraform'
