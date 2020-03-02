@@ -57,6 +57,7 @@ Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'
 Plug 'kylef/apiblueprint.vim'
 Plug 'elixir-lang/vim-elixir'
 Plug 'derekwyatt/vim-scala'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
 Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
