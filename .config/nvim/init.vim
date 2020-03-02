@@ -290,7 +290,7 @@ nnoremap <leader>gwd :Gdiff<CR>
 nnoremap <leader>gco :Gread<CR>
 nnoremap <leader>gia :Gwrite<CR>
 nnoremap <leader>gcm :Gcommit<CR>
-nnoremap <leader>gfm :exec ':Gpull origin ' . fugitive#head()<CR>
+nnoremap <leader>gfm :exec ':Gpull origin ' . fugitive#head() . ' --rebase --autostash'<CR>
 nnoremap <leader>gp :exec ':Gpush origin ' . fugitive#head() . ' -u'<CR>
 nnoremap <leader>gb :Gblame<CR>
 " have fugitive status patch y/n work normally
