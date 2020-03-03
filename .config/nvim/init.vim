@@ -23,7 +23,7 @@ endfunction
 
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
-Plug 'lifepillar/vim-solarized8'
+Plug 'morhetz/gruvbox'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'junegunn/goyo.vim'
@@ -116,8 +116,7 @@ set showcmd
 set termguicolors
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-set background=dark
-colorscheme solarized8
+colorscheme gruvbox
 " have transparent background (if needed)
 " highlight Normal ctermbg=none
 " rainbow parenthesis
@@ -233,7 +232,7 @@ noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<C
 " set the status line
 " component_visible_condition - so that fugitive's arrow doesn't appear all the time
 let g:lightline = {
-      \ 'colorscheme': 'solarized',
+      \ 'colorscheme': 'gruvbox',
       \ 'active': {
       \ 'left': [ ['mode', 'paste'],
       \ [ 'fugitive', 'readonly', 'filename', 'modified' ] ]
