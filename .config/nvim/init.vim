@@ -16,8 +16,8 @@ endfunction
 
 function! InstallAleTools(info)
   if a:info.status == 'installed' || a:info.force
-    !npm install -g eslint_d
-    !npx install-peerdeps -g eslint-config-airbnb@16.1.0
+    !npm install -g eslint_d@7
+    !npx install-peerdeps -g eslint-config-airbnb@17.1.1
   endif
 endfunction
 
