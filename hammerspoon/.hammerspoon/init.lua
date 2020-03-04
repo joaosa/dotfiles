@@ -119,7 +119,7 @@ end
 -- Insert dates
 -----------------------------------------------
 function pasteString(string)
-  current = hs.pasteboard.getContents()
+  local current = hs.pasteboard.getContents()
 
   hs.pasteboard.setContents(string)
   hs.eventtap.keyStrokes(hs.pasteboard.getContents())
