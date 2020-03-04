@@ -143,30 +143,3 @@ for index, keyCode in ipairs(keyCodes) do
 end
 function pasteToday() pasteDate(0) end
 hs.hotkey.bind(altCmd, ']', pasteToday)
-
------------------------------------------------
--- Change language
--- http://stackoverflow.com/a/23741934
------------------------------------------------
-local getLanguage = hs.fnutils.cycle({
-  'U.S.',
-  'Portuguese'
-})
-
-hs.hotkey.bind(hyper, "space", function()
-  script = [[
-  set theInputSource to "%s"
-  tell application "System Events" to tell process "SystemUIServer"
-    click (menu bar item 1 of menu bar 1 whose description is "text input")
-    click menu item theInputSource of menu 1 of result
-  end tell
-  ]]
-
-  local language = getLanguage()
-  -- local handle = io.popen([[
-  -- defaults read ~/Library/Preferences/com.apple.HIToolbox.plist AppleSelectedInputHistory | egrep -w 'KeyboardLayout Name'
-  -- ]])
-  -- local language = handle:read('*a')
-  -- hs.alert(tostring(language))
-  hs.applescript.applescript(script:format(language))
-end)
