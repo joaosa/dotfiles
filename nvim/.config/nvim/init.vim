@@ -93,6 +93,13 @@ call plug#end()
 let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python2/bin/python'
 let g:python3_host_prog = g:python3_host . '/python'
 
+" setup netrw
+" ref - https://shapeshed.com/vim-netrw/
+let g:netrw_banner = 0
+let g:netrw_liststyle = 3
+let g:netrw_winsize = 25
+nnoremap <leader>d :Lexplore<CR>
+
 " let's not conflict with ferret
 let g:lt_location_list_toggle_map = '<leader>w'
 
