@@ -16,7 +16,7 @@ endfunction
 
 function! InstallAleTools(info)
   if a:info.status == 'installed' || a:info.force
-    !npm install -g eslint_d@7
+    !npm install -g eslint_d@7 babel-eslint
     !npx install-peerdeps -g eslint-config-airbnb@16.1.0
   endif
 endfunction
@@ -51,9 +51,10 @@ Plug 'hashivim/vim-terraform'
 Plug 'juliosueiras/vim-terraform-completion'
 Plug 'rodjek/vim-puppet', { 'do': 'gem install puppet-lint' }
 " fix installing certifi with the python3 host
-Plug 'zchee/deoplete-docker'
+" Plug 'zchee/deoplete-docker'
 Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
 " language syntax
+Plug 'dbeniamine/cheat.sh-vim'
 Plug 'kylef/apiblueprint.vim'
 Plug 'elixir-lang/vim-elixir'
 Plug 'derekwyatt/vim-scala'
@@ -68,6 +69,7 @@ Plug 'ramitos/jsctags'
 Plug 'majutsushi/tagbar'
 Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
+Plug 'wellle/targets.vim'
 Plug 'tpope/vim-commentary'
 Plug 'neilagabriel/vim-geeknote', { 'do': g:python2_host . '/pip install git+https://github.com/jeffkowalski/geeknote' }
 Plug 'lervag/vimtex'
@@ -223,6 +225,7 @@ let g:ale_go_gometalinter_options = '
       \ '
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
+      \'javascript': ['eslint'],
       \'go': ['gofmt', 'goimports'],
       \'puppet': ['puppetlint'],
       \}
