@@ -14,14 +14,14 @@ hs.alert.show('Config loaded')
 -----------------------------------------------
 -- hyper + x key for window resizing
 -----------------------------------------------
-function resizeWindow(fn)
+function resizeWindow(windowGetter, transform)
   return function()
-    local window = hs.window.focusedWindow()
+    local window = windowGetter()
     local frame = window:frame()
     local screen = window:screen()
     local max = screen:frame()
 
-    local changes = fn(max)
+    local changes = transform(max)
     frame.x = changes.x
     frame.y = changes.y
     frame.w = changes.w
@@ -52,6 +52,9 @@ local position = {
   end,
   leftHalf = function(max)
     return { x = max.x, y = max.y, w = max.w / 2, h = max.h }
+  end,
+  guake = function(max)
+    return { x = 0, y = 0, w = max.w, h = max.h / 2.2 }
   end
 }
 
@@ -66,7 +69,7 @@ local windowPositionBindings = {
 }
 
 for key, position in pairs(windowPositionBindings) do
-  hs.hotkey.bind(hyper, key, resizeWindow(position))
+  hs.hotkey.bind(hyper, key, resizeWindow(hs.window.focusedWindow, position))
 end
 
 -----------------------------------------------
