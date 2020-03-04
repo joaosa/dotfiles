@@ -34,9 +34,6 @@ bindkey -M viins "$terminfo[kcuf1]" noop
 alias vi=nvim
 alias vim=nvim
 
-# dotfiles
-alias c='git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
-
 # history
 export HISTSIZE=100000 SAVEHIST=100000 HISTFILE=~/.zhistory
 
