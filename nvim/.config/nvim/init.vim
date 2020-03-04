@@ -24,6 +24,7 @@ endfunction
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
 Plug 'morhetz/gruvbox'
+Plug 'Valloric/ListToggle'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'junegunn/goyo.vim'
@@ -91,6 +92,9 @@ call plug#end()
 " neovim python
 let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python2/bin/python'
 let g:python3_host_prog = g:python3_host . '/python'
+
+" let's not conflict with ferret
+let g:lt_location_list_toggle_map = '<leader>w'
 
 " Fix gutentags when committing
 " https://github.com/ludovicchabant/vim-gutentags/issues/168
