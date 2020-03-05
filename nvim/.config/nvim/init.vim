@@ -289,9 +289,8 @@ let g:tmuxline_preset = {
       \'a'    : ['#(whoami)'],
       \'win'  : ['#I', '#W'],
       \'cwin' : ['#I', '#W'],
-      \'x'    : ['%Y-%m-%d', '%R'],
-      \'y'    : '#{?pane_synchronized,#[fg=white bold],#[fg=white dim]}SYNC',
-      \'z'    : ['#(rainbarf --tmux --battery --remaining --width 20)'],
+      \'y'    : ['%Y-%m-%d', '%R', '#{?pane_synchronized,#[bold],#[dim]}SYNC'],
+      \'z'    : '#[bold]#(rainbarf --tmux --battery --remaining --width 20)',
       \'options' : {'status-justify': 'left'}}
 let g:tmuxline_separators = {
       \ 'left' : '',
