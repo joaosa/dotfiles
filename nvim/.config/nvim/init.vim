@@ -282,15 +282,22 @@ function! LightlineFilename()
   endif
   return expand('%')
 endfunction
-let g:tmuxline_theme = 'lightline'
 
 " tmuxline
+let g:tmuxline_theme = 'lightline'
 let g:tmuxline_preset = {
       \'a'    : ['#(whoami)'],
       \'win'  : ['#I', '#W'],
       \'cwin' : ['#I', '#W'],
-      \'y'    : ['%Y-%m-%d', '%R', '#{?pane_synchronized,#[bold],#[dim]}SYNC'],
-      \'z'    : '#[bold]#(rainbarf --tmux --battery --remaining --width 20)',
+      \'y'    : [
+        \'%Y-%m-%d',
+        \'%R',
+        \'#{?pane_synchronized,#[bold],#[dim]}SYNC',
+        \'#{online_status}',
+      \],
+      \'z'    : [
+        \'#[bold]#(rainbarf --tmux --battery --remaining --width 20)'
+      \],
       \'options' : {'status-justify': 'left'}}
 let g:tmuxline_separators = {
       \ 'left' : '',
