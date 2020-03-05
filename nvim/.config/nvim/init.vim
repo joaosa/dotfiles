@@ -315,6 +315,22 @@ let g:tmuxline_separators = {
 \}
 let g:tmuxline_theme = 'lightline'
 
+" tmuxline
+let g:tmuxline_preset = {
+      \'a'    : ['#(whoami)'],
+      \'win'  : ['#I', '#W'],
+      \'cwin' : ['#I', '#W'],
+      \'x'    : ['%Y-%m-%d', '%R'],
+      \'y'    : '#{?pane_synchronized,#[fg=white bold],#[fg=white dim]}SYNC',
+      \'z'    : ['#(rainbarf --tmux --battery --remaining --width 20)'],
+      \'options' : {'status-justify': 'left'}}
+let g:tmuxline_separators = {
+      \ 'left' : '',
+      \ 'left_alt': '',
+      \ 'right' : '',
+      \ 'right_alt' : '',
+      \ 'space' : ' '}
+
 " vim test
 " ref - https://github.com/janko/vim-test#strategies
 let test#strategy = 'neovim'
