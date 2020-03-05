@@ -280,7 +280,7 @@ function! MyFileformat()
   return winwidth(0) > 70 ? (&fileformat . ' ' . WebDevIconsGetFileFormatSymbol()) : ''
 endfunction
 
-" https://github.com/itchyny/lightline.vim/issues/293#issuecomment-373710096
+" ref - https://github.com/itchyny/lightline.vim/issues/293#issuecomment-373710096
 function! LightlineFilename()
   let root = fnamemodify(get(b:, 'git_dir'), ':h')
   let path = expand('%:p')
@@ -291,27 +291,29 @@ function! LightlineFilename()
 endfunction
 
 " tmuxline
-let g:tmuxline_theme = 'lightline'
 let g:tmuxline_preset = {
-      \'a'    : ['#(whoami)'],
-      \'win'  : ['#I', '#W'],
-      \'cwin' : ['#I', '#W'],
-      \'y'    : [
-        \'%Y-%m-%d',
-        \'%R',
-        \'#{?pane_synchronized,#[bold],#[dim]}SYNC',
-        \'#{online_status}',
-      \],
-      \'z'    : [
-        \'#[bold]#(rainbarf --tmux --battery --remaining --width 20)'
-      \],
-      \'options' : {'status-justify': 'left'}}
+  \'a'    : ['#(whoami)'],
+  \'win'  : ['#I', '#W'],
+  \'cwin' : ['#I', '#W'],
+  \'y'    : [
+    \'%Y-%m-%d',
+    \'%R',
+    \'#{?pane_synchronized,#[bold],#[dim]}SYNC',
+    \'#{online_status}',
+  \],
+  \'z'    : [
+    \'#[bold]#(rainbarf --tmux --battery --remaining --width 20)'
+  \],
+  \'options' : {'status-justify': 'left'},
+\}
 let g:tmuxline_separators = {
-      \ 'left' : '',
-      \ 'left_alt': '',
-      \ 'right' : '',
-      \ 'right_alt' : '',
-      \ 'space' : ' '}
+  \ 'left' : '',
+  \ 'left_alt': '',
+  \ 'right' : '',
+  \ 'right_alt' : '',
+  \ 'space' : ' ',
+\}
+let g:tmuxline_theme = 'lightline'
 
 " vim test
 " ref - https://github.com/janko/vim-test#strategies
@@ -337,6 +339,9 @@ nnoremap <leader>gfm :exec ':Gpull origin ' . fugitive#head() . ' --rebase --aut
 nnoremap <leader>gp :exec ':Gpush origin ' . fugitive#head() . ' -u'<CR>
 nnoremap <leader>gb :Gblame<CR>
 nnoremap <leader>gl :Glog<CR>
+nnoremap <leader>gs :Git Stash<CR>
+nnoremap <leader>gsp :Git Stash pop<CR>
+nnoremap <leader>gsd :Git Stash drop<CR>
 " have fugitive status patch y/n work normally
 augroup nvim_term
   au!
