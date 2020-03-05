@@ -1,6 +1,9 @@
 " enable syntax highlighting
 syntax enable
 
+" reload nvimrc
+noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
+
 " Plugins
 let mapleader=','
 
@@ -236,30 +239,31 @@ let g:ale_go_gometalinter_options = '
       \ '
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
-      \'javascript': ['eslint'],
-      \'go': ['gofmt', 'goimports'],
-      \'puppet': ['puppetlint'],
-      \}
-" reload nvimrc
-noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
+  \'javascript': ['eslint'],
+  \'go': ['gofmt', 'goimports'],
+  \'puppet': ['puppetlint'],
+\}
 
 " set the status line
 " component_visible_condition - so that fugitive's arrow doesn't appear all the time
 let g:lightline = {
-      \ 'colorscheme': 'gruvbox',
-      \ 'active': {
-      \ 'left': [ ['mode', 'paste'],
-      \ [ 'fugitive', 'readonly', 'filename', 'modified' ] ]
-      \ },
-      \ 'component_function': {
-      \   'filename': 'LightlineFilename',
-      \   'fugitive': 'MyFugitive',
-      \   'filetype': 'MyFiletype',
-      \   'fileformat': 'MyFileformat'
-      \ },
-      \ 'separator': { 'left': '', 'right': '' },
-      \ 'subseparator': { 'left': '', 'right': '' }
-      \ }
+  \'colorscheme': 'gruvbox',
+  \'active': {
+  \'left': [
+    \['mode', 'paste'],
+    \['fugitive', 'readonly', 'filename', 'modified'],
+  \]
+  \},
+  \'component_function': {
+    \'filename': 'LightlineFilename',
+    \'fugitive': 'MyFugitive',
+    \'filetype': 'MyFiletype',
+    \'fileformat': 'MyFileformat',
+  \},
+  \'separator': { 'left': '', 'right': '' },
+  \'subseparator': { 'left': '', 'right': '' },
+\}
+
 function! MyFugitive()
   if exists('*fugitive#head')
     let _ = fugitive#head()
@@ -267,12 +271,15 @@ function! MyFugitive()
   endif
   return ''
 endfunction
+
 function! MyFiletype()
   return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''
 endfunction
+
 function! MyFileformat()
   return winwidth(0) > 70 ? (&fileformat . ' ' . WebDevIconsGetFileFormatSymbol()) : ''
 endfunction
+
 " https://github.com/itchyny/lightline.vim/issues/293#issuecomment-373710096
 function! LightlineFilename()
   let root = fnamemodify(get(b:, 'git_dir'), ':h')
