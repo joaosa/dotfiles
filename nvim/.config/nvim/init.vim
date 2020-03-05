@@ -336,6 +336,7 @@ nnoremap <leader>gcm :Gcommit<CR>
 nnoremap <leader>gfm :exec ':Gpull origin ' . fugitive#head() . ' --rebase --autostash'<CR>
 nnoremap <leader>gp :exec ':Gpush origin ' . fugitive#head() . ' -u'<CR>
 nnoremap <leader>gb :Gblame<CR>
+nnoremap <leader>gl :Glog<CR>
 " have fugitive status patch y/n work normally
 augroup nvim_term
   au!
