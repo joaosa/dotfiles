@@ -343,12 +343,6 @@ nnoremap <leader>gl :Glog<CR>
 nnoremap <leader>gs :Git Stash<CR>
 nnoremap <leader>gsp :Git Stash pop<CR>
 nnoremap <leader>gsd :Git Stash drop<CR>
-" have fugitive status patch y/n work normally
-augroup nvim_term
-  au!
-  au TermOpen * startinsert
-  au TermClose * stopinsert
-augroup END
 
 " preview markdown with livedown
 autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
