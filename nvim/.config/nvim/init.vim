@@ -223,6 +223,7 @@ autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine-arrow
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_eslint_executable = 'eslint_d'
 let g:ale_linters = {
+      \'vim': ['vint'],
       \'javascript': ['eslint'],
       \'typescript': ['tslint', 'tsserver'],
       \'go': ['gometalinter'],
