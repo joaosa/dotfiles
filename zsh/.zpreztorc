@@ -105,7 +105,6 @@ zstyle ':prezto:module:gnu-utility' prefix 'g'
 # Setting it to 'random' loads a random theme.
 # Auto set to 'off' on dumb terminals.
 zstyle ':prezto:module:prompt' theme 'sorin'
-# zstyle ':prezto:module:prompt' theme 'agnoster'
 
 #
 # Ruby

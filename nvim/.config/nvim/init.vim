@@ -1,9 +1,6 @@
 " enable syntax highlighting
 syntax enable
 
-" reload nvimrc
-noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
-
 " Plugins
 let mapleader=','
 
@@ -292,7 +289,8 @@ endfunction
 
 " tmuxline
 let g:tmuxline_preset = {
-  \'a'    : ['#(whoami)'],
+  \'a'    : '#(whoami)',
+  \'b'    : '#(gitmux "#{pane_current_path}")',
   \'win'  : ['#I', '#W'],
   \'cwin' : ['#I', '#W'],
   \'y'    : [
