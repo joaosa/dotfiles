@@ -145,8 +145,6 @@ set autoindent
 autocmd BufReadPost * :DetectIndent
 let g:detectindent_preferred_expandtab = 1
 let g:detectindent_preferred_indent = 2
-" clear trailing whitespace
-nnoremap <leader><space> :%s/\s\+$//<CR>
 " use vim indent guides
 let g:indent_guides_enable_on_vim_startup=1
 " indent SQL
@@ -237,6 +235,7 @@ let g:ale_go_gometalinter_options = '
       \ '
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
+  \'*': ['remove_trailing_lines', 'trim_whitespace'],
   \'javascript': ['eslint'],
   \'go': ['gofmt', 'goimports'],
   \'puppet': ['puppetlint'],
