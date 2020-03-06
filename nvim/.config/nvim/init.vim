@@ -300,7 +300,7 @@ let g:tmuxline_preset = {
     \'#{online_status}',
   \],
   \'z'    : [
-    \'#[bold]#(rainbarf --tmux --battery --remaining --width 20)'
+    \'#(rainbarf --tmux --battery --remaining --width 20)'
   \],
   \'options' : {'status-justify': 'left'},
 \}
@@ -311,7 +311,18 @@ let g:tmuxline_separators = {
   \ 'right_alt' : '',
   \ 'space' : ' ',
 \}
-let g:tmuxline_theme = 'lightline'
+" let g:tmuxline_theme = 'lightline'
+let g:tmuxline_theme = {
+      \'a'   :["#282828","#a89b89","bold"],
+      \'b'   :["#847c72","#534d4a"],
+      \'c'   :["#847c72","#534d4a"],
+      \'x'   :["#847c72","#534d4a"],
+      \'y'   :["#847c72","#534d4a"],
+      \'z'   :["#282828","#a89b89","bold"],
+      \'win'   :["#847c72","#534d4a"],
+      \'cwin'   :["#282828","#a89b89","bold"],
+      \'bg'  :["#403d3b","#403d3b"],
+      \}
 
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
