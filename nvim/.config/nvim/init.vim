@@ -207,15 +207,12 @@ let g:deoplete#enable_at_startup = 1
 let g:deoplete#sources = {}
 let g:deoplete#keyword_patterns = {}
 let g:deoplete#omni#input_patterns = {}
-
 let g:deoplete#sources['javascript'] = ['file', 'ultisnips', 'ternjs']
 " tern_for_vim.
 let g:tern#command = ['tern']
 let g:tern#arguments = ['--persistent']
 " terraform
-call deoplete#custom#option('omni_patterns', {
-\ 'complete_method': 'omnifunc',
-\})
+call deoplete#custom#option('omni_patterns', {'complete_method': 'omnifunc'})
 let g:terraform_fmt_on_save=1
 call deoplete#initialize()
 
@@ -228,18 +225,18 @@ augroup end
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_eslint_executable = 'eslint_d'
 let g:ale_linters = {
-      \'vim': ['vint'],
-      \'javascript': ['eslint'],
-      \'typescript': ['tslint', 'tsserver'],
-      \'go': ['gometalinter'],
-      \'puppet': ['puppetlint'],
-      \}
+  \'vim': ['vint'],
+  \'javascript': ['eslint'],
+  \'typescript': ['tslint', 'tsserver'],
+  \'go': ['gometalinter'],
+  \'puppet': ['puppetlint'],
+\}
 let g:ale_go_gometalinter_options = '
-      \ --aggregate
-      \ --fast
-      \ --sort=line
-      \ --tests
-      \ '
+  \--aggregate
+  \--fast
+  \--sort=line
+  \--tests
+\'
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
@@ -379,10 +376,7 @@ nnoremap <leader>ew :GeeknoteSaveAsNote<CR>
 nnoremap <leader>en :GeeknoteCreateNote<Space>
 nnoremap <leader>e/ :GeeknoteSearch<Space>
 nnoremap <leader>es :GeeknoteSync<CR>
-let g:GeeknoteNotebooks =
-      \    [
-      \        '25162dcc-daf1-40b0-9255-8f8342db5e2b'
-      \    ]
+let g:GeeknoteNotebooks = ['25162dcc-daf1-40b0-9255-8f8342db5e2b']
 
 " Search
 " search for stuff on the internet
