@@ -1,3 +1,5 @@
+scriptencoding utf8
+
 " enable syntax highlighting
 syntax enable
 
@@ -8,14 +10,14 @@ let g:python2_host = $HOME . '/.pyenv/versions/neovim-python2/bin'
 let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
 
 function! InstallDeopleteDeps(info)
-  if a:info.status == 'installed' || a:info.force
-    execute "!" . g:python3_host . "/pip install 'msgpack>=1.0.0'"
+  if a:info.status ==# 'installed' || a:info.force
+    execute '!' . g:python3_host . "/pip install 'msgpack>=1.0.0'"
     :UpdateRemotePlugins
   endif
 endfunction
 
 function! InstallAleTools(info)
-  if a:info.status == 'installed' || a:info.force
+  if a:info.status ==# 'installed' || a:info.force
     !npm install -g eslint_d@7 babel-eslint
     !npx install-peerdeps -g eslint-config-airbnb@16.1.0
   endif
@@ -105,7 +107,9 @@ let g:lt_location_list_toggle_map = '<leader>w'
 
 " Fix gutentags when committing
 " https://github.com/ludovicchabant/vim-gutentags/issues/168
-autocmd BufRead,BufNewFile PULLREQ_EDITMSG let g:gutentags_enabled=0
+augroup gutentags
+  autocmd BufRead,BufNewFile PULLREQ_EDITMSG let g:gutentags_enabled=0
+augroup end
 let g:gutentags_exclude_filetypes = ['gitcommit', 'gitrebase', 'diff']
 
 " yank and paste with the system clipboard
@@ -142,7 +146,9 @@ set autoindent
 " we're leaving tab expansion (expandtab), tab size for insert mode (softtabstop),
 " how many columns text is indented with the reindent operation (shiftwidth)
 " and how much space actual tabs occupy to detectindent.
-autocmd BufReadPost * :DetectIndent
+augroup indentation
+  autocmd BufReadPost * :DetectIndent
+augroup end
 let g:detectindent_preferred_expandtab = 1
 let g:detectindent_preferred_indent = 2
 " use vim indent guides
@@ -180,14 +186,13 @@ if has('persistent_undo')
 endif
 
 " Spelling
-" check spelling on markdown
-autocmd BufRead,BufNewFile *.md set filetype=markdown
-autocmd BufRead,BufNewFile *.md set spell
-autocmd FileType vim set spell
-" check spelling on LaTex
-autocmd BufRead,BufNewFile *.tex set spell
-" check spelling on git commits
-autocmd BufRead,BufNewFile PULLREQ_EDITMSG,COMMIT_EDITMSG, set spell
+augroup spelling
+  autocmd BufRead,BufNewFile *.md set filetype=markdown
+  autocmd BufRead,BufNewFile *.md set spell
+  autocmd FileType vim set spell
+  autocmd BufRead,BufNewFile *.tex set spell
+  autocmd BufRead,BufNewFile PULLREQ_EDITMSG,COMMIT_EDITMSG, set spell
+augroup end
 " http://vi.stackexchange.com/questions/68/autocorrect-spelling-mistakes
 " go back to last misspelled word and pick first suggestion
 " this corresponds to <A-l>
@@ -205,8 +210,8 @@ let g:deoplete#omni#input_patterns = {}
 
 let g:deoplete#sources['javascript'] = ['file', 'ultisnips', 'ternjs']
 " tern_for_vim.
-let g:tern#command = ["tern"]
-let g:tern#arguments = ["--persistent"]
+let g:tern#command = ['tern']
+let g:tern#arguments = ['--persistent']
 " terraform
 call deoplete#custom#option('omni_patterns', {
 \ 'complete_method': 'omnifunc',
@@ -215,7 +220,9 @@ let g:terraform_fmt_on_save=1
 call deoplete#initialize()
 
 " snippets
-autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine-arrow
+augroup snippets
+  autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine-arrow
+augroup end
 
 " checking
 let g:ale_javascript_eslint_use_global = 1
@@ -311,18 +318,17 @@ let g:tmuxline_separators = {
   \ 'right_alt' : '',
   \ 'space' : ' ',
 \}
-" let g:tmuxline_theme = 'lightline'
 let g:tmuxline_theme = {
-      \'a'   :["#282828","#a89b89","bold"],
-      \'b'   :["#847c72","#534d4a"],
-      \'c'   :["#847c72","#534d4a"],
-      \'x'   :["#847c72","#534d4a"],
-      \'y'   :["#847c72","#534d4a"],
-      \'z'   :["#282828","#a89b89","bold"],
-      \'win'   :["#847c72","#534d4a"],
-      \'cwin'   :["#282828","#a89b89","bold"],
-      \'bg'  :["#403d3b","#403d3b"],
-      \}
+  \'a'   : ['#282828','#a89b89','bold'],
+  \'b'   : ['#847c72','#534d4a'],
+  \'c'   : ['#847c72','#534d4a'],
+  \'x'   : ['#847c72','#534d4a'],
+  \'y'   : ['#847c72','#534d4a'],
+  \'z'   : ['#282828','#a89b89','bold'],
+  \'win' : ['#847c72','#534d4a'],
+  \'cwin': ['#282828','#a89b89','bold'],
+  \'bg'  : ['#403d3b','#403d3b'],
+\}
 
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
@@ -356,14 +362,18 @@ nnoremap <leader>gsp :Git Stash pop<CR>
 nnoremap <leader>gsd :Git Stash drop<CR>
 
 " preview markdown with livedown
-autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
+augroup livedown
+  autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
+augroup end
 
 " geeknote
-" https://github.com/neilagabriel/vim-geeknote#geeknote-autocommands
-autocmd FileType geeknote setlocal nonumber
-" http://stackoverflow.com/questions/5017009/confusion-about-vim-folding-how-to-disable
-autocmd FileType geeknote setlocal nofoldenable
-let g:GeeknoteFormat="plain"
+augroup geeknote
+  " ref - https://github.com/neilagabriel/vim-geeknote#geeknote-autocommands
+  autocmd FileType geeknote setlocal nonumber
+  " ref - http://stackoverflow.com/questions/5017009/confusion-about-vim-folding-how-to-disable
+  autocmd FileType geeknote setlocal nofoldenable
+augroup end
+let g:GeeknoteFormat='plain'
 nnoremap <leader>ed :Geeknote<CR>
 nnoremap <leader>ew :GeeknoteSaveAsNote<CR>
 nnoremap <leader>en :GeeknoteCreateNote<Space>
@@ -376,10 +386,10 @@ let g:GeeknoteNotebooks =
 
 " Search
 " search for stuff on the internet
-let g:vim_g_command="Go"
+let g:vim_g_command='Go'
 " stuff + filetype
-let g:vim_g_f_command="Gf"
-let g:vim_g_query_url="https://duckduckgo.com/?q="
+let g:vim_g_f_command='Gf'
+let g:vim_g_query_url='https://duckduckgo.com/?q='
 " case-insensitive search
 set ignorecase
 " case-sensitive search if any caps
