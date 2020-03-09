@@ -123,6 +123,8 @@ set directory-=.
 " show trailing whitespace
 set list
 set listchars=tab:▸\ ,trail:▫
+" do not redraw while running macros
+set lazyredraw
 " show line numbers
 set number
 " show where you are
@@ -221,7 +223,7 @@ augroup snippets
   autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine-arrow
 augroup end
 
-" checking
+" linting
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_eslint_executable = 'eslint_d'
 let g:ale_linters = {
