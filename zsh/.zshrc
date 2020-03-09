@@ -63,9 +63,6 @@ docker-aws-login() {
   aws ecr get-login --no-include-email --region "$AWS_REGION" | awk '{print $6}' | docker login -u AWS --password-stdin "$ECR_REPO"
 }
 
-# move multiple files
-alias mmv='noglob zmv -W'
-
 # Go
 export GOPATH="$HOME/.go"
 export PATH="$PATH:${GOPATH//://bin:}/bin"
