@@ -1,8 +1,5 @@
 scriptencoding utf8
 
-" enable syntax highlighting
-syntax enable
-
 " Plugins
 let mapleader=','
 
@@ -208,6 +205,8 @@ nnoremap ¬ <C-g>u<Esc>[s1z=`]a<C-g>u
 nnoremap ˚ <Esc>[sve<C-g>
 
 " Syntax
+" enable syntax highlighting
+syntax enable
 " deoplete
 let g:deoplete#enable_at_startup = 1
 let g:deoplete#sources = {}
