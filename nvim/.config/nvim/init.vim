@@ -180,15 +180,15 @@ inoremap <right> <nop>
 " ref - https://stackoverflow.com/questions/5700389/using-vims-persistent-undo
 let configDir = '~/.config/nvim'
 if has('persistent_undo')
-    let undoDirPath = expand(configDir . '/undo')
+  let undoDirPath = expand(configDir . '/undo')
 
-    " create dirs
-    call system('mkdir ' . configDir)
-    call system('mkdir ' . undoDirPath)
+  " create dirs
+  call system('mkdir ' . configDir)
+  call system('mkdir ' . undoDirPath)
 
-    " maintain undo history between sessions
-    let &undodir = undoDirPath
-    set undofile
+  " maintain undo history between sessions
+  let &undodir = undoDirPath
+  set undofile
 endif
 
 " Spelling
