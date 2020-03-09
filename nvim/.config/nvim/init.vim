@@ -330,7 +330,7 @@ let g:tmuxline_theme = {
   \'z'   : ['#282828','#a89b89','bold'],
   \'win' : ['#847c72','#534d4a'],
   \'cwin': ['#282828','#a89b89','bold'],
-  \'bg'  : ['#403d3b','#403d3b'],
+  \'bg'  : ['#534d4a','#534d4a'],
 \}
 
 " reload nvimrc
