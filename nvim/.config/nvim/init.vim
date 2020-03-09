@@ -105,12 +105,16 @@ nnoremap <leader>d :Lexplore<CR>
 " let's not conflict with ferret
 let g:lt_location_list_toggle_map = '<leader>w'
 
-" Fix gutentags when committing
-" https://github.com/ludovicchabant/vim-gutentags/issues/168
-augroup gutentags
-  autocmd BufRead,BufNewFile PULLREQ_EDITMSG let g:gutentags_enabled=0
-augroup end
-let g:gutentags_exclude_filetypes = ['gitcommit', 'gitrebase', 'diff']
+" Fix gutentags when using git
+" ref - https://github.com/ludovicchabant/vim-gutentags/issues/178#issuecomment-547475742
+let g:gutentags_exclude_filetypes = [
+  \'gitcommit',
+  \'gitconfig',
+  \'gitrebase',
+  \'gitsendemail',
+  \'git',
+  \'diff',
+\]
 
 " yank and paste with the system clipboard
 set clipboard=unnamed
