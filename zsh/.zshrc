@@ -34,7 +34,7 @@ bindkey -M viins "$terminfo[kcuf1]" noop
 alias vi=nvim
 alias vim=nvim
 
-# history
+# prezto history
 export HISTSIZE=100000 SAVEHIST=100000 HISTFILE=~/.zhistory
 
 # xkcd
