@@ -15,8 +15,18 @@ endfunction
 
 function! InstallAleTools(info)
   if a:info.status ==# 'installed' || a:info.force
+    " javascript
     !npm install -g eslint_d@7 babel-eslint
     !npx install-peerdeps -g eslint-config-airbnb@16.1.0
+    " python
+    !pip install flake8
+    " puppet
+    !gem install --user-install hiera-eyaml
+    " sql
+    !gem install --user-install sqlint
+    !brew install pgformatter
+    " golang
+    !brew tap alecthomas/homebrew-tap && brew install gometaliner
   endif
 endfunction
 
@@ -156,8 +166,6 @@ let g:detectindent_preferred_expandtab = 1
 let g:detectindent_preferred_indent = 2
 " use vim indent guides
 let g:indent_guides_enable_on_vim_startup=1
-" indent SQL
-set formatprg=~/Repos/pgFormatter/pg_format\ -s\ 2\ -p\ '(\\$\|{\|})'\ -
 
 " Navigation
 " enable hard mode on all buffers
@@ -245,6 +253,7 @@ let g:ale_go_gometalinter_options = '
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
+  \'sql': ['pgformatter'],
   \'javascript': ['eslint'],
   \'go': ['gofmt', 'goimports'],
   \'puppet': ['puppetlint'],
