@@ -26,7 +26,7 @@ function! InstallAleTools(info)
     !gem install --user-install sqlint
     !brew install pgformatter
     " golang
-    !brew tap alecthomas/homebrew-tap && brew install gometaliner
+    !brew install golangci/tap/golangci-lint
   endif
 endfunction
 
@@ -241,15 +241,11 @@ let g:ale_linters = {
   \'vim': ['vint'],
   \'javascript': ['eslint'],
   \'typescript': ['tslint', 'tsserver'],
-  \'go': ['gometalinter'],
+  \'go': ['golangci-lint'],
   \'puppet': ['puppetlint'],
 \}
-let g:ale_go_gometalinter_options = '
-  \--aggregate
-  \--fast
-  \--sort=line
-  \--tests
-\'
+let g:ale_go_golangci_lint_package = 1
+let g:ale_go_golangci_lint_options = '--fast -E golint'
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
