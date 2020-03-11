@@ -63,10 +63,6 @@ docker-aws-login() {
   aws ecr get-login --no-include-email --region "$AWS_REGION" | awk '{print $6}' | docker login -u AWS --password-stdin "$ECR_REPO"
 }
 
-# Go
-export GOPATH="$HOME/.go"
-export PATH="$PATH:${GOPATH//://bin:}/bin"
-
 # python
 eval "$(pyenv init -)"
 if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
@@ -79,9 +75,6 @@ export LLVM=/usr/local/Cellar/llvm/9.0.1/bin
 # setting ag as the default source for fzf
 export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-export PATH="/usr/local/opt/node@10/bin:$PATH"
-export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"
-export PATH="/usr/local/opt/llvm/bin:$PATH"
 
 # direnv
 eval "$(direnv hook zsh)"
