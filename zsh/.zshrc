@@ -68,8 +68,8 @@ eval "$(pyenv init -)"
 if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
 
 # wasm
-export BINARYEN=/usr/local/Cellar/binaryen/91
-export LLVM=/usr/local/Cellar/llvm/9.0.1/bin
+export BINARYEN=/usr/local/opt/binaryen
+export LLVM=/usr/local/opt/llvm/bin
 
 # fuzzy matching
 # setting ag as the default source for fzf
