@@ -61,3 +61,12 @@ export LESS='-F -g -i -M -R -S -w -X -z-4'
 if (( $#commands[(i)lesspipe(|.sh)] )); then
   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
 fi
+
+export PATH="/usr/local/opt/node@10/bin:$PATH"
+export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"
+export PATH="/usr/local/opt/llvm/bin:$PATH"
+# Go
+export GOPATH="$HOME/.go"
+export PATH="$PATH:${GOPATH//://bin:}/bin"
+# Rust
+export PATH="$HOME/.cargo/bin:$PATH"
