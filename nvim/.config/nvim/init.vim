@@ -242,6 +242,7 @@ let g:ale_linters = {
   \'javascript': ['eslint'],
   \'typescript': ['tslint', 'tsserver'],
   \'go': ['golangci-lint'],
+  \'rust': ['cargo'],
   \'puppet': ['puppetlint'],
 \}
 let g:ale_go_golangci_lint_package = 1
@@ -252,6 +253,7 @@ let g:ale_fixers = {
   \'sql': ['pgformatter'],
   \'javascript': ['eslint'],
   \'go': ['gofmt', 'goimports'],
+  \'rust': ['rustfmt'],
   \'puppet': ['puppetlint'],
 \}
 
