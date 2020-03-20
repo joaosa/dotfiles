@@ -75,7 +75,6 @@ Plug 'leafgarland/typescript-vim'
 Plug 'ivy/vim-ginkgo'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'ludovicchabant/vim-gutentags'
-Plug 'ramitos/jsctags'
 Plug 'majutsushi/tagbar'
 Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
@@ -105,14 +104,16 @@ let g:python3_host_prog = g:python3_host . '/python'
 " setup netrw
 " ref - https://shapeshed.com/vim-netrw/
 let g:netrw_banner = 0
-let g:netrw_liststyle = 3
+" let g:netrw_liststyle = 3
 let g:netrw_winsize = 25
 nnoremap <leader>d :Lexplore<CR>
 
 " let's not conflict with ferret
 let g:lt_location_list_toggle_map = '<leader>w'
 
-" Fix gutentags when using git
+" gutentags
+let g:gutentags_file_list_command = 'rg --files'
+" Fix it when using git
 " ref - https://github.com/ludovicchabant/vim-gutentags/issues/178#issuecomment-547475742
 let g:gutentags_exclude_filetypes = [
   \'gitcommit',
