@@ -36,6 +36,7 @@ Plug 'morhetz/gruvbox'
 Plug 'Valloric/ListToggle'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
+Plug 'kassio/neoterm'
 Plug 'junegunn/goyo.vim'
 Plug 'mhinz/vim-startify'
 Plug 'szw/vim-g'
@@ -346,7 +347,14 @@ noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<C
 
 " vim test
 " ref - https://github.com/janko/vim-test#strategies
-let test#strategy = 'neovim'
+" ref - https://bernheisel.com/blog/vim-workflow/
+let test#strategy = 'neoterm'
+let g:neoterm_shell = '$SHELL -l' " use the login shell
+let g:neoterm_default_mod = 'vert'
+let g:neoterm_autoscroll = 1
+let g:neoterm_size = 80
+let g:neoterm_fixedsize = 1
+let g:neoterm_keep_term_open = 0
 nmap <silent> <localleader>t :TestNearest<CR>
 nmap <silent> <localleader>T :TestFile<CR>
 nmap <silent> <localleader>a :TestSuite<CR>
@@ -357,6 +365,12 @@ nmap <silent> <localleader>g :TestVisit<CR>
 nnoremap <leader>dc :Dispatch<Space>
 nnoremap <leader>ds :Start<Space>
 nnoremap <leader>dm :Make<Space>
+
+" use neoterm
+tnoremap <C-h> <C-\><C-n><C-w>h
+tnoremap <C-j> <C-\><C-n><C-w>j
+tnoremap <C-k> <C-\><C-n><C-w>k
+tnoremap <C-l> <C-\><C-n><C-w>l
 
 " git fugitive (reusing the prezto aliases)
 nnoremap <leader>gws :Gstatus<CR>
