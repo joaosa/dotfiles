@@ -153,8 +153,11 @@ colorscheme gruvbox
 " highlight Normal ctermbg=none
 " rainbow parenthesis
 let g:rainbow_active=1
-" refer to files from the vcs root
-let g:startify_change_to_vcs_root=1
+" do not refer to files from the vcs root
+" this would make gutentags try to build a way too big file
+" in certain multi-language projects
+" it also helps with vim-test
+let g:startify_change_to_vcs_root = 0
 
 " Indenting
 set autoindent
