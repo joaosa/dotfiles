@@ -363,11 +363,11 @@ let g:neoterm_autoscroll = 1
 let g:neoterm_size = 80
 let g:neoterm_fixedsize = 1
 let g:neoterm_keep_term_open = 0
-nmap <silent> <localleader>t :TestNearest<CR>
-nmap <silent> <localleader>T :TestFile<CR>
-nmap <silent> <localleader>a :TestSuite<CR>
-nmap <silent> <localleader>l :TestLast<CR>
-nmap <silent> <localleader>g :TestVisit<CR>
+nnoremap <silent> <localleader>t :TestNearest<CR>
+nnoremap <silent> <localleader>T :TestFile<CR>
+nnoremap <silent> <localleader>a :TestSuite<CR>
+nnoremap <silent> <localleader>l :TestLast<CR>
+nnoremap <silent> <localleader>g :TestVisit<CR>
 
 " use dispatch
 nnoremap <leader>dc :Dispatch<Space>
