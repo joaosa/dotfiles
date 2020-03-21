@@ -134,7 +134,7 @@ set backupcopy=yes
 set directory-=.
 
 " Session
-nnoremap <localleader>o :Obsession<CR>
+nnoremap <leader>ss :Obsession<CR>
 
 " Display
 " show trailing whitespace
