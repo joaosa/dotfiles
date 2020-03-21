@@ -33,6 +33,15 @@ bindkey -M viins "$terminfo[kcuf1]" noop
 # alias
 alias vi=nvim
 alias vim=nvim
+function nvim() {
+  if test $# -gt 0; then
+    env nvim "$@"
+  elif test -f Session.vim; then
+    env nvim -S
+  else
+    env nvim -c Obsession
+  fi
+}
 
 # prezto history
 export HISTSIZE=100000 SAVEHIST=100000 HISTFILE=~/.zhistory
