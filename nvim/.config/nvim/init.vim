@@ -37,6 +37,7 @@ Plug 'Valloric/ListToggle'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'kassio/neoterm'
+Plug 'tpope/vim-obsession'
 Plug 'junegunn/goyo.vim'
 Plug 'mhinz/vim-startify'
 Plug 'szw/vim-g'
@@ -131,6 +132,9 @@ set clipboard=unnamed
 set backupcopy=yes
 " do not store swap files on the current dir (remove .)
 set directory-=.
+
+" Session
+nnoremap <localleader>o :Obsession<CR>
 
 " Display
 " show trailing whitespace
@@ -268,12 +272,13 @@ let g:ale_fixers = {
 let g:lightline = {
   \'colorscheme': 'gruvbox',
   \'active': {
-  \'left': [
-    \['mode', 'paste'],
-    \['fugitive', 'readonly', 'filename', 'modified'],
-  \]
+    \'left': [
+      \['mode', 'paste'],
+      \['fugitive', 'readonly', 'filename', 'modified', 'session'],
+    \],
   \},
   \'component_function': {
+    \'session': 'ObsessionStatus',
     \'filename': 'LightlineFilename',
     \'fugitive': 'MyFugitive',
     \'filetype': 'MyFiletype',
@@ -282,6 +287,16 @@ let g:lightline = {
   \'separator': { 'left': '', 'right': '' },
   \'subseparator': { 'left': '', 'right': '' },
 \}
+
+" ref - https://github.com/itchyny/lightline.vim/issues/293#issuecomment-373710096
+function! LightlineFilename()
+  let root = fnamemodify(get(b:, 'git_dir'), ':h')
+  let path = expand('%:p')
+  if path[:len(root)-1] ==# root
+    return path[len(root)+1:]
+  endif
+  return expand('%')
+endfunction
 
 function! MyFugitive()
   if exists('*fugitive#head')
@@ -297,16 +312,6 @@ endfunction
 
 function! MyFileformat()
   return winwidth(0) > 70 ? (&fileformat . ' ' . WebDevIconsGetFileFormatSymbol()) : ''
-endfunction
-
-" ref - https://github.com/itchyny/lightline.vim/issues/293#issuecomment-373710096
-function! LightlineFilename()
-  let root = fnamemodify(get(b:, 'git_dir'), ':h')
-  let path = expand('%:p')
-  if path[:len(root)-1] ==# root
-    return path[len(root)+1:]
-  endif
-  return expand('%')
 endfunction
 
 " tmuxline
