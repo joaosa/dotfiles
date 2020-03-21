@@ -51,5 +51,8 @@ cscope.out
 cscope.in.out
 cscope.po.out
 
+# vim
+Session.vim
+
 # tern
 .tern-port
