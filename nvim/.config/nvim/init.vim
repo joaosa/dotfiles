@@ -119,6 +119,8 @@ let g:gutentags_file_list_command = 'rg --files'
 " Fix it when using git
 " ref - https://github.com/ludovicchabant/vim-gutentags/issues/178#issuecomment-547475742
 let g:gutentags_exclude_filetypes = [
+  \'go',
+  \'ginkgo.go',
   \'gitcommit',
   \'gitconfig',
   \'gitrebase',
@@ -245,7 +247,6 @@ augroup snippets
 augroup end
 
 " linting
-let g:ale_open_list = 1
 let g:ale_javascript_eslint_use_global = 1
 let g:ale_javascript_eslint_executable = 'eslint_d'
 let g:ale_linters = {
