@@ -395,6 +395,8 @@ nnoremap <leader>gl :Glog<CR>
 nnoremap <leader>gs :Git Stash<CR>
 nnoremap <leader>gsp :Git Stash pop<CR>
 nnoremap <leader>gsd :Git Stash drop<CR>
+" open PRs inside vim
+nnoremap <localleader>gp :terminal hub pull-request -fpd -b master<CR>
 
 " preview markdown with livedown
 augroup livedown
