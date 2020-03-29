@@ -395,8 +395,11 @@ nnoremap <leader>gl :Glog<CR>
 nnoremap <leader>gs :Git Stash<CR>
 nnoremap <leader>gsp :Git Stash pop<CR>
 nnoremap <leader>gsd :Git Stash drop<CR>
-" open PRs inside vim
-nnoremap <localleader>gp :terminal hub pull-request -fpd -b master<CR>
+" open PRs inside vim using neoterm
+function! OpenPR(base)
+  execute ':T hub pull-request -fpd -b ' . a:base
+endfunction
+nnoremap <localleader>gp :call OpenPR(input('branch: '))<CR>
 
 " preview markdown with livedown
 augroup livedown
