@@ -25,6 +25,8 @@ function! InstallAleTools(info)
     " sql
     !gem install --user-install sqlint
     !brew install pgformatter
+    " yaml
+    !brew install yamllint
     " golang
     !brew install golangci/tap/golangci-lint
   endif
