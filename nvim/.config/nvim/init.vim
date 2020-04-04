@@ -404,7 +404,8 @@ function! OpenPR(base, reviewers)
     call add(l:reviewers, '-r ' . r)
   endfor
 
-  execute ':T hub pull-request -fpd -b ' . a:base . ' ' . join(l:reviewers, ' ')
+  " can't use -d as not all repos support this
+  execute ':T hub pull-request -fp -b ' . a:base . ' ' . join(l:reviewers, ' ')
 endfunction
 nnoremap <localleader>gp :call OpenPR(input('branch: '), input('reviewers: '))<CR>
 
