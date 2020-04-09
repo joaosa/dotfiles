@@ -167,6 +167,8 @@ let g:rainbow_active=1
 " in certain multi-language projects
 " it also helps with vim-test
 let g:startify_change_to_vcs_root = 0
+" do not change to file dir
+let g:startify_change_to_dir = 0
 
 " Indenting
 set autoindent
