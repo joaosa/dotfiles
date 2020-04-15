@@ -263,6 +263,7 @@ let g:ale_linters = {
 \}
 let g:ale_go_golangci_lint_package = 1
 let g:ale_go_golangci_lint_options = '--exclude-use-default=false'
+let g:ale_go_gofmt_options = '-s'
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
