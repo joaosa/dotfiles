@@ -121,6 +121,56 @@ for key, appName in pairs(appBindings) do
 end
 
 -----------------------------------------------
+-- Have a pulldown term experience
+-----------------------------------------------
+function launchApp(appName, callback)
+  os.execute("open -nF /Applications/" .. appName .. ".app")
+  local findPID = "ps -ax -o etime,pid,command | grep " .. appName:lower() .. " | grep -v grep | sort | awk '{print $2}' | head -n1"
+  hs.timer.doAfter(0.5, function ()
+    output, status = hs.execute(findPID)
+    if status then
+      return callback(tonumber(output))
+    end
+  end)
+end
+
+function handleTermApp(appName, frame)
+  local screenFrame = hs.screen.mainScreen():frame()
+  local apps = {hs.application(appName)}
+
+  -- find if we have an app with a window with the target size
+  for i, app in ipairs(apps) do
+    local w = app:mainWindow()
+    local unit = w:frame():toUnitRect(screenFrame)
+
+    -- handle the window if there's a frame with the target size
+    if unit:equals(hs.geometry(frame)) then
+      if app:isFrontmost() then
+        app:hide()
+      else
+        app:activate()
+      end
+      return
+    end
+  end
+
+  -- spawn a new app and window and resize it
+  launchApp(appName, function (pid)
+    local app = hs.application(pid)
+    if app then
+      app:mainWindow():moveToUnit(frame)
+    end
+  end)
+end
+
+local termApp = 'Alacritty'
+local frames = {'[100,40,0,0]', '[100,100,0,0]'}
+-- spawn pulldown
+hs.hotkey.bind(altCmd, "/", function() handleTermApp(termApp, frames[1]) end)
+-- spawn fullscreen
+hs.hotkey.bind(altCmd, ',', function() handleTermApp(termApp, frames[2]) end)
+
+-----------------------------------------------
 -- Insert dates
 -----------------------------------------------
 function pasteString(string)
