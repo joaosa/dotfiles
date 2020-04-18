@@ -12,6 +12,11 @@ hs.pathwatcher.new(os.getenv('HOME') .. '/.hammerspoon/', hs.reload):start()
 hs.alert.show('Config loaded')
 
 -----------------------------------------------
+-- Open the hammerspoon console
+-----------------------------------------------
+hs.hotkey.bind(altCmd, 'x', hs.openConsole)
+
+-----------------------------------------------
 -- hyper + x key for window resizing
 -----------------------------------------------
 function resizeWindow(windowGetter, transform)
