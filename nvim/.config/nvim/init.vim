@@ -30,6 +30,8 @@ function! InstallAleTools(info)
     !npm i -g prettier
     " golang
     !brew install golangci/tap/golangci-lint
+    " lua
+    !brew install luarocks && luarocks install luacheck
   endif
 endfunction
 
@@ -265,11 +267,13 @@ let g:ale_linters = {
   \'typescript': ['tslint', 'tsserver'],
   \'go': ['golangci-lint'],
   \'rust': ['cargo'],
+  \'lua': ['luacheck'],
   \'puppet': ['puppetlint'],
 \}
 let g:ale_go_golangci_lint_package = 1
 let g:ale_go_golangci_lint_options = '--exclude-use-default=false'
 let g:ale_go_gofmt_options = '-s'
+let g:ale_lua_luacheck_options = '--globals hs'
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
