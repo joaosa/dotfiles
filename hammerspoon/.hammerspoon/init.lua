@@ -134,27 +134,45 @@ function launchApp(appName, callback)
   end)
 end
 
-function handleTermApp(appName, frame)
+function handleWindowState(appName, frame)
   local screenFrame = hs.screen.mainScreen():frame()
   local apps = {hs.application(appName)}
 
   -- find if we have an app with a window with the target size
   for i, app in ipairs(apps) do
+    -- workaround getting windows from other apps with the same name
+    if not app.name then
+      return false
+    end
+
     local w = app:mainWindow()
     local unit = w:frame():toUnitRect(screenFrame)
 
-    -- handle the window if there's a frame with the target size
+    -- handle the window visiblity
+    -- if there's a frame with the target size
     if unit:equals(hs.geometry(frame)) then
       if app:isFrontmost() then
         app:hide()
       else
         app:activate()
       end
-      return
+
+      return true
     end
   end
 
-  -- spawn a new app and window and resize it
+  return false
+end
+
+function handleTermApp(appName, frame)
+  -- process the windows we have and set them right
+  -- if we manage to do that then we're good
+  if handleWindowState(appName, frame) then
+    return
+  end
+
+  -- otherwise we need to spawn a new app
+  -- and resize its window
   launchApp(appName, function (pid)
     local app = hs.application(pid)
     if app then
