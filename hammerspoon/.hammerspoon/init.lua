@@ -3,6 +3,7 @@
 -----------------------------------------------
 local hyper = {'shift', 'ctrl', 'alt', 'cmd'}
 local altCmd = {'ctrl', 'cmd'}
+local doAfter = 0.5
 hs.window.animationDuration = 0;
 
 -----------------------------------------------
@@ -19,62 +20,32 @@ hs.hotkey.bind(altCmd, 'x', hs.openConsole)
 -----------------------------------------------
 -- hyper + x key for window resizing
 -----------------------------------------------
-local function resizeWindow(windowGetter, transform)
-  return function()
-    local window = windowGetter()
-    local frame = window:frame()
-    local screen = window:screen()
-    local max = screen:frame()
-
-    local changes = transform(max)
-    frame.x = changes.x
-    frame.y = changes.y
-    frame.w = changes.w
-    frame.h = changes.h
-
-    window:setFrame(frame)
-  end
-end
-
-local position = {
-  rightTopQuarter = function(max)
-    return { x = max.x + (max.w / 2), y = max.y, w = max.w / 2, h = max.h / 2 }
-  end,
-  leftBottomQuarter = function(max)
-    return { x = max.x + (max.w / 2), y = max.y + (max.h / 2), w = max.w / 2, h = max.h / 2 }
-  end,
-  rightBottomQuarter = function(max)
-    return { x = max.x, y = max.y + (max.h / 2), w = max.w / 2, h = max.h / 2 }
-  end,
-  leftTopQuarter = function(max)
-    return { x = max.x, y = max.y, w = max.w / 2, h = max.h / 2 }
-  end,
-  full = function(max)
-    return { x = max.x, y = max.y, w = max.w, h = max.h }
-  end,
-  rightHalf = function(max)
-    return { x = max.x + (max.w / 2), y = max.y, w = max.w / 2, h = max.h }
-  end,
-  leftHalf = function(max)
-    return { x = max.x, y = max.y, w = max.w / 2, h = max.h }
-  end,
-  guake = function(max)
-    return { x = 0, y = 0, w = max.w, h = max.h / 2.2 }
-  end
+local frames = {
+  rightTopQuarter = '[100,50,50,0]',
+  leftBottomQuarter = '[50,100,0,50]',
+  rightBottomQuarter = '[100,100,50,50]',
+  leftTopQuarter = '[50,50,0,0]',
+  full = '[100,100,0,0]',
+  rightHalf = '[100,100,50,0]',
+  leftHalf =  '[50,100,0,0]',
+  pulldown = '[100,40,0,0]',
 }
 
 local windowPositionBindings = {
-  d = position.leftHalf,
-  g = position.rightHalf,
-  f = position.full,
-  r = position.leftTopQuarter,
-  t = position.rightTopQuarter,
-  v = position.leftBottomQuarter,
-  c = position.rightBottomQuarter
+  d = frames.leftHalf,
+  g = frames.rightHalf,
+  f = frames.full,
+  r = frames.leftTopQuarter,
+  t = frames.rightTopQuarter,
+  c = frames.leftBottomQuarter,
+  v = frames.rightBottomQuarter,
 }
 
 for key, pos in pairs(windowPositionBindings) do
-  hs.hotkey.bind(hyper, key, resizeWindow(hs.window.focusedWindow, pos))
+  hs.hotkey.bind(hyper, key, function ()
+    local window = hs.window.focusedWindow()
+    window:moveToUnit(pos)
+  end)
 end
 
 -----------------------------------------------
@@ -133,7 +104,7 @@ local function findAppPID(appName)
 end
 local function launchApp(appName, callback)
   os.execute("open -nF /Applications/" .. appName .. ".app")
-  hs.timer.doAfter(0.5, function ()
+  hs.timer.doAfter(doAfter, function ()
     local cmd = findAppPID(appName)
     print(cmd)
     local output, status = hs.execute(cmd)
@@ -192,11 +163,10 @@ local function handleTermApp(appName, frame)
 end
 
 local termApp = 'Alacritty'
-local frames = {'[100,40,0,0]', '[100,100,0,0]'}
 -- spawn fullscreen
-hs.hotkey.bind({"alt"}, "space", function() handleTermApp(termApp, frames[1]) end)
+hs.hotkey.bind({"alt"}, "space", function() handleTermApp(termApp, frames.pulldown) end)
 -- spawn pulldown
-hs.hotkey.bind(altCmd, "q", function() handleTermApp(termApp, frames[2]) end)
+hs.hotkey.bind(altCmd, "q", function() handleTermApp(termApp, frames.full) end)
 
 -----------------------------------------------
 -- Insert dates
