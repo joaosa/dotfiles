@@ -19,7 +19,7 @@ hs.hotkey.bind(altCmd, 'x', hs.openConsole)
 -----------------------------------------------
 -- hyper + x key for window resizing
 -----------------------------------------------
-function resizeWindow(windowGetter, transform)
+local function resizeWindow(windowGetter, transform)
   return function()
     local window = windowGetter()
     local frame = window:frame()
@@ -73,8 +73,8 @@ local windowPositionBindings = {
   c = position.rightBottomQuarter
 }
 
-for key, position in pairs(windowPositionBindings) do
-  hs.hotkey.bind(hyper, key, resizeWindow(hs.window.focusedWindow, position))
+for key, pos in pairs(windowPositionBindings) do
+  hs.hotkey.bind(hyper, key, resizeWindow(hs.window.focusedWindow, pos))
 end
 
 -----------------------------------------------
@@ -122,23 +122,34 @@ end
 -----------------------------------------------
 -- Have a pulldown term experience
 -----------------------------------------------
-function launchApp(appName, callback)
+local function findAppPID(appName)
+  return string.format([[ps -ax -o etime,pid,command \
+  | grep  %s \
+  | grep -v grep \
+  | sort \
+  | awk '{print $2}' \
+  | head -n1
+  ]], appName:lower())
+end
+local function launchApp(appName, callback)
   os.execute("open -nF /Applications/" .. appName .. ".app")
-  local findPID = "ps -ax -o etime,pid,command | grep " .. appName:lower() .. " | grep -v grep | sort | awk '{print $2}' | head -n1"
   hs.timer.doAfter(0.5, function ()
-    output, status = hs.execute(findPID)
+    local cmd = findAppPID(appName)
+    print(cmd)
+    local output, status = hs.execute(cmd)
     if status then
       return callback(tonumber(output))
     end
   end)
 end
 
-function handleWindowState(appName, frame)
+local function handleWindowState(appName, frame)
   local screenFrame = hs.screen.mainScreen():frame()
   local apps = {hs.application(appName)}
 
   -- find if we have an app with a window with the target size
-  for i, app in ipairs(apps) do
+  for i = 1, #apps do
+    local app = apps[i]
     -- workaround getting windows from other apps with the same name
     if not app.name then
       return false
@@ -163,7 +174,7 @@ function handleWindowState(appName, frame)
   return false
 end
 
-function handleTermApp(appName, frame)
+local function handleTermApp(appName, frame)
   -- process the windows we have and set them right
   -- if we manage to do that then we're good
   if handleWindowState(appName, frame) then
@@ -190,7 +201,7 @@ hs.hotkey.bind(altCmd, "q", function() handleTermApp(termApp, frames[2]) end)
 -----------------------------------------------
 -- Insert dates
 -----------------------------------------------
-function pasteString(string)
+local function pasteString(string)
   local current = hs.pasteboard.getContents()
 
   hs.pasteboard.setContents(string)
@@ -198,13 +209,13 @@ function pasteString(string)
 
   hs.pasteboard.setContents(current)
 end
-function pasteDate(dayDiff)
-  now = os.time()
-  diff = dayDiff * 24 * 60 * 60
-  date = now + diff
+local function pasteDate(dayDiff)
+  local now = os.time()
+  local diff = dayDiff * 24 * 60 * 60
+  local date = now + diff
 
-  format = "%Y/%m/%d"
-  formattedDate = os.date(format, date)
+  local format = "%Y/%m/%d"
+  local formattedDate = os.date(format, date)
   pasteString(formattedDate)
 end
 
@@ -213,5 +224,5 @@ local keyCodes = {18, 19, 20, 21, 23, 22, 26, 28}
 for index, keyCode in ipairs(keyCodes) do
   hs.hotkey.bind(altCmd, keyCode, function() pasteDate(index) end)
 end
-function pasteToday() pasteDate(0) end
+local function pasteToday() pasteDate(0) end
 hs.hotkey.bind(altCmd, ']', pasteToday)
