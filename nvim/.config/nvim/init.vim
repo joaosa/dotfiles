@@ -154,13 +154,12 @@ set number
 set ruler
 " show typed commands
 set showcmd
-" color theme
+" color scheme
 set termguicolors
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 colorscheme gruvbox
-" have transparent background (if needed)
-" highlight Normal ctermbg=none
+
 " rainbow parenthesis
 let g:rainbow_active=1
 " do not refer to files from the vcs root
@@ -232,6 +231,12 @@ nnoremap ˚ <Esc>[sve<C-g>
 " Syntax
 " enable syntax highlighting
 syntax enable
+
+" fix transparency with Alacritty
+" ref - https://github.com/alacritty/alacritty/issues/1082#issuecomment-366857468
+" needs to be added after enabling syntax
+hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
+
 " deoplete
 let g:deoplete#enable_at_startup = 1
 let g:deoplete#sources = {}
