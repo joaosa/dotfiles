@@ -110,7 +110,6 @@ local appBindings = {
   e = 'Evernote',
   w = 'Firefox Developer Edition',
   i = 'Slack',
-  q = 'iTerm',
   l = 'Spotify'
 }
 
@@ -183,10 +182,10 @@ end
 
 local termApp = 'Alacritty'
 local frames = {'[100,40,0,0]', '[100,100,0,0]'}
--- spawn pulldown
-hs.hotkey.bind(altCmd, "/", function() handleTermApp(termApp, frames[1]) end)
 -- spawn fullscreen
-hs.hotkey.bind(altCmd, ',', function() handleTermApp(termApp, frames[2]) end)
+hs.hotkey.bind({"alt"}, "space", function() handleTermApp(termApp, frames[1]) end)
+-- spawn pulldown
+hs.hotkey.bind(altCmd, "q", function() handleTermApp(termApp, frames[2]) end)
 
 -----------------------------------------------
 -- Insert dates
