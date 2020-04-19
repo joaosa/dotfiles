@@ -27,6 +27,7 @@ function! InstallAleTools(info)
     !brew install pgformatter
     " yaml
     !brew install yamllint
+    !npm i -g prettier
     " golang
     !brew install golangci/tap/golangci-lint
   endif
@@ -271,6 +272,7 @@ let g:ale_fixers = {
   \'javascript': ['eslint'],
   \'go': ['gofmt', 'goimports'],
   \'rust': ['rustfmt'],
+  \'yaml': ['prettier'],
   \'puppet': ['puppetlint'],
 \}
 
