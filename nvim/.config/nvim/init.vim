@@ -15,11 +15,13 @@ endfunction
 
 function! InstallAleTools(info)
   if a:info.status ==# 'installed' || a:info.force
+    " vim
+    !pip3 install vim-vint
     " javascript
     !npm install -g eslint_d@7 babel-eslint
     !npx install-peerdeps -g eslint-config-airbnb@16.1.0
     " python
-    !pip install flake8
+    !pip3 install flake8
     " puppet
     !gem install --user-install hiera-eyaml
     " sql
