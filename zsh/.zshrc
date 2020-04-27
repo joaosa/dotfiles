@@ -67,9 +67,10 @@ alias gSp='git submodule foreach --recursive git checkout master && git submodul
 
 # docker AWS login
 docker-aws-login() {
-  AWS_REGION="$1"
-  ECR_REPO="$(aws ecr get-authorization-token --region "$AWS_REGION" --output text --query 'authorizationData[].proxyEndpoint')"
-  aws ecr get-login --no-include-email --region "$AWS_REGION" | awk '{print $6}' | docker login -u AWS --password-stdin "$ECR_REPO"
+  vault_user="$1"
+  ecr_repo="$(aws-vault exec $vault_user -- aws ecr get-authorization-token --output text --query 'authorizationData[].proxyEndpoint')"
+  login="$(aws-vault exec $vault_user -- aws ecr get-login --no-include-email)"
+  echo "$login" | awk '{print $6}' | docker login -u AWS --password-stdin "$ecr_repo"
 }
 
 # python
