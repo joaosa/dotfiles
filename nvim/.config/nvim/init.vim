@@ -17,6 +17,8 @@ function! InstallAleTools(info)
   if a:info.status ==# 'installed' || a:info.force
     " vim
     !pip3 install vim-vint
+    " shell
+    !brew install shellcheck
     " javascript
     !npm install -g eslint_d@7 babel-eslint
     !npx install-peerdeps -g eslint-config-airbnb@16.1.0
