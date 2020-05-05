@@ -6,9 +6,9 @@ window:
 font:
   normal:
     family: SauceCodePro Nerd Font
-    style: Light
+    style: ExtraLight
   bold:
-    style: Regular
+    style: Light
   italic:
     style: Light Italic
   bold_italic:
