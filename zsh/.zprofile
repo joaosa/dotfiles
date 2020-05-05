@@ -68,5 +68,7 @@ export PATH="/usr/local/opt/llvm/bin:$PATH"
 # Go
 export GOPATH="$HOME/.go"
 export PATH="$PATH:${GOPATH//://bin:}/bin"
+# Haskell
+export PATH="$HOME/.local/bin:$PATH"
 # Rust
 export PATH="$HOME/.cargo/bin:$PATH"
