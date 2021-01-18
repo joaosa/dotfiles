@@ -78,7 +78,7 @@ end
 -- Move to app
 -----------------------------------------------
 local appBindings = {
-  e = 'Evernote',
+  e = 'Evernote Legacy',
   w = 'Firefox Developer Edition',
   i = 'Slack',
   l = 'Spotify'
@@ -167,6 +167,39 @@ local termApp = 'Alacritty'
 hs.hotkey.bind({"alt"}, "space", function() handleTermApp(termApp, frames.pulldown) end)
 -- spawn pulldown
 hs.hotkey.bind(altCmd, "q", function() handleTermApp(termApp, frames.full) end)
+
+-----------------------------------------------
+-- Insert Evernote link for the text in the clipboard
+-----------------------------------------------
+local function searchEvernote()
+  hs.application.launchOrFocus('Evernote')
+  -- open search
+  hs.eventtap.keyStroke({"cmd"}, 'j')
+end
+
+hs.hotkey.bind(altCmd, 'c', function()
+  searchEvernote()
+  -- paste query
+  hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+  -- wait for all the text to be input
+  hs.timer.doAfter(doAfter, function()
+    -- submit query
+    hs.eventtap.keyStroke({}, "return")
+    hs.timer.doAfter(doAfter, function()
+      -- copy the link
+      hs.eventtap.keyStroke({"cmd", "ctrl", "alt"}, 'c')
+      -- go back to the initial note
+      hs.eventtap.keyStroke({"cmd"}, '[')
+
+      -- hs.timer.doAfter(doAfter, function()
+      --   -- click in place so we can paste
+      --   hs.eventtap.leftClick(hs.mouse.getAbsolutePosition())
+      --   -- paste the link
+      --   hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+      -- end)
+    end)
+  end)
+end)
 
 -----------------------------------------------
 -- Insert dates
