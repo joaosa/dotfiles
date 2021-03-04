@@ -132,10 +132,10 @@ local function handleWindowState(appName, frame)
     -- handle the window visiblity
     -- if there's a frame with the target size
     if unit:equals(hs.geometry(frame)) then
-      if app:isFrontmost() then
-        app:hide()
-      else
+      if app:isHidden() then
         app:activate()
+      else
+        app:hide()
       end
 
       return true
