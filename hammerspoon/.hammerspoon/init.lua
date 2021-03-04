@@ -121,11 +121,6 @@ local function handleWindowState(appName, frame)
   -- find if we have an app with a window with the target size
   for i = 1, #apps do
     local app = apps[i]
-    -- workaround getting windows from other apps with the same name
-    if not app.name then
-      return false
-    end
-
     local w = app:mainWindow()
     local unit = w:frame():toUnitRect(screenFrame)
 
