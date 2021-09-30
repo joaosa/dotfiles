@@ -37,5 +37,5 @@ colors:
     magenta: "#d3869b"
     cyan: "#8ec07c"
     white: "#ebdbb2"
-background_opacity: 0.95
+background_opacity: 0.98
 live_config_reload: true
