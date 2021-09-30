@@ -142,7 +142,7 @@ let g:gutentags_ctags_exclude = [
 \]
 
 " yank and paste with the system clipboard
-set clipboard=unnamed
+set clipboard=unnamedplus
 " do not confuse crontab. see :help crontab
 set backupcopy=yes
 " do not store swap files on the current dir (remove .)
