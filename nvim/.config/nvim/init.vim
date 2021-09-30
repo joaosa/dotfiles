@@ -286,6 +286,7 @@ let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
   \'sql': ['pgformatter'],
   \'javascript': ['eslint'],
+  \'typescript': ['tslint'],
   \'go': ['gofmt', 'goimports'],
   \'rust': ['rustfmt'],
   \'yaml': ['prettier'],
