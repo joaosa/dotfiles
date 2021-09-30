@@ -137,6 +137,9 @@ let g:gutentags_exclude_filetypes = [
   \'git',
   \'diff',
 \]
+let g:gutentags_ctags_exclude = [
+  \'*.git',
+\]
 
 " yank and paste with the system clipboard
 set clipboard=unnamed
