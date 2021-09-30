@@ -289,7 +289,6 @@ let g:ale_fixers = {
   \'typescript': ['tslint'],
   \'go': ['gofmt', 'goimports'],
   \'rust': ['rustfmt'],
-  \'yaml': ['prettier'],
   \'puppet': ['puppetlint'],
 \}
 
