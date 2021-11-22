@@ -248,10 +248,7 @@ hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
 
 " deoplete
 let g:deoplete#enable_at_startup = 1
-let g:deoplete#sources = {}
-let g:deoplete#keyword_patterns = {}
-let g:deoplete#omni#input_patterns = {}
-let g:deoplete#sources['javascript'] = ['file', 'ultisnips', 'ternjs']
+call deoplete#custom#option('sources', {'javascript': ['file', 'ultisnips', 'ternjs']})
 " tern_for_vim.
 let g:tern#command = ['tern']
 let g:tern#arguments = ['--persistent']
