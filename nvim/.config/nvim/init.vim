@@ -83,6 +83,7 @@ Plug 'ludovicchabant/vim-gutentags', { 'do': 'brew install --HEAD universal-ctag
 Plug 'majutsushi/tagbar'
 Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
+Plug 'unblevable/quick-scope'
 Plug 'wellle/targets.vim'
 Plug 'tpope/vim-commentary'
 Plug 'lervag/vimtex'
