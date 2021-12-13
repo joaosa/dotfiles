@@ -56,7 +56,6 @@ Plug 'airblade/vim-gitgutter'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
-Plug 'luochen1990/rainbow', { 'for': ['clojure', 'lisp'] }
 Plug 'jiangmiao/auto-pairs'
 Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
