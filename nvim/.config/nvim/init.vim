@@ -70,8 +70,6 @@ Plug 'zchee/deoplete-jedi'
 Plug 'hashivim/vim-terraform'
 Plug 'juliosueiras/vim-terraform-completion'
 Plug 'rodjek/vim-puppet', { 'do': 'gem install puppet-lint' }
-" fix installing certifi with the python3 host
-" Plug 'zchee/deoplete-docker'
 Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
 Plug 'sebdah/vim-delve', { 'do': 'go get -u github.com/go-delve/delve/cmd/dlv' }
 " language syntax
