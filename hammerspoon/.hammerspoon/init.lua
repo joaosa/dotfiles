@@ -161,7 +161,7 @@ local termApp = 'Alacritty'
 -- spawn fullscreen
 hs.hotkey.bind({"alt"}, "space", function() handleTermApp(termApp, frames.pulldown) end)
 -- spawn pulldown
-hs.hotkey.bind(altCmd, "q", function() handleTermApp(termApp, frames.full) end)
+hs.hotkey.bind(altCmd, "a", function() handleTermApp(termApp, frames.full) end)
 
 -----------------------------------------------
 -- Insert Evernote link for the text in the clipboard
