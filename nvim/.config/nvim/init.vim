@@ -74,7 +74,6 @@ Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'
 Plug 'sebdah/vim-delve', { 'do': 'go get -u github.com/go-delve/delve/cmd/dlv' }
 " language syntax
 Plug 'dbeniamine/cheat.sh-vim'
-Plug 'elixir-lang/vim-elixir'
 Plug 'derekwyatt/vim-scala'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
