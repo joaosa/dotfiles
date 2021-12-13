@@ -91,7 +91,6 @@ Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
 Plug 'wellle/targets.vim'
 Plug 'tpope/vim-commentary'
-Plug 'neilagabriel/vim-geeknote', { 'do': g:python2_host . '/pip install git+https://github.com/jeffkowalski/geeknote' }
 Plug 'lervag/vimtex'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
@@ -430,21 +429,6 @@ nnoremap <localleader>gp :call OpenPR(input('branch: '), input('reviewers: '))<C
 augroup livedown
   autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
 augroup end
-
-" geeknote
-augroup geeknote
-  " ref - https://github.com/neilagabriel/vim-geeknote#geeknote-autocommands
-  autocmd FileType geeknote setlocal nonumber
-  " ref - http://stackoverflow.com/questions/5017009/confusion-about-vim-folding-how-to-disable
-  autocmd FileType geeknote setlocal nofoldenable
-augroup end
-let g:GeeknoteFormat='plain'
-nnoremap <leader>ed :Geeknote<CR>
-nnoremap <leader>ew :GeeknoteSaveAsNote<CR>
-nnoremap <leader>en :GeeknoteCreateNote<Space>
-nnoremap <leader>e/ :GeeknoteSearch<Space>
-nnoremap <leader>es :GeeknoteSync<CR>
-let g:GeeknoteNotebooks = ['25162dcc-daf1-40b0-9255-8f8342db5e2b']
 
 " Search
 " search for stuff on the internet
