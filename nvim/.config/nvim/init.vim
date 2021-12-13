@@ -81,7 +81,6 @@ Plug 'elixir-lang/vim-elixir'
 Plug 'derekwyatt/vim-scala'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'rust-lang/rust.vim'
-Plug 'kchmck/vim-coffee-script'
 Plug 'leafgarland/typescript-vim'
 Plug 'ivy/vim-ginkgo'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
