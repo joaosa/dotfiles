@@ -403,15 +403,15 @@ tnoremap <C-k> <C-\><C-n><C-w>k
 tnoremap <C-l> <C-\><C-n><C-w>l
 
 " git fugitive (reusing the prezto aliases)
-nnoremap <leader>gws :Gstatus<CR>
+nnoremap <leader>gws :Git<CR>
 nnoremap <leader>gwd :Gdiff<CR>
 nnoremap <leader>gco :Gread<CR>
 nnoremap <leader>gia :Gwrite<CR>
 nnoremap <leader>gcm :Gcommit<CR>
 nnoremap <leader>gfm :exec ':Gpull origin ' . fugitive#head() . ' --rebase --autostash'<CR>
 nnoremap <leader>gp :exec ':Gpush origin ' . fugitive#head() . ' -u'<CR>
-nnoremap <leader>gb :Gblame<CR>
-nnoremap <leader>gl :Glog<CR>
+nnoremap <leader>gb :Git blame<CR>
+nnoremap <leader>gl :Gclog<CR>
 nnoremap <leader>gs :Git Stash<CR>
 nnoremap <leader>gsp :Git Stash pop<CR>
 nnoremap <leader>gsd :Git Stash drop<CR>
