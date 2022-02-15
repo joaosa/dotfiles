@@ -41,7 +41,7 @@ endfunction
 
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
-Plug 'morhetz/gruvbox'
+Plug 'gruvbox-community/gruvbox'
 Plug 'Valloric/ListToggle'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
@@ -160,6 +160,8 @@ set termguicolors
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 colorscheme gruvbox
+" https://github.com/gruvbox-community/gruvbox/wiki/Configuration#ggruvbox_contrast_dark
+let g:gruvbox_contrast_dark='hard'
 
 " rainbow parenthesis
 let g:rainbow_active=1
