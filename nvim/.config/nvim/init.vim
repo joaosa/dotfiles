@@ -400,8 +400,8 @@ nnoremap <leader>gwd :Gdiff<CR>
 nnoremap <leader>gco :Gread<CR>
 nnoremap <leader>gia :Gwrite<CR>
 nnoremap <leader>gcm :Gcommit<CR>
-nnoremap <leader>gfm :exec ':Gpull origin ' . fugitive#head() . ' --rebase --autostash'<CR>
-nnoremap <leader>gp :exec ':Gpush origin ' . fugitive#head() . ' -u'<CR>
+nnoremap <leader>gfm :exec ':Git pull origin ' . fugitive#head() . ' --rebase --autostash'<CR>
+nnoremap <leader>gp :exec ':Git push origin ' . fugitive#head() . ' -u'<CR>
 nnoremap <leader>gb :Git blame<CR>
 nnoremap <leader>gl :Gclog<CR>
 nnoremap <leader>gs :Git Stash<CR>
