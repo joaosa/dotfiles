@@ -78,7 +78,7 @@ end
 -- Move to app
 -----------------------------------------------
 local appBindings = {
-  e = 'Evernote Legacy',
+  e = 'Obsidian',
   w = 'Firefox Developer Edition',
   i = 'Slack',
   l = 'Spotify'
@@ -106,7 +106,6 @@ local function launchApp(appName, callback)
   os.execute("open -nF /Applications/" .. appName .. ".app")
   hs.timer.doAfter(doAfter, function ()
     local cmd = findAppPID(appName)
-    print(cmd)
     local output, status = hs.execute(cmd)
     if status then
       return callback(tonumber(output))
@@ -212,7 +211,7 @@ local function pasteDate(dayDiff)
   local diff = dayDiff * 24 * 60 * 60
   local date = now + diff
 
-  local format = "%Y/%m/%d"
+  local format = "%Y-%m-%d"
   local formattedDate = os.date(format, date)
   pasteString(formattedDate)
 end
