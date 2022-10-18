@@ -128,9 +128,9 @@ let g:gutentags_exclude_filetypes = [
   \'gitsendemail',
   \'git',
   \'diff',
-\]
+  \]
 let g:gutentags_ctags_exclude = [
-  \'*.git',
+  \'.git',
 \]
 
 " yank and paste with the system clipboard
