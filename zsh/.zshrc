@@ -44,7 +44,7 @@ function nvim() {
 }
 
 # prezto history
-export HISTSIZE=100000 SAVEHIST=100000 HISTFILE=~/.zhistory
+export HISTSIZE=1000000 SAVEHIST=1000000 HISTFILE=~/.zsh_history
 
 # xkcd
 # ref - https://www.commandlinefu.com/commands/view/4167/view-the-newest-xkcd-comic
