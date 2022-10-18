@@ -28,6 +28,8 @@ local frames = {
   full = '[100,100,0,0]',
   rightHalf = '[100,100,50,0]',
   leftHalf =  '[50,100,0,0]',
+  topHalf = '[100,50,0,0]',
+  bottomHalf = '[0,50,100,100]',
   pulldown = '[100,40,0,0]',
 }
 
@@ -39,6 +41,8 @@ local windowPositionBindings = {
   t = frames.rightTopQuarter,
   c = frames.leftBottomQuarter,
   v = frames.rightBottomQuarter,
+  s = frames.topHalf,
+  x = frames.bottomHalf,
 }
 
 for key, pos in pairs(windowPositionBindings) do
@@ -81,7 +85,7 @@ local appBindings = {
   e = 'Obsidian',
   w = 'Firefox Developer Edition',
   i = 'Slack',
-  l = 'Spotify'
+  o = 'Spotify',
 }
 
 for key, appName in pairs(appBindings) do
