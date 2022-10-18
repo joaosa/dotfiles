@@ -102,7 +102,7 @@ Plug 'ryanoasis/vim-devicons'
 call plug#end()
 
 " neovim python
-let g:python_host_prog = $HOME . '/.pyenv/versions/neovim-python2/bin/python'
+let g:python_host_prog = g:python2_host . '/python'
 let g:python3_host_prog = g:python3_host . '/python'
 
 " setup netrw
