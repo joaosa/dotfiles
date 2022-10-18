@@ -53,12 +53,12 @@ for key, pos in pairs(windowPositionBindings) do
 end
 
 -----------------------------------------------
--- Hyper i to show window hints
+-- altCmd i to show window hints
 -----------------------------------------------
-hs.hotkey.bind(hyper, 'i', hs.hints.windowHints)
+hs.hotkey.bind(altCmd, '-', hs.hints.windowHints)
 
 -----------------------------------------------
--- Hyper hjkl to switch window focus
+-- altCmd hjkl to switch window focus
 -----------------------------------------------
 local windowFocusBindings = {
   k = 'focusWindowNorth',
@@ -68,7 +68,7 @@ local windowFocusBindings = {
 }
 
 for key, action in pairs(windowFocusBindings) do
-  hs.hotkey.bind(hyper, key, function()
+  hs.hotkey.bind(altCmd, key, function()
     local window = hs.window.focusedWindow()
     if window then
       window[action](window)
