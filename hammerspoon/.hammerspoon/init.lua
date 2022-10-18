@@ -86,6 +86,8 @@ local appBindings = {
   w = 'Firefox Developer Edition',
   i = 'Slack',
   o = 'Spotify',
+  m = 'Mail',
+  n = 'Notion',
 }
 
 for key, appName in pairs(appBindings) do
