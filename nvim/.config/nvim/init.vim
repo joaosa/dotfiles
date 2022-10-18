@@ -269,7 +269,7 @@ let g:ale_linters = {
   \'puppet': ['puppetlint'],
 \}
 let g:ale_go_golangci_lint_package = 1
-let g:ale_go_golangci_lint_options = '--exclude-use-default=false'
+let g:ale_go_golangci_lint_options = '--exclude-use-default=false -e "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)"'
 let g:ale_go_gofmt_options = '-s'
 let g:ale_lua_luacheck_options = '--globals hs'
 let g:ale_fix_on_save = 1
