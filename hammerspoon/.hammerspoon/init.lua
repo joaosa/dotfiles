@@ -9,7 +9,7 @@ hs.window.animationDuration = 0;
 -----------------------------------------------
 -- Reload config on write
 -----------------------------------------------
-hs.pathwatcher.new(os.getenv('HOME') .. '/.hammerspoon/', hs.reload):start()
+configWatcher = hs.pathwatcher.new(os.getenv('HOME') .. '/.hammerspoon/', hs.reload):start()
 hs.alert.show('Config loaded')
 
 -----------------------------------------------
