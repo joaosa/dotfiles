@@ -398,10 +398,10 @@ tnoremap <C-l> <C-\><C-n><C-w>l
 
 " git fugitive (reusing the prezto aliases)
 nnoremap <leader>gws :Git<CR>
-nnoremap <leader>gwd :Gdiff<CR>
-nnoremap <leader>gco :Gread<CR>
-nnoremap <leader>gia :Gwrite<CR>
-nnoremap <leader>gcm :Gcommit<CR>
+nnoremap <leader>gwd :Git diff<CR>
+nnoremap <leader>gco :Git read<CR>
+nnoremap <leader>gia :Git write<CR>
+nnoremap <leader>gcm :Git commit<CR>
 nnoremap <leader>gfm :exec ':Git pull origin ' . fugitive#head() . ' --rebase --autostash'<CR>
 nnoremap <leader>gp :exec ':Git push origin ' . fugitive#head() . ' -u'<CR>
 nnoremap <leader>gb :Git blame<CR>
