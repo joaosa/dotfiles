@@ -94,6 +94,9 @@ export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
 # direnv
 eval "$(direnv hook zsh)"
 
+# asdf
+. /opt/homebrew/opt/asdf/libexec/asdf.sh
+
 # kubectl aliases
 [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
 function kubectl() { echo "+ kubectl $@">&2; command kubectl $@; }
