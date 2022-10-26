@@ -36,10 +36,8 @@ zstyle ':prezto:load' pmodule \
   'fasd' \
   'gpg' \
   'git' \
-  'ruby' \
   'history-substring-search' \
-  'syntax-highlighting' \
-  'prompt'
+  'syntax-highlighting'
 
 #
 # Autosuggestions
@@ -99,7 +97,7 @@ zstyle ':prezto:module:gnu-utility' prefix 'g'
 # Set the prompt theme to load.
 # Setting it to 'random' loads a random theme.
 # Auto set to 'off' on dumb terminals.
-zstyle ':prezto:module:prompt' theme 'pure'
+# zstyle ':prezto:module:prompt' theme 'pure'
 
 #
 # Ruby
