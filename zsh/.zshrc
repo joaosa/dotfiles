@@ -90,6 +90,12 @@ eval "$(direnv hook zsh)"
 # asdf
 . /opt/homebrew/opt/asdf/libexec/asdf.sh
 
+# zoxide
+eval "$(zoxide init zsh)"
+
+# starship
+eval "$(starship init zsh)"
+
 # kubectl aliases
 [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
 function kubectl() { echo "+ kubectl $@">&2; command kubectl $@; }
