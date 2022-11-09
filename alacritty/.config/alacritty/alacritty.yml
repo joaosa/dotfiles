@@ -14,7 +14,6 @@ font:
     style: Light Italic
   bold_italic:
     style: Bold Italic
-  use_thin_strokes: true
 # Gruvbox dark
 colors:
   primary:
