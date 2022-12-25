@@ -48,6 +48,7 @@ Plug 'edkolev/tmuxline.vim'
 Plug 'kassio/neoterm'
 Plug 'tpope/vim-obsession'
 Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
 Plug 'mhinz/vim-startify'
 Plug 'szw/vim-g'
 Plug 'christoomey/vim-tmux-navigator'
@@ -66,10 +67,9 @@ Plug 'vim-scripts/SyntaxRange'
 Plug 'Shougo/deoplete.nvim', { 'do': function('InstallDeopleteDeps') }
 Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
 Plug 'zchee/deoplete-jedi'
+Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
 Plug 'hashivim/vim-terraform'
 Plug 'juliosueiras/vim-terraform-completion'
-Plug 'rodjek/vim-puppet', { 'do': 'gem install puppet-lint' }
-Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
 Plug 'sebdah/vim-delve', { 'do': 'go get -u github.com/go-delve/delve/cmd/dlv' }
 " language syntax
 Plug 'dbeniamine/cheat.sh-vim'
