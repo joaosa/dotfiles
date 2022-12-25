@@ -6,13 +6,6 @@ let mapleader=','
 let g:python2_host = $HOME . '/.pyenv/versions/neovim-python2/bin'
 let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
 
-function! InstallDeopleteDeps(info)
-  if a:info.status ==# 'installed' || a:info.force
-    execute '!' . g:python3_host . "/pip install 'msgpack>=1.0.0'"
-    :UpdateRemotePlugins
-  endif
-endfunction
-
 function! InstallAleTools(info)
   if a:info.status ==# 'installed' || a:info.force
     " vim
@@ -63,14 +56,10 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'dense-analysis/ale', { 'do': function('InstallAleTools') }
 Plug 'vim-scripts/SyntaxRange'
-" auto-completion
-Plug 'Shougo/deoplete.nvim', { 'do': function('InstallDeopleteDeps') }
-Plug 'ternjs/tern_for_vim', { 'do': 'npm install' } | Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
-Plug 'zchee/deoplete-jedi'
-Plug 'zchee/deoplete-go', { 'do': 'go get -u github.com/mdempsky/gocode && make'}
-Plug 'hashivim/vim-terraform'
-Plug 'juliosueiras/vim-terraform-completion'
-Plug 'sebdah/vim-delve', { 'do': 'go get -u github.com/go-delve/delve/cmd/dlv' }
+" lsp
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
+Plug 'neovim/nvim-lspconfig'
 " language syntax
 Plug 'dbeniamine/cheat.sh-vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
@@ -241,16 +230,33 @@ syntax enable
 " needs to be added after enabling syntax
 hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
 
-" deoplete
-let g:deoplete#enable_at_startup = 1
-call deoplete#custom#option('sources', {'javascript': ['file', 'ultisnips', 'ternjs']})
-" tern_for_vim.
-let g:tern#command = ['tern']
-let g:tern#arguments = ['--persistent']
-" terraform
-call deoplete#custom#option('omni_patterns', {'complete_method': 'omnifunc'})
-let g:terraform_fmt_on_save=1
-call deoplete#initialize()
+lua <<EOF
+  require("mason").setup()
+  require("mason-lspconfig").setup({
+    ensure_installed = {
+      "sumneko_lua",
+      "golangci_lint_ls",
+      "rust_analyzer",
+      "terraformls",
+      "pyright",
+      "tsserver",
+      "yamlls",
+      "vimls",
+      "ansiblels",
+      "bashls",
+    }
+  })
+  require("lspconfig").rust_analyzer.setup {}
+  require("lspconfig").golangci_lint_ls.setup {}
+  require("lspconfig").sumneko_lua.setup {}
+  require("lspconfig").terraformls.setup {}
+  require("lspconfig").pyright.setup {}
+  require("lspconfig").tsserver.setup {}
+  require("lspconfig").yamlls.setup {}
+  require("lspconfig").vimls.setup {}
+  require("lspconfig").ansiblels.setup {}
+  require("lspconfig").bashls.setup {}
+EOF
 
 " snippets
 augroup snippets
