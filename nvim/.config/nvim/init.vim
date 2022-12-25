@@ -60,6 +60,9 @@ Plug 'vim-scripts/SyntaxRange'
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
 Plug 'neovim/nvim-lspconfig'
+" autocomplete
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/nvim-cmp'
 " language syntax
 Plug 'dbeniamine/cheat.sh-vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
@@ -230,6 +233,8 @@ syntax enable
 " needs to be added after enabling syntax
 hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
 
+set completeopt=menu,menuone,noselect
+
 lua <<EOF
   require("mason").setup()
   require("mason-lspconfig").setup({
@@ -244,18 +249,72 @@ lua <<EOF
       "vimls",
       "ansiblels",
       "bashls",
+      "sqlls",
     }
   })
-  require("lspconfig").rust_analyzer.setup {}
-  require("lspconfig").golangci_lint_ls.setup {}
-  require("lspconfig").sumneko_lua.setup {}
-  require("lspconfig").terraformls.setup {}
-  require("lspconfig").pyright.setup {}
-  require("lspconfig").tsserver.setup {}
-  require("lspconfig").yamlls.setup {}
-  require("lspconfig").vimls.setup {}
-  require("lspconfig").ansiblels.setup {}
-  require("lspconfig").bashls.setup {}
+
+  local cmp = require'cmp'
+
+  cmp.setup({
+    snippet = {
+      -- REQUIRED - you must specify a snippet engine
+      expand = function(args)
+        vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
+      end,
+    },
+    window = {
+      -- completion = cmp.config.window.bordered(),
+      -- documentation = cmp.config.window.bordered(),
+    },
+    mapping = cmp.mapping.preset.insert({
+    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    }),
+    sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'ultisnips' }, -- For ultisnips users.
+    }, {
+      { name = 'buffer' },
+    })
+  })
+
+  local capabilities = require('cmp_nvim_lsp').default_capabilities()
+  require("lspconfig").rust_analyzer.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").golangci_lint_ls.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").sumneko_lua.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").terraformls.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").pyright.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").tsserver.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").yamlls.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").vimls.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").ansiblels.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").bashls.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").sqlls.setup {
+    capabilities = capabilities
+  }
 EOF
 
 " snippets
