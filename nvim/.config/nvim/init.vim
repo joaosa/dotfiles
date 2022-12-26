@@ -15,7 +15,7 @@ Plug 'junegunn/limelight.vim'
 Plug 'mhinz/vim-startify'
 Plug 'szw/vim-g'
 Plug 'christoomey/vim-tmux-navigator'
-Plug 'airblade/vim-gitgutter'
+Plug 'lewis6991/gitsigns.nvim'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
@@ -282,6 +282,7 @@ lua <<EOF
     capabilities = capabilities
   }
 
+  require('gitsigns').setup()
   require("symbols-outline").setup()
   require('Comment').setup()
 EOF
