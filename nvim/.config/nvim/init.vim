@@ -13,6 +13,7 @@ Plug 'tpope/vim-obsession'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'mhinz/vim-startify'
+Plug 'folke/which-key.nvim'
 Plug 'szw/vim-g'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'lewis6991/gitsigns.nvim'
@@ -165,6 +166,7 @@ hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
 set completeopt=menu,menuone,noselect
 
 lua <<EOF
+  require("which-key").setup {}
   require('telescope').load_extension('fzf')
 
   require'nvim-treesitter.configs'.setup {
