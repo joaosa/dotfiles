@@ -78,24 +78,6 @@ nnoremap <leader>d :Lexplore<CR>
 " let's not conflict with ferret
 let g:lt_location_list_toggle_map = '<leader>w'
 
-" gutentags
-let g:gutentags_file_list_command = 'rg --files'
-" Fix it when using git
-" ref - https://github.com/ludovicchabant/vim-gutentags/issues/178#issuecomment-547475742
-let g:gutentags_exclude_filetypes = [
-  \'go',
-  \'ginkgo.go',
-  \'gitcommit',
-  \'gitconfig',
-  \'gitrebase',
-  \'gitsendemail',
-  \'git',
-  \'diff',
-  \]
-let g:gutentags_ctags_exclude = [
-  \'.git',
-\]
-
 " yank and paste with the system clipboard
 set clipboard=unnamedplus
 " do not confuse crontab. see :help crontab
