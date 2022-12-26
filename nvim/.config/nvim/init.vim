@@ -275,6 +275,8 @@ lua <<EOF
     capabilities = capabilities
   }
   require("lspconfig").gopls.setup {
+    -- FIXME go back to golangcli-lint
+    -- command = { "golangci-lint", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
     capabilities = capabilities
   }
   require("lspconfig").sumneko_lua.setup {
