@@ -3,9 +3,6 @@ scriptencoding utf8
 " Plugins
 let mapleader=','
 
-let g:python2_host = $HOME . '/.pyenv/versions/neovim-python2/bin'
-let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
-
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
 Plug 'gruvbox-community/gruvbox'
@@ -63,10 +60,6 @@ Plug 'tpope/vim-dadbod'
 " has to be the last one
 Plug 'ryanoasis/vim-devicons'
 call plug#end()
-
-" neovim python
-let g:python_host_prog = g:python2_host . '/python'
-let g:python3_host_prog = g:python3_host . '/python'
 
 " setup netrw
 " ref - https://shapeshed.com/vim-netrw/
