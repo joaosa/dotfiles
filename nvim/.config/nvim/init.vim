@@ -39,8 +39,6 @@ Plug 'hrsh7th/nvim-cmp'
 Plug 'dbeniamine/cheat.sh-vim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
-Plug 'majutsushi/tagbar'
-Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
 Plug 'unblevable/quick-scope'
 Plug 'wellle/targets.vim'
