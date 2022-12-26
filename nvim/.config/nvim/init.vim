@@ -47,7 +47,6 @@ Plug 'lervag/vimtex'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
 Plug 'ciaranm/detectindent'
-Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 " GitHub extension for fugitive.vim
 Plug 'tpope/vim-rhubarb'
