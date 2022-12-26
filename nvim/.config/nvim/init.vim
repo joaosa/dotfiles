@@ -447,12 +447,16 @@ snoremap <silent> <Tab> <cmd>lua require('luasnip').jump(1)<Cr>
 snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
 
 " Search
+autocmd User TelescopePreviewerLoaded setlocal wrap
 nnoremap <leader>a :Telescope live_grep<CR>
 nnoremap <leader>t :Telescope find_files<CR>
 nnoremap <leader>s :Telescope grep_string<CR>
 nnoremap <leader>c :Telescope command_history<CR>
 nnoremap <leader>q :Telescope quickfix<CR>
 nnoremap <leader>w :Telescope loclist<CR>
+nnoremap <leader>g :Telescope git_status<CR>
+nnoremap <leader>ts :Telescope treesitter<CR>
+nnoremap <leader>p :Telescope resume<CR>
 " search for stuff on the internet
 let g:vim_g_command='Go'
 " stuff + filetype
