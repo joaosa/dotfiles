@@ -20,9 +20,11 @@ Plug 'nathanaelkane/vim-indent-guides'
 Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
+" lua observability
 Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
 Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+" snippets
 Plug 'L3MON4D3/LuaSnip'
 Plug 'saadparwaiz1/cmp_luasnip'
 Plug 'rafamadriz/friendly-snippets'
@@ -48,6 +50,7 @@ Plug 'janko-m/vim-test'
 Plug 'ciaranm/detectindent'
 Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
+" GitHub extension for fugitive.vim
 Plug 'tpope/vim-rhubarb'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
