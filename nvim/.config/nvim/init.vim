@@ -6,32 +6,6 @@ let mapleader=','
 let g:python2_host = $HOME . '/.pyenv/versions/neovim-python2/bin'
 let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
 
-function! InstallAleTools(info)
-  if a:info.status ==# 'installed' || a:info.force
-    " vim
-    !pip3 install vim-vint
-    " shell
-    !brew install shellcheck
-    " javascript
-    !npm install -g eslint_d@7 babel-eslint
-    !npx install-peerdeps -g eslint-config-airbnb@16.1.0
-    " python
-    !pip3 install flake8
-    " puppet
-    !gem install --user-install hiera-eyaml
-    " sql
-    !gem install --user-install sqlint
-    !brew install pgformatter
-    " yaml
-    !brew install yamllint
-    !npm i -g prettier
-    " golang
-    !brew install golangci/tap/golangci-lint
-    " lua
-    !brew install luarocks && luarocks install luacheck
-  endif
-endfunction
-
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
 Plug 'gruvbox-community/gruvbox'
@@ -54,7 +28,7 @@ Plug 'wincent/ferret'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
-Plug 'dense-analysis/ale', { 'do': function('InstallAleTools') }
+Plug 'dense-analysis/ale'
 Plug 'vim-scripts/SyntaxRange'
 " lsp
 Plug 'williamboman/mason.nvim'
@@ -344,21 +318,6 @@ augroup snippets
 augroup end
 
 " linting
-let g:ale_javascript_eslint_use_global = 1
-let g:ale_javascript_eslint_executable = 'eslint_d'
-let g:ale_linters = {
-  \'vim': ['vint'],
-  \'javascript': ['eslint'],
-  \'typescript': ['tslint', 'tsserver'],
-  \'go': ['golangci-lint'],
-  \'rust': ['cargo'],
-  \'lua': ['luacheck'],
-  \'puppet': ['puppetlint'],
-\}
-let g:ale_go_golangci_lint_package = 1
-let g:ale_go_golangci_lint_options = '--exclude-use-default=false -e "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)"'
-let g:ale_go_gofmt_options = '-s'
-let g:ale_lua_luacheck_options = '--globals hs'
 let g:ale_fix_on_save = 1
 let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
