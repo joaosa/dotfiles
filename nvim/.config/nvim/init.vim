@@ -296,8 +296,10 @@ let g:ale_fixers = {
   \'sql': ['pgformatter'],
   \'go': ['gofmt', 'goimports'],
   \'lua': ['luafmt'],
+  \'terraform': ['terraform'],
   \'rust': ['rustfmt'],
 \}
+let g:ale_terraform_fmt_options = '-write=true'
 
 " set the status line
 " component_visible_condition - so that fugitive's arrow doesn't appear all the time
