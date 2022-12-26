@@ -25,7 +25,8 @@ Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
 Plug 'wincent/ferret'
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
 Plug 'dense-analysis/ale'
@@ -449,6 +450,7 @@ augroup livedown
 augroup end
 
 " Search
+nnoremap <leader>t :Telescope find_files<CR>
 " search for stuff on the internet
 let g:vim_g_command='Go'
 " stuff + filetype
@@ -462,6 +464,3 @@ set smartcase
 set scrolloff=5
 " clear the highlight from the last search
 nnoremap <Esc><Esc> :noh<CR><Esc>
-" use fzf
-nnoremap <leader>t :FZF<CR>
-set grepprg=rg\ --vimgrep
