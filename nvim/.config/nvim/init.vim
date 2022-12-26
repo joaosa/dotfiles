@@ -65,10 +65,7 @@ Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/nvim-cmp'
 " language syntax
 Plug 'dbeniamine/cheat.sh-vim'
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-Plug 'rust-lang/rust.vim'
-Plug 'leafgarland/typescript-vim'
-Plug 'pearofducks/ansible-vim'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'ivy/vim-ginkgo'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'ludovicchabant/vim-gutentags', { 'do': 'brew install --HEAD universal-ctags/universal-ctags/universal-ctags' }
@@ -224,10 +221,6 @@ nnoremap ¬ <C-g>u<Esc>[s1z=`]a<C-g>u
 " this corresponds to <A-k>
 nnoremap ˚ <Esc>[sve<C-g>
 
-" Syntax
-" enable syntax highlighting
-syntax enable
-
 " fix transparency with Alacritty
 " ref - https://github.com/alacritty/alacritty/issues/1082#issuecomment-366857468
 " needs to be added after enabling syntax
@@ -236,6 +229,34 @@ hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
 set completeopt=menu,menuone,noselect
 
 lua <<EOF
+  require'nvim-treesitter.configs'.setup {
+    highlight = {
+      enable = true,
+      additional_vim_regex_highlighting = false,
+    },
+
+    ensure_installed = {
+      "rust",
+      "go",
+      "lua",
+      "python",
+      "javascript",
+      "typescript",
+      "hcl",
+      "yaml",
+      "json",
+    },
+
+    sync_install = false,
+    -- Automatically install missing parsers when entering buffer
+    -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+    auto_install = true,
+  }
+
+  local ft_to_parser = require"nvim-treesitter.parsers".filetype_to_parsername
+  ft_to_parser.terrafrom = "hcl"
+  ft_to_parser["terraform-vars"] = "hcl"
+
   require("mason").setup()
   require("mason-lspconfig").setup({
     ensure_installed = {
