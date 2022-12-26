@@ -168,7 +168,20 @@ set completeopt=menu,menuone,noselect
 
 lua <<EOF
   require("which-key").setup {}
-  require('telescope').load_extension('fzf')
+
+  local trouble = require("trouble")
+  trouble.setup {}
+
+  local telescope = require('telescope')
+  telescope.setup {
+    defaults = {
+      mappings = {
+        i = { ["<c-t>"] = trouble.open_with_trouble },
+        n = { ["<c-t>"] = trouble.open_with_trouble },
+      },
+    },
+  }
+  telescope.load_extension('fzf')
 
   require'nvim-treesitter.configs'.setup {
     highlight = {
@@ -285,7 +298,6 @@ lua <<EOF
     capabilities = capabilities
   }
 
-  require("trouble").setup {}
   require('gitsigns').setup()
   require("symbols-outline").setup()
   require('Comment').setup()
