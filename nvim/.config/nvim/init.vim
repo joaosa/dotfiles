@@ -42,7 +42,7 @@ Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'simrat39/symbols-outline.nvim'
 Plug 'unblevable/quick-scope'
-Plug 'tpope/vim-commentary'
+Plug 'numToStr/Comment.nvim'
 Plug 'lervag/vimtex'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
@@ -283,6 +283,7 @@ lua <<EOF
   }
 
   require("symbols-outline").setup()
+  require('Comment').setup()
 EOF
 
 " linting
