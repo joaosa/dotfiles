@@ -9,7 +9,6 @@ let g:python3_host = $HOME . '/.pyenv/versions/neovim-python3/bin'
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
 Plug 'gruvbox-community/gruvbox'
-Plug 'Valloric/ListToggle'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'kassio/neoterm'
@@ -449,9 +448,10 @@ augroup end
 " Search
 nnoremap <leader>a :Telescope live_grep<CR>
 nnoremap <leader>t :Telescope find_files<CR>
-" let's not conflict with telescope
-let g:lt_location_list_toggle_map = '<leader>w'
 nnoremap <leader>s :Telescope grep_string<CR>
+nnoremap <leader>c :Telescope command_history<CR>
+nnoremap <leader>q :Telescope quickfix<CR>
+nnoremap <leader>w :Telescope loclist<CR>
 " search for stuff on the internet
 let g:vim_g_command='Go'
 " stuff + filetype
