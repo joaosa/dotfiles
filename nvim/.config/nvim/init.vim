@@ -40,6 +40,7 @@ Plug 'hrsh7th/nvim-cmp'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
+Plug 'simrat39/symbols-outline.nvim'
 Plug 'unblevable/quick-scope'
 Plug 'tpope/vim-commentary'
 Plug 'lervag/vimtex'
@@ -282,6 +283,8 @@ lua <<EOF
   require("lspconfig").marksman.setup {
     capabilities = capabilities
   }
+
+  require("symbols-outline").setup()
 EOF
 
 " linting
@@ -456,6 +459,8 @@ nnoremap <leader>w :Telescope loclist<CR>
 nnoremap <leader>g :Telescope git_status<CR>
 nnoremap <leader>ts :Telescope treesitter<CR>
 nnoremap <leader>p :Telescope resume<CR>
+" outline
+nnoremap <silent> <localleader>o :SymbolsOutline<CR>
 " search for stuff on the internet
 let g:vim_g_command='Go'
 " stuff + filetype
