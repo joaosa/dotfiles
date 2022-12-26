@@ -25,6 +25,7 @@ Plug 'nvim-lua/plenary.nvim'
 Plug 'folke/which-key.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+Plug 'folke/todo-comments.nvim'
 Plug 'folke/trouble.nvim'
 " snippets
 Plug 'L3MON4D3/LuaSnip'
@@ -301,6 +302,15 @@ lua <<EOF
   require('gitsigns').setup()
   require("symbols-outline").setup()
   require('Comment').setup()
+
+  require("todo-comments").setup {}
+  vim.keymap.set("n", "]t", function()
+    require("todo-comments").jump_next()
+  end, { desc = "Next todo comment" })
+
+  vim.keymap.set("n", "[t", function()
+    require("todo-comments").jump_prev()
+  end, { desc = "Previous todo comment" })
 EOF
 
 " linting
