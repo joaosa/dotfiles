@@ -40,7 +40,6 @@ Plug 'hrsh7th/nvim-cmp'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
-Plug 'bkad/CamelCaseMotion'
 Plug 'unblevable/quick-scope'
 Plug 'tpope/vim-commentary'
 Plug 'lervag/vimtex'
