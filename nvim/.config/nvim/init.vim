@@ -42,7 +42,6 @@ Plug 'dbeniamine/cheat.sh-vim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'ivy/vim-ginkgo'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
-Plug 'ludovicchabant/vim-gutentags', { 'do': 'brew install --HEAD universal-ctags/universal-ctags/universal-ctags' }
 Plug 'majutsushi/tagbar'
 Plug 'lvht/tagbar-markdown'
 Plug 'bkad/CamelCaseMotion'
