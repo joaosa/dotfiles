@@ -13,7 +13,6 @@ Plug 'tpope/vim-obsession'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'mhinz/vim-startify'
-Plug 'folke/which-key.nvim'
 Plug 'szw/vim-g'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'lewis6991/gitsigns.nvim'
@@ -23,8 +22,10 @@ Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
 " discoverability
 Plug 'nvim-lua/plenary.nvim'
+Plug 'folke/which-key.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+Plug 'folke/trouble.nvim'
 " snippets
 Plug 'L3MON4D3/LuaSnip'
 Plug 'saadparwaiz1/cmp_luasnip'
@@ -284,6 +285,7 @@ lua <<EOF
     capabilities = capabilities
   }
 
+  require("trouble").setup {}
   require('gitsigns').setup()
   require("symbols-outline").setup()
   require('Comment').setup()
@@ -466,6 +468,15 @@ nnoremap <leader>ts :Telescope treesitter<CR>
 nnoremap <leader>p :Telescope resume<CR>
 " outline
 nnoremap <silent> <localleader>o :SymbolsOutline<CR>
+
+" trouble
+nnoremap <leader>xx <cmd>TroubleToggle<cr>
+nnoremap <leader>xw <cmd>TroubleToggle workspace_diagnostics<cr>
+nnoremap <leader>xd <cmd>TroubleToggle document_diagnostics<cr>
+nnoremap <leader>xq <cmd>TroubleToggle quickfix<cr>
+nnoremap <leader>xl <cmd>TroubleToggle loclist<cr>
+nnoremap gR <cmd>TroubleToggle lsp_references<cr>
+
 " search for stuff on the internet
 let g:vim_g_command='Go'
 " stuff + filetype
