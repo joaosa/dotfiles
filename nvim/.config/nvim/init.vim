@@ -5,6 +5,7 @@ let mapleader=','
 
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
+" aesthetics
 Plug 'gruvbox-community/gruvbox'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
@@ -20,17 +21,9 @@ Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
-" discoverability
-Plug 'nvim-lua/plenary.nvim'
-Plug 'folke/which-key.nvim'
-Plug 'nvim-telescope/telescope.nvim'
-Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
-Plug 'folke/todo-comments.nvim'
-Plug 'folke/trouble.nvim'
-" snippets
-Plug 'L3MON4D3/LuaSnip'
-Plug 'saadparwaiz1/cmp_luasnip'
-Plug 'rafamadriz/friendly-snippets'
+" language syntax
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'dense-analysis/ale'
 " lsp
 Plug 'williamboman/mason.nvim'
@@ -39,9 +32,17 @@ Plug 'neovim/nvim-lspconfig'
 " autocomplete
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/nvim-cmp'
-" language syntax
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'nvim-treesitter/nvim-treesitter-textobjects'
+" snippets
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
+Plug 'rafamadriz/friendly-snippets'
+" discoverability
+Plug 'nvim-lua/plenary.nvim'
+Plug 'folke/which-key.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+Plug 'folke/todo-comments.nvim'
+Plug 'folke/trouble.nvim'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'simrat39/symbols-outline.nvim'
 Plug 'unblevable/quick-scope'
