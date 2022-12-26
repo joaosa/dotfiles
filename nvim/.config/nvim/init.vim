@@ -24,7 +24,6 @@ Plug 'nathanaelkane/vim-indent-guides'
 Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
-Plug 'wincent/ferret'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 " vim-snippets depends on ultisnips
@@ -76,8 +75,6 @@ let g:netrw_banner = 0
 let g:netrw_winsize = 25
 nnoremap <leader>d :Lexplore<CR>
 
-" let's not conflict with ferret
-let g:lt_location_list_toggle_map = '<leader>w'
 
 " yank and paste with the system clipboard
 set clipboard=unnamedplus
@@ -450,7 +447,11 @@ augroup livedown
 augroup end
 
 " Search
+nnoremap <leader>a :Telescope live_grep<CR>
 nnoremap <leader>t :Telescope find_files<CR>
+" let's not conflict with telescope
+let g:lt_location_list_toggle_map = '<leader>w'
+nnoremap <leader>s :Telescope grep_string<CR>
 " search for stuff on the internet
 let g:vim_g_command='Go'
 " stuff + filetype
