@@ -185,6 +185,7 @@ lua <<EOF
       "hcl",
       "yaml",
       "json",
+      "markdown",
     },
 
     sync_install = false,
@@ -212,6 +213,7 @@ lua <<EOF
       "ansiblels",
       "bashls",
       "sqlls",
+      "marksman",
     }
   })
 
@@ -275,6 +277,9 @@ lua <<EOF
     capabilities = capabilities
   }
   require("lspconfig").sqlls.setup {
+    capabilities = capabilities
+  }
+  require("lspconfig").marksman.setup {
     capabilities = capabilities
   }
 EOF
