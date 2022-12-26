@@ -295,6 +295,7 @@ let g:ale_fixers = {
   \'*': ['remove_trailing_lines', 'trim_whitespace'],
   \'sql': ['pgformatter'],
   \'go': ['gofmt', 'goimports'],
+  \'lua': ['luafmt'],
   \'rust': ['rustfmt'],
 \}
 
