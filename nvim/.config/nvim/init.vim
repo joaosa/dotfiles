@@ -197,7 +197,8 @@ lua <<EOF
   local ft_to_parser = require"nvim-treesitter.parsers".filetype_to_parsername
   ft_to_parser.terraform = "hcl"
   ft_to_parser["terraform-vars"] = "hcl"
-  ft_to_parser["ansible"] = "yaml"
+  ft_to_parser.ansible = "yaml"
+  ft_to_parser.diff = "git"
 
   require("mason").setup()
   require("mason-lspconfig").setup({
