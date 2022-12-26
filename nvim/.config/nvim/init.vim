@@ -16,7 +16,7 @@ Plug 'mhinz/vim-startify'
 Plug 'szw/vim-g'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'airblade/vim-gitgutter'
-Plug 'nathanaelkane/vim-indent-guides'
+Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
@@ -111,8 +111,6 @@ augroup indentation
 augroup end
 let g:detectindent_preferred_expandtab = 1
 let g:detectindent_preferred_indent = 2
-" use vim indent guides
-let g:indent_guides_enable_on_vim_startup=1
 
 " Navigation
 " enable hard mode on all buffers
