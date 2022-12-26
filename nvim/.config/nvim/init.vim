@@ -24,6 +24,7 @@ Plug 'takac/vim-hardtime'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
 Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
 Plug 'nvim-telescope/telescope.nvim'
 " vim-snippets depends on ultisnips
 Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
@@ -73,7 +74,6 @@ let g:netrw_banner = 0
 " let g:netrw_liststyle = 3
 let g:netrw_winsize = 25
 nnoremap <leader>d :Lexplore<CR>
-
 
 " yank and paste with the system clipboard
 set clipboard=unnamedplus
@@ -181,6 +181,8 @@ hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
 set completeopt=menu,menuone,noselect
 
 lua <<EOF
+  require('telescope').load_extension('fzf')
+
   require'nvim-treesitter.configs'.setup {
     highlight = {
       enable = true,
