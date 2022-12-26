@@ -23,8 +23,9 @@ Plug 'jiangmiao/auto-pairs'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
 Plug 'nvim-telescope/telescope.nvim'
-" vim-snippets depends on ultisnips
-Plug 'sirver/ultisnips' | Plug 'honza/vim-snippets'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
+Plug 'rafamadriz/friendly-snippets'
 Plug 'dense-analysis/ale'
 Plug 'vim-scripts/SyntaxRange'
 " lsp
@@ -37,7 +38,6 @@ Plug 'hrsh7th/nvim-cmp'
 " language syntax
 Plug 'dbeniamine/cheat.sh-vim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-Plug 'ivy/vim-ginkgo'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'majutsushi/tagbar'
 Plug 'lvht/tagbar-markdown'
@@ -222,11 +222,14 @@ lua <<EOF
     }
   })
 
+  require("luasnip.loaders.from_vscode").lazy_load()
+  require("luasnip.loaders.from_snipmate").lazy_load({ path = { "./snippets" } })
+
   local cmp = require'cmp'
   cmp.setup({
     snippet = {
       expand = function(args)
-        vim.fn["UltiSnips#Anon"](args.body)
+        require('luasnip').lsp_expand(args.body)
       end,
     },
     mapping = cmp.mapping.preset.insert({
@@ -238,10 +241,10 @@ lua <<EOF
     }),
     sources = cmp.config.sources({
       { name = 'nvim_lsp' },
-      { name = 'ultisnips' },
-      }, {
-        { name = 'buffer' },
-      })
+      { name = 'luasnip' },
+    }, {
+      { name = 'buffer' },
+    })
   })
 
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
@@ -282,11 +285,6 @@ lua <<EOF
     capabilities = capabilities
   }
 EOF
-
-" snippets
-augroup snippets
-  autocmd FileType javascript UltiSnipsAddFiletypes javascript-jasmine-arrow
-augroup end
 
 " linting
 let g:ale_fix_on_save = 1
