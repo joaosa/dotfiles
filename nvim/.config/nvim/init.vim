@@ -444,17 +444,8 @@ nnoremap <leader>gl :Gclog<CR>
 nnoremap <leader>gs :Git stash<CR>
 nnoremap <leader>gsp :Git stash pop<CR>
 nnoremap <leader>gsd :Git stash drop<CR>
-" open PRs inside vim using neoterm
-function! OpenPR(base, reviewers)
-  let l:reviewers = []
-  for r in split(a:reviewers)
-    call add(l:reviewers, '-r ' . r)
-  endfor
-
-  " can't use -d as not all repos support this
-  execute ':T hub pull-request -fp -b ' . a:base . ' ' . join(l:reviewers, ' ')
-endfunction
-nnoremap <localleader>gp :call OpenPR(input('branch: '), input('reviewers: '))<CR>
+" open PRs
+nnoremap <localleader>gp :Octo pr create<CR>
 
 " preview markdown with livedown
 augroup livedown
