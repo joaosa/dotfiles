@@ -31,12 +31,13 @@ Plug 'windwp/nvim-autopairs'
 " language syntax
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
-Plug 'dense-analysis/ale'
 Plug 'numToStr/Comment.nvim'
 " lsp
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
 Plug 'neovim/nvim-lspconfig'
+Plug 'jose-elias-alvarez/null-ls.nvim'
+Plug 'lukas-reineke/lsp-format.nvim'
 Plug 'Wansmer/treesj'
 " autocomplete
 Plug 'hrsh7th/cmp-nvim-lsp'
@@ -209,22 +210,54 @@ lua <<EOF
 
   require('treesj').setup {}
 
-  require("mason").setup()
+  lsp_servers = {
+    sumneko_lua = {
+      Lua = {
+        diagnostics = {
+          globals = {'hs'},
+        },
+      },
+    },
+    gopls = {},
+    rust_analyzer = {},
+    terraformls = {},
+    pyright = {},
+    tsserver = {},
+    yamlls = {},
+    vimls = {},
+    ansiblels = {},
+    bashls = {},
+    sqlls = {},
+    marksman = {},
+  }
+
+  require"mason".setup()
   require("mason-lspconfig").setup({
-    ensure_installed = {
-      "sumneko_lua",
-      "gopls",
-      "rust_analyzer",
-      "terraformls",
-      "pyright",
-      "tsserver",
-      "yamlls",
-      "vimls",
-      "ansiblels",
-      "bashls",
-      "sqlls",
-      "marksman",
-    }
+    ensure_installed = lsp_servers,
+  })
+
+  local null_ls = require("null-ls")
+  null_ls.setup({
+    -- so we can format on save
+    on_attach = function(client, bufnr)
+      if client.supports_method("textDocument/formatting") then
+        vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          group = augroup,
+          buffer = bufnr,
+          callback = function()
+            vim.lsp.buf.format()
+          end,
+        })
+      end
+    end,
+    sources = {
+      null_ls.builtins.formatting.pg_format,
+      null_ls.builtins.formatting.goimports,
+      -- null_ls.builtins.diagnostics.luacheck,
+      null_ls.builtins.diagnostics.eslint,
+      null_ls.builtins.completion.spell,
+    },
   })
 
   require("luasnip.loaders.from_vscode").lazy_load()
@@ -254,46 +287,26 @@ lua <<EOF
     })
   })
 
+  local on_attach = function(client) require("lsp-format").on_attach(client) end
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
   require("lspconfig").rust_analyzer.setup {
+    on_attach = on_attach,
     capabilities = capabilities
   }
   require("lspconfig").gopls.setup {
     -- FIXME go back to golangcli-lint
     -- command = { "golangci-lint", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
+    on_attach = on_attach,
     capabilities = capabilities
   }
-  require("lspconfig").sumneko_lua.setup {
-    diagnostics = { globals = { "hs" } },
-    capabilities = capabilities
-  }
-  require("lspconfig").terraformls.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").pyright.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").tsserver.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").yamlls.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").vimls.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").ansiblels.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").bashls.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").sqlls.setup {
-    capabilities = capabilities
-  }
-  require("lspconfig").marksman.setup {
-    capabilities = capabilities
-  }
+
+  for server, settings in pairs(lsp_servers) do
+    require("lspconfig")[server].setup {
+      settings = settings,
+      on_attach = on_attach,
+      capabilities = capabilities,
+    }
+  end
 
   require('gitsigns').setup()
   require("symbols-outline").setup()
@@ -315,18 +328,6 @@ lua <<EOF
   codewindow.setup()
   codewindow.apply_default_keybinds()
 EOF
-
-" linting
-let g:ale_fix_on_save = 1
-let g:ale_fixers = {
-  \'*': ['remove_trailing_lines', 'trim_whitespace'],
-  \'sql': ['pgformatter'],
-  \'go': ['gofmt', 'goimports'],
-  \'lua': ['luafmt'],
-  \'terraform': ['terraform'],
-  \'rust': ['rustfmt'],
-\}
-let g:ale_terraform_fmt_options = '-write=true'
 
 " set the status line
 " component_visible_condition - so that fugitive's arrow doesn't appear all the time
