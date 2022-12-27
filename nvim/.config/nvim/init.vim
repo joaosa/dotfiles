@@ -6,7 +6,7 @@ let mapleader=','
 " configure plug
 call plug#begin('~/.config/nvim/plugged')
 " aesthetics
-Plug 'gruvbox-community/gruvbox'
+Plug 'ellisonleao/gruvbox.nvim'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'kassio/neoterm'
@@ -92,13 +92,6 @@ set number
 set ruler
 " show typed commands
 set showcmd
-" color scheme
-set termguicolors
-let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-colorscheme gruvbox
-" https://github.com/gruvbox-community/gruvbox/wiki/Configuration#ggruvbox_contrast_dark
-let g:gruvbox_contrast_dark='hard'
 
 " rainbow parenthesis
 let g:rainbow_active=1
@@ -161,14 +154,11 @@ nnoremap ¬ <C-g>u<Esc>[s1z=`]a<C-g>u
 " this corresponds to <A-k>
 nnoremap ˚ <Esc>[sve<C-g>
 
-" fix transparency with Alacritty
-" ref - https://github.com/alacritty/alacritty/issues/1082#issuecomment-366857468
-" needs to be added after enabling syntax
-hi Normal ctermbg=NONE guibg=NONE guifg=NONE ctermfg=NONE
-
 set completeopt=menu,menuone,noselect
 
 lua <<EOF
+  vim.cmd("colorscheme gruvbox")
+
   require("which-key").setup {}
 
   local trouble = require("trouble")
