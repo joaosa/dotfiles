@@ -37,6 +37,7 @@ Plug 'numToStr/Comment.nvim'
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
 Plug 'neovim/nvim-lspconfig'
+Plug 'Wansmer/treesj'
 " autocomplete
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/nvim-cmp'
@@ -198,6 +199,8 @@ lua <<EOF
   ft_to_parser["terraform-vars"] = "hcl"
   ft_to_parser.ansible = "yaml"
   ft_to_parser.diff = "git"
+
+  require('treesj').setup {}
 
   require("mason").setup()
   require("mason-lspconfig").setup({
