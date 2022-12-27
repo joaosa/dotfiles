@@ -151,6 +151,7 @@ set completeopt=menu,menuone,noselect
 
 lua <<EOF
   vim.cmd("colorscheme gruvbox")
+  require('guess-indent').setup {}
   require'alpha'.setup(require'alpha.themes.startify'.config)
 
   require('Navigator').setup()
