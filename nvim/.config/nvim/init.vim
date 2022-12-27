@@ -41,6 +41,7 @@ Plug 'neovim/nvim-lspconfig'
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
+Plug 'petertriho/cmp-git'
 " snippets
 Plug 'L3MON4D3/LuaSnip'
 Plug 'saadparwaiz1/cmp_luasnip'
@@ -244,6 +245,7 @@ lua <<EOF
       { name = 'nvim_lsp' },
       { name = 'nvim_lsp_signature_help' },
       { name = 'luasnip' },
+      { name = 'git' },
     }, {
       { name = 'buffer' },
     })
@@ -302,6 +304,7 @@ lua <<EOF
     require("todo-comments").jump_prev()
   end, { desc = "Previous todo comment" })
 
+  require("cmp_git").setup()
   require"octo".setup()
 EOF
 
