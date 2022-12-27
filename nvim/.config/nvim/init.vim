@@ -61,7 +61,7 @@ Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-dadbod'
 " has to be the last one
-Plug 'ryanoasis/vim-devicons'
+Plug 'nvim-tree/nvim-web-devicons'
 call plug#end()
 
 " setup netrw
@@ -357,12 +357,21 @@ function! MyFugitive()
   return ''
 endfunction
 
+lua <<EOF
+  function getFiletypeIcon(filetype)
+      return require('nvim-web-devicons').get_icon_by_filetype(filetype)
+  end
+  function getFileFormat(filename, extension)
+      return require'nvim-web-devicons'.get_icon(filename, extension, { default = true })
+  end
+EOF
+
 function! MyFiletype()
-  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''
+  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . v:lua.getFiletypeIcon(&filetype) : 'no ft') : ''
 endfunction
 
 function! MyFileformat()
-  return winwidth(0) > 70 ? (&fileformat . ' ' . WebDevIconsGetFileFormatSymbol()) : ''
+  return winwidth(0) > 70 ? (&fileformat . ' ' . v:lua.getFileFormat(expand('%'), expand('%:e'))) : ''
 endfunction
 
 " tmuxline
