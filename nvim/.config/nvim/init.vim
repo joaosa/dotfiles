@@ -17,6 +17,7 @@ Plug 'junegunn/limelight.vim'
 Plug 'goolord/alpha-nvim'
 " behaviour
 Plug 'takac/vim-hardtime'
+Plug 'declancm/cinnamon.nvim'
 Plug 'tpope/vim-obsession'
 Plug 'ciaranm/detectindent'
 Plug 'tpope/vim-surround'
