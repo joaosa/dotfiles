@@ -28,7 +28,7 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'kassio/neoterm'
 Plug 'szw/vim-g'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
-Plug 'jiangmiao/auto-pairs'
+Plug 'windwp/nvim-autopairs'
 " language syntax
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
@@ -296,6 +296,7 @@ lua <<EOF
 
   require('gitsigns').setup()
   require("symbols-outline").setup()
+  require("nvim-autopairs").setup {}
   require('Comment').setup()
 
   require("todo-comments").setup {}
