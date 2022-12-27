@@ -93,9 +93,6 @@ set ruler
 " show typed commands
 set showcmd
 
-" rainbow parenthesis
-let g:rainbow_active=1
-
 " Indenting
 set autoindent
 " we're leaving tab expansion (expandtab), tab size for insert mode (softtabstop),
