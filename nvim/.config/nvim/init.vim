@@ -60,7 +60,6 @@ Plug 'gorbit99/codewindow.nvim'
 " external tools
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'lervag/vimtex'
-Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
 Plug 'pwntester/octo.nvim'
 Plug 'tpope/vim-fugitive'
@@ -431,11 +430,6 @@ nnoremap <silent> <localleader>T :TestFile<CR>
 nnoremap <silent> <localleader>a :TestSuite<CR>
 nnoremap <silent> <localleader>l :TestLast<CR>
 nnoremap <silent> <localleader>g :TestVisit<CR>
-
-" use dispatch
-nnoremap <leader>dc :Dispatch<Space>
-nnoremap <leader>ds :Start<Space>
-nnoremap <leader>dm :Make<Space>
 
 " use neoterm
 tnoremap <C-h> <C-\><C-n><C-w>h
