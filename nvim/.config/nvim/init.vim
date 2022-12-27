@@ -8,24 +8,31 @@ call plug#begin('~/.config/nvim/plugged')
 " aesthetics
 Plug 'ellisonleao/gruvbox.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
+Plug 'lukas-reineke/indent-blankline.nvim'
+Plug 'lewis6991/gitsigns.nvim'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
-Plug 'kassio/neoterm'
-Plug 'tpope/vim-obsession'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'goolord/alpha-nvim'
-Plug 'szw/vim-g'
-Plug 'christoomey/vim-tmux-navigator'
-Plug 'lewis6991/gitsigns.nvim'
-Plug 'lukas-reineke/indent-blankline.nvim'
+" behaviour
 Plug 'takac/vim-hardtime'
+Plug 'tpope/vim-obsession'
+Plug 'ciaranm/detectindent'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-unimpaired'
+Plug 'tpope/vim-speeddating'
+Plug 'tpope/vim-repeat'
+Plug 'christoomey/vim-tmux-navigator'
+Plug 'kassio/neoterm'
+Plug 'szw/vim-g'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'jiangmiao/auto-pairs'
 " language syntax
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'dense-analysis/ale'
+Plug 'numToStr/Comment.nvim'
 " lsp
 Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
@@ -41,25 +48,20 @@ Plug 'rafamadriz/friendly-snippets'
 " discoverability
 Plug 'nvim-lua/plenary.nvim'
 Plug 'folke/which-key.nvim'
+Plug 'unblevable/quick-scope'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
 Plug 'folke/todo-comments.nvim'
 Plug 'folke/trouble.nvim'
-Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'simrat39/symbols-outline.nvim'
-Plug 'unblevable/quick-scope'
-Plug 'numToStr/Comment.nvim'
+" external tools
+Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'lervag/vimtex'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
-Plug 'ciaranm/detectindent'
 Plug 'tpope/vim-fugitive'
 " GitHub extension for fugitive.vim
 Plug 'tpope/vim-rhubarb'
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-unimpaired'
-Plug 'tpope/vim-speeddating'
-Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-dadbod'
 call plug#end()
 
