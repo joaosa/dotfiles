@@ -55,6 +55,7 @@ Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCM
 Plug 'folke/todo-comments.nvim'
 Plug 'folke/trouble.nvim'
 Plug 'simrat39/symbols-outline.nvim'
+Plug 'gorbit99/codewindow.nvim'
 " external tools
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'lervag/vimtex'
@@ -306,6 +307,10 @@ lua <<EOF
 
   require("cmp_git").setup()
   require"octo".setup()
+
+  local codewindow = require('codewindow')
+  codewindow.setup()
+  codewindow.apply_default_keybinds()
 EOF
 
 " linting
