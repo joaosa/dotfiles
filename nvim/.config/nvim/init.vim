@@ -7,13 +7,14 @@ let mapleader=','
 call plug#begin('~/.config/nvim/plugged')
 " aesthetics
 Plug 'ellisonleao/gruvbox.nvim'
+Plug 'nvim-tree/nvim-web-devicons'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'kassio/neoterm'
 Plug 'tpope/vim-obsession'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
-Plug 'mhinz/vim-startify'
+Plug 'goolord/alpha-nvim'
 Plug 'szw/vim-g'
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'lewis6991/gitsigns.nvim'
@@ -60,8 +61,6 @@ Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-dadbod'
-" has to be the last one
-Plug 'nvim-tree/nvim-web-devicons'
 call plug#end()
 
 " setup netrw
@@ -96,8 +95,6 @@ set showcmd
 
 " rainbow parenthesis
 let g:rainbow_active=1
-" do not change to file dir
-let g:startify_change_to_dir = 0
 
 " Indenting
 set autoindent
@@ -159,6 +156,7 @@ set completeopt=menu,menuone,noselect
 
 lua <<EOF
   vim.cmd("colorscheme gruvbox")
+  require'alpha'.setup(require'alpha.themes.startify'.config)
 
   require("which-key").setup {}
 
@@ -300,7 +298,6 @@ lua <<EOF
   vim.keymap.set("n", "]t", function()
     require("todo-comments").jump_next()
   end, { desc = "Next todo comment" })
-
   vim.keymap.set("n", "[t", function()
     require("todo-comments").jump_prev()
   end, { desc = "Previous todo comment" })
