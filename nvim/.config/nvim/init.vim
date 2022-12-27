@@ -333,7 +333,6 @@ let g:lightline = {
     \'filename': 'LightlineFilename',
     \'fugitive': 'MyFugitive',
     \'filetype': 'MyFiletype',
-    \'fileformat': 'MyFileformat',
   \},
   \'separator': { 'left': '', 'right': '' },
   \'subseparator': { 'left': '', 'right': '' },
@@ -361,17 +360,10 @@ lua <<EOF
   function getFiletypeIcon(filetype)
       return require('nvim-web-devicons').get_icon_by_filetype(filetype)
   end
-  function getFileFormat(filename, extension)
-      return require'nvim-web-devicons'.get_icon(filename, extension, { default = true })
-  end
 EOF
 
 function! MyFiletype()
   return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . v:lua.getFiletypeIcon(&filetype) : 'no ft') : ''
-endfunction
-
-function! MyFileformat()
-  return winwidth(0) > 70 ? (&fileformat . ' ' . v:lua.getFileFormat(expand('%'), expand('%:e'))) : ''
 endfunction
 
 " tmuxline
