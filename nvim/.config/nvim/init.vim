@@ -9,6 +9,7 @@ call plug#begin('~/.config/nvim/plugged')
 Plug 'ellisonleao/gruvbox.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
 Plug 'lukas-reineke/indent-blankline.nvim'
+Plug 'nmac427/guess-indent.nvim'
 Plug 'lewis6991/gitsigns.nvim'
 Plug 'itchyny/lightline.vim'
 Plug 'edkolev/tmuxline.vim'
@@ -18,7 +19,6 @@ Plug 'goolord/alpha-nvim'
 Plug 'takac/vim-hardtime'
 Plug 'declancm/cinnamon.nvim'
 Plug 'tpope/vim-obsession'
-Plug 'ciaranm/detectindent'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
@@ -99,15 +99,7 @@ set ruler
 set showcmd
 
 " Indenting
-set autoindent
-" we're leaving tab expansion (expandtab), tab size for insert mode (softtabstop),
-" how many columns text is indented with the reindent operation (shiftwidth)
-" and how much space actual tabs occupy to detectindent.
-augroup indentation
-  autocmd BufReadPost * :DetectIndent
-augroup end
-let g:detectindent_preferred_expandtab = 1
-let g:detectindent_preferred_indent = 2
+set tabstop=2
 
 " Navigation
 " enable hard mode on all buffers
