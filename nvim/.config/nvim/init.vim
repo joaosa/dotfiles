@@ -59,6 +59,7 @@ Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown
 Plug 'lervag/vimtex'
 Plug 'tpope/vim-dispatch'
 Plug 'janko-m/vim-test'
+Plug 'pwntester/octo.nvim'
 Plug 'tpope/vim-fugitive'
 " GitHub extension for fugitive.vim
 Plug 'tpope/vim-rhubarb'
@@ -300,6 +301,8 @@ lua <<EOF
   vim.keymap.set("n", "[t", function()
     require("todo-comments").jump_prev()
   end, { desc = "Previous todo comment" })
+
+  require"octo".setup()
 EOF
 
 " linting
