@@ -23,7 +23,7 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
-Plug 'christoomey/vim-tmux-navigator'
+Plug 'numToStr/Navigator.nvim'
 Plug 'kassio/neoterm'
 Plug 'szw/vim-g'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
@@ -152,6 +152,13 @@ set completeopt=menu,menuone,noselect
 lua <<EOF
   vim.cmd("colorscheme gruvbox")
   require'alpha'.setup(require'alpha.themes.startify'.config)
+
+  require('Navigator').setup()
+  vim.keymap.set({'n', 't'}, '<c-h>', '<CMD>NavigatorLeft<CR>')
+  vim.keymap.set({'n', 't'}, '<c-l>', '<CMD>NavigatorRight<CR>')
+  vim.keymap.set({'n', 't'}, '<c-k>', '<CMD>NavigatorUp<CR>')
+  vim.keymap.set({'n', 't'}, '<c-j>', '<CMD>NavigatorDown<CR>')
+  vim.keymap.set({'n', 't'}, '<c-p>', '<CMD>NavigatorPrevious<CR>')
 
   require("which-key").setup {}
 
