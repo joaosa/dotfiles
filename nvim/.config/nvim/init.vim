@@ -63,7 +63,6 @@ Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown
 Plug 'lervag/vimtex'
 Plug 'janko-m/vim-test'
 Plug 'pwntester/octo.nvim'
-Plug 'AckslD/nvim-gfold.lua'
 Plug 'f-person/git-blame.nvim'
 Plug 'kdheepak/lazygit.nvim'
 Plug 'tpope/vim-dadbod'
