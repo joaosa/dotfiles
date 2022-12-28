@@ -154,11 +154,11 @@ lua <<EOF
 
   local keymap = vim.keymap.set
   require('Navigator').setup()
-  keymap({'n', 't'}, '<c-h>', '<CMD>NavigatorLeft<cr>')
-  keymap({'n', 't'}, '<c-l>', '<CMD>NavigatorRight<cr>')
-  keymap({'n', 't'}, '<c-k>', '<CMD>NavigatorUp<cr>')
-  keymap({'n', 't'}, '<c-j>', '<CMD>NavigatorDown<cr>')
-  keymap({'n', 't'}, '<c-p>', '<CMD>NavigatorPrevious<cr>')
+  keymap({'n', 't'}, '<c-h>', '<cmd>NavigatorLeft<cr>')
+  keymap({'n', 't'}, '<c-l>', '<cmd>NavigatorRight<cr>')
+  keymap({'n', 't'}, '<c-k>', '<cmd>NavigatorUp<cr>')
+  keymap({'n', 't'}, '<c-j>', '<cmd>NavigatorDown<cr>')
+  keymap({'n', 't'}, '<c-p>', '<cmd>NavigatorPrevious<cr>')
 
   require('lspsaga').init_lsp_saga()
   -- Lsp finder find the symbol definition implement reference
