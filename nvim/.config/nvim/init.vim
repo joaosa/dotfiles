@@ -55,6 +55,7 @@ Plug 'unblevable/quick-scope'
 Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+Plug 'camgraff/telescope-tmux.nvim'
 Plug 'folke/todo-comments.nvim'
 Plug 'folke/trouble.nvim'
 Plug 'simrat39/symbols-outline.nvim'
@@ -465,6 +466,8 @@ nnoremap <leader>s :Telescope grep_string<CR>
 nnoremap <leader>c :Telescope command_history<CR>
 nnoremap <leader>q :Telescope quickfix<CR>
 nnoremap <leader>w :Telescope loclist<CR>
+nnoremap <leader>tms :Telescope tmux sessions<CR>
+nnoremap <leader>tmw :Telescope tmux windows<CR>
 nnoremap <leader>ts :Telescope treesitter<CR>
 nnoremap <leader>p :Telescope resume<CR>
 " outline
