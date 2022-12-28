@@ -25,8 +25,8 @@ Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
 Plug 'numToStr/Navigator.nvim'
 Plug 'szw/vim-g'
-Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'windwp/nvim-autopairs'
+Plug 'sitiom/nvim-numbertoggle'
 " language syntax
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
