@@ -59,10 +59,7 @@ Plug 'folke/trouble.nvim'
 Plug 'simrat39/symbols-outline.nvim'
 Plug 'gorbit99/codewindow.nvim'
 " external tools
-" Plug 'github/copilot.vim'
-Plug 'sebdah/vim-delve', { 'do': 'go get -u github.com/go-delve/delve/cmd/dlv' }
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
-Plug 'ledger/vim-ledger'
 Plug 'lervag/vimtex'
 Plug 'janko-m/vim-test'
 Plug 'pwntester/octo.nvim'
