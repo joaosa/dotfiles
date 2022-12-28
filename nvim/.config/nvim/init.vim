@@ -136,6 +136,7 @@ augroup spelling
 augroup end
 
 set completeopt=menu,menuone,noselect
+set winbar=%f
 
 lua <<EOF
   vim.cmd("colorscheme gruvbox")
