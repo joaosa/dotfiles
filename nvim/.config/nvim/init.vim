@@ -67,6 +67,7 @@ Plug 'janko-m/vim-test'
 Plug 'pwntester/octo.nvim'
 Plug 'f-person/git-blame.nvim'
 Plug 'kdheepak/lazygit.nvim'
+Plug 'epwalsh/obsidian.nvim'
 Plug 'tpope/vim-dadbod'
 call plug#end()
 
@@ -235,7 +236,8 @@ lua <<EOF
   require'nvim-treesitter.configs'.setup {
     highlight = {
       enable = true,
-      additional_vim_regex_highlighting = false,
+      -- handle links for Obsidian
+      additional_vim_regex_highlighting = { "markdown" },
     },
 
     ensure_installed = {
@@ -249,6 +251,7 @@ lua <<EOF
       "yaml",
       "json",
       "markdown",
+      "markdown_inline",
     },
 
     sync_install = false,
@@ -373,6 +376,26 @@ lua <<EOF
   local codewindow = require('codewindow')
   codewindow.setup()
   codewindow.apply_default_keybinds()
+
+  require("obsidian").setup({
+    completion = {
+      nvim_cmp = true, -- if using nvim-cmp, otherwise set to false
+    },
+    use_advanced_uri = true
+  })
+
+  keymap(
+    "n",
+    "gf",
+    function()
+      if require('obsidian').util.cursor_on_markdown_link() then
+        return "<cmd>ObsidianFollowLink<CR>"
+      else
+        return "gf"
+      end
+    end,
+    { noremap = false, expr = true}
+  )
 EOF
 
 " tmuxline
