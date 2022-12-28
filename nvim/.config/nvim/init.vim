@@ -417,7 +417,7 @@ snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
 " Search
 autocmd User TelescopePreviewerLoaded setlocal wrap
 nnoremap <leader>a :Telescope live_grep<CR>
-nnoremap <leader>t :Telescope find_files<CR>
+nnoremap <leader>t :Telescope git_files<CR>
 nnoremap <leader>s :Telescope grep_string<CR>
 nnoremap <leader>c :Telescope command_history<CR>
 nnoremap <leader>q :Telescope quickfix<CR>
