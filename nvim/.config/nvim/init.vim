@@ -212,6 +212,7 @@ lua <<EOF
       gwd = { ":Gitsigns diffthis<cr>", "git diff" },
       gco = { ":Gitsigns reset_buffer<cr>", "git checkout" },
       gia = { ":Gitsigns stage_buffer<cr>", "git add" },
+      gip = { "<cmd>Gitsigns stage_hunk<cr>", "git add -p" },
       gir = { ":Gitsigns reset_buffer_index<cr>", "git reset" },
       gb = { ":Gitsigns toggle_current_line_blame<cr>", "git blame" },
       gl = { ":LazyGitFilter<cr>", "git logs"},
