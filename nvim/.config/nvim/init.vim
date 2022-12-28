@@ -210,9 +210,48 @@ lua <<EOF
   -- open lazygit in lspsaga float terminal
   keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm lazygit<CR>", { silent = true })
   -- close floaterm
-  keymap("t", "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<CR>]], { silent = true })
+  keymap("t", "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]], { silent = true })
 
-  require("which-key").setup {}
+  -- ref - from https://github.com/folke/which-key.nvim#%EF%B8%8F-mappings
+  require("which-key").register {
+    ["<leader>"] = {
+      a = { ":Telescope live_grep<cr>", "search word" },
+      t = { ":Telescope git_files<cr>", "search files" },
+      s = { ":Telescope grep_string<cr>", "search cursor" },
+      c = { ":Telescope command_history<cr>", "command history" },
+      q = { ":Telescope quickfix<cr>", "telescope quickfix" },
+      w = { ":Telescope loclist<cr>", "telescope loclist" },
+      tms = { ":Telescope tmux sessions<cr>", "tmux sessions" },
+      tmw = { ":Telescope tmux windows<cr>", "tmux windos" },
+      ts = { ":Telescope treesitter<cr>", "treesitter" },
+      ss = { ":Telescope spell_suggest<cr>", "spelling" },
+      m = { ":Telescope man_pages<cr>", "manpages" },
+      p = { ":Telescope resume<cr>", "telescope resume" },
+      -- git (reusing the prezto aliases)
+      g = { ":LazyGit<cr>", "LazyGit" },
+      gws = { ":Telescope git_status<cr>", "git status" },
+      gwd = { ":Gitsigns diffthis<cr>", "git diff" },
+      gco = { ":Gitsigns reset_buffer<cr>", "git checkout" },
+      gia = { ":Gitsigns stage_buffer<cr>", "git add" },
+      gir = { ":Gitsigns reset_buffer_index<cr>", "git reset" },
+      gb = { ":Gitsigns toggle_current_line_blame<cr>", "git blame" },
+      gl = { ":LazyGitFilter<cr>", "git logs"},
+      gp = { ":Octo pr create<cr>", "git pr"},
+      -- trouble
+      xx = { "<cmd>TroubleToggle<cr>", "trouble" },
+      xw = { "<cmd>TroubleToggle workspace_diagnostics<cr>", "workspace diagnostics" },
+      xd = { "<cmd>TroubleToggle document_diagnostics<cr>", "workspace diagnostics" },
+      xq = { "<cmd>TroubleToggle quickfix<cr>", "trouble quickfix" },
+      xl = { "<cmd>TroubleToggle loclist<cr", "trouble loclist" },
+      xR = { "<cmd>TroubleToggle lsp_references<cr>", "trouble lsp refs" },
+      xt = { "<cmd>TodoTrouble<cr>", "todos" },
+    },
+    ["<localleader>"] = {
+      o = { ":SymbolsOutline<cr>", "symbols" },
+      ll = { ":Glow<cr>", "preview markdown" },
+    },
+    ["<esc><esc>"] = { ":noh<cr><Esc>", "clear the highlight from the last search" },
+  }
 
   local trouble = require("trouble")
   trouble.setup {}
@@ -449,24 +488,7 @@ let g:tmuxline_theme = {
 \}
 
 " reload nvimrc
-noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
-
-" git (reusing the prezto aliases)
-nnoremap <leader>g :LazyGit<CR>
-nnoremap <leader>gws :Telescope git_status<CR>
-nnoremap <leader>gwd :Gitsigns diffthis<CR>
-nnoremap <leader>gco :Gitsigns reset_buffer<CR>
-nnoremap <leader>gia :Gitsigns stage_buffer<CR>
-nnoremap <leader>gir :Gitsigns reset_buffer_index<CR>
-nnoremap <leader>gb :Gitsigns toggle_current_line_blame<CR>
-nnoremap <leader>gl :LazyGitFilter<CR>
-" open PRs
-nnoremap <leader>gp :Octo pr create<CR>
-
-" preview markdown
-augroup mdpreview
-  autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :Glow<CR>
-augroup end
+noremap <silent> <leader>V :source ~/.config/nvim/init.vim<cr>:filetype detect<cr>:exe ":echo 'vimrc reloaded'"<cr>
 
 " autocomplete
 " press <Tab> to expand or jump in a snippet. These can also be mapped separately
@@ -479,29 +501,8 @@ snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
 
 " Search
 autocmd User TelescopePreviewerLoaded setlocal wrap
-nnoremap <leader>a :Telescope live_grep<CR>
-nnoremap <leader>t :Telescope git_files<CR>
-nnoremap <leader>s :Telescope grep_string<CR>
-nnoremap <leader>c :Telescope command_history<CR>
-nnoremap <leader>q :Telescope quickfix<CR>
-nnoremap <leader>w :Telescope loclist<CR>
-nnoremap <leader>tms :Telescope tmux sessions<CR>
-nnoremap <leader>tmw :Telescope tmux windows<CR>
-nnoremap <leader>ts :Telescope treesitter<CR>
-nnoremap <leader>ss :Telescope spell_suggest<CR>
-nnoremap <leader>m :Telescope man_pages<CR>
-nnoremap <leader>p :Telescope resume<CR>
 " outline
-nnoremap <silent> <localleader>o :SymbolsOutline<CR>
 
-" trouble
-nnoremap <leader>xx <cmd>TroubleToggle<cr>
-nnoremap <leader>xw <cmd>TroubleToggle workspace_diagnostics<cr>
-nnoremap <leader>xd <cmd>TroubleToggle document_diagnostics<cr>
-nnoremap <leader>xq <cmd>TroubleToggle quickfix<cr>
-nnoremap <leader>xl <cmd>TroubleToggle loclist<cr>
-nnoremap gR <cmd>TroubleToggle lsp_references<cr>
-nnoremap <leader>xt <cmd>TodoTrouble<cr>
 " search for stuff on the internet
 let g:vim_g_command='Go'
 " stuff + filetype
@@ -513,5 +514,3 @@ set ignorecase
 set smartcase
 " show context above/below cursorline
 set scrolloff=5
-" clear the highlight from the last search
-nnoremap <Esc><Esc> :noh<CR><Esc>
