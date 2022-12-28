@@ -58,6 +58,7 @@ Plug 'camgraff/telescope-tmux.nvim'
 Plug 'folke/todo-comments.nvim'
 Plug 'folke/trouble.nvim'
 Plug 'simrat39/symbols-outline.nvim'
+Plug 'SmiteshP/nvim-navic'
 Plug 'gorbit99/codewindow.nvim'
 " external tools
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
@@ -153,7 +154,15 @@ lua <<EOF
   require('guess-indent').setup {}
   require'alpha'.setup(require'alpha.themes.startify'.config)
 
-  require('lualine').setup()
+  local navic = require("nvim-navic")
+  require('lualine').setup {
+    options = { theme = 'gruvbox' },
+    winbar = {
+      lualine_c = {
+        { navic.get_location, cond = navic.is_available },
+      },
+    },
+  }
 
   local keymap = vim.keymap.set
   require('Navigator').setup()
@@ -295,8 +304,8 @@ lua <<EOF
 
   local null_ls = require("null-ls")
   null_ls.setup({
-    -- so we can format on save
     on_attach = function(client, bufnr)
+      -- so we can format on save
       if client.supports_method("textDocument/formatting") then
         vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
         vim.api.nvim_create_autocmd("BufWritePre", {
@@ -348,7 +357,11 @@ lua <<EOF
   for server, settings in pairs(lsp_servers) do
     require("lspconfig")[server].setup {
       settings = settings,
-      on_attach = function(client)
+      on_attach = function(client, bufnr)
+        if client.server_capabilities.documentSymbolProvider then
+          navic.attach(client, bufnr)
+        end
+
         require("lsp-format").on_attach(client)
       end,
       capabilities = require('cmp_nvim_lsp').default_capabilities(),
