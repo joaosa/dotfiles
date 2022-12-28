@@ -11,7 +11,7 @@ Plug 'nvim-tree/nvim-web-devicons'
 Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'nmac427/guess-indent.nvim'
 Plug 'lewis6991/gitsigns.nvim'
-Plug 'itchyny/lightline.vim'
+Plug 'nvim-lualine/lualine.nvim'
 Plug 'edkolev/tmuxline.vim'
 Plug 'folke/zen-mode.nvim'
 Plug 'goolord/alpha-nvim'
@@ -153,6 +153,8 @@ lua <<EOF
   vim.cmd("colorscheme gruvbox")
   require('guess-indent').setup {}
   require'alpha'.setup(require'alpha.themes.startify'.config)
+
+  require('lualine').setup()
 
   require('Navigator').setup()
   vim.keymap.set({'n', 't'}, '<c-h>', '<CMD>NavigatorLeft<CR>')
@@ -328,54 +330,6 @@ lua <<EOF
   codewindow.setup()
   codewindow.apply_default_keybinds()
 EOF
-
-" set the status line
-" component_visible_condition - so that fugitive's arrow doesn't appear all the time
-let g:lightline = {
-  \'colorscheme': 'gruvbox',
-  \'active': {
-    \'left': [
-      \['mode', 'paste'],
-      \['fugitive', 'readonly', 'filename', 'modified', 'session'],
-    \],
-  \},
-  \'component_function': {
-    \'session': 'ObsessionStatus',
-    \'filename': 'LightlineFilename',
-    \'fugitive': 'MyFugitive',
-    \'filetype': 'MyFiletype',
-  \},
-  \'separator': { 'left': '', 'right': '' },
-  \'subseparator': { 'left': '', 'right': '' },
-\}
-
-" ref - https://github.com/itchyny/lightline.vim/issues/293#issuecomment-373710096
-function! LightlineFilename()
-  let root = fnamemodify(get(b:, 'git_dir'), ':h')
-  let path = expand('%:p')
-  if path[:len(root)-1] ==# root
-    return path[len(root)+1:]
-  endif
-  return expand('%')
-endfunction
-
-function! MyFugitive()
-  if exists('*fugitive#head')
-    let _ = fugitive#head()
-    return strlen(_) ? ' '. _ : ''
-  endif
-  return ''
-endfunction
-
-lua <<EOF
-  function getFiletypeIcon(filetype)
-      return require('nvim-web-devicons').get_icon_by_filetype(filetype)
-  end
-EOF
-
-function! MyFiletype()
-  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype . ' ' . v:lua.getFiletypeIcon(&filetype) : 'no ft') : ''
-endfunction
 
 " tmuxline
 let g:tmuxline_preset = {
