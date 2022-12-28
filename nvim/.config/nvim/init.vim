@@ -435,12 +435,16 @@ let g:tmuxline_theme = {
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
 
 " git (reusing the prezto aliases)
+nnoremap <leader>g :LazyGit<CR>
 nnoremap <leader>gws :Telescope git_status<CR>
-nnoremap <leader>gwd :LazyGit<CR>
+nnoremap <leader>gwd :Gitsigns diffthis<CR>
+nnoremap <leader>gco :Gitsigns reset_buffer<CR>
+nnoremap <leader>gia :Gitsigns stage_buffer<CR>
+nnoremap <leader>gir :Gitsigns reset_buffer_index<CR>
 nnoremap <leader>gb :Gitsigns toggle_current_line_blame<CR>
 nnoremap <leader>gl :LazyGitFilter<CR>
 " open PRs
-nnoremap <localleader>gp :Octo pr create<CR>
+nnoremap <leader>gp :Octo pr create<CR>
 
 " preview markdown with livedown
 augroup livedown
