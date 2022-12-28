@@ -185,18 +185,6 @@ lua <<EOF
   -- Show cursor diagnostics
   keymap("n", "<leader>cd", "<cmd>Lspsaga show_cursor_diagnostics<cr>", { silent = true })
 
-  -- Diagnostic jump can use `<c-o>` to jump back
-  keymap("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<cr>", { silent = true })
-  keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<cr>", { silent = true })
-
-  -- Only jump to error
-  keymap("n", "[E", function()
-    require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR })
-  end, { silent = true })
-  keymap("n", "]E", function()
-    require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR })
-  end, { silent = true })
-
   -- Outline
   keymap("n","<leader>o", "<cmd>LSoutlineToggle<cr>",{ silent = true })
 
@@ -211,6 +199,7 @@ lua <<EOF
   -- close floaterm
   keymap("t", "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]], { silent = true })
 
+  local gs = require('gitsigns')
   -- ref - from https://github.com/folke/which-key.nvim#%EF%B8%8F-mappings
   require("which-key").register {
     ["<leader>"] = {
@@ -248,7 +237,17 @@ lua <<EOF
     ["<localleader>"] = {
       ll = { ":Glow<cr>", "preview markdown" },
     },
-    ["<esc><esc>"] = { ":noh<cr><Esc>", "clear the highlight from the last search" },
+    ["]t"] = { function() require("todo-comments").jump_next() end, "Next todo comment" },
+    ["[t"] = { function() require("todo-comments").jump_prev() end, "Previous todo comment" },
+    ["]c"] = { function() if vim.wo.diff then return ']c' end vim.schedule(function() gs.next_hunk() end) return '<Ignore>' end, "Next git hunk" },
+    ["[c"] = { function() if vim.wo.diff then return '[c' end vim.schedule(function() gs.prev_hunk() end) return '<Ignore>' end, "Previous git hunk" },
+    -- Diagnostic jump can use `<c-o>` to jump back
+    ["]e"] = { "<cmd>Lspsaga diagnostic_jump_next<cr>", "Next diagnostic" },
+    ["[e"] = { "<cmd>Lspsaga diagnostic_jump_prev<cr>", "Previous diagnostic" },
+    -- Only jump to error
+    ["]E"] = { function() require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR }) end, "Next error" },
+    ["[E"] = { function() require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR }) end, "Previous error" },
+    ["<esc><esc>"] = { ":noh<cr><esc>", "clear the highlight from the last search" },
   }
 
   local trouble = require("trouble")
@@ -397,31 +396,9 @@ lua <<EOF
   require('gitsigns').setup()
   require("nvim-autopairs").setup {}
   require('Comment').setup()
-
   require("todo-comments").setup {}
-  keymap("n", "]t", function()
-    require("todo-comments").jump_next()
-  end, { desc = "Next todo comment" })
-  keymap("n", "[t", function()
-    require("todo-comments").jump_prev()
-  end, { desc = "Previous todo comment" })
-
   require("cmp_git").setup()
   require"octo".setup()
-
-  -- gitsigns
-  local gs = require('gitsigns')
-  keymap('n', ']c', function()
-    if vim.wo.diff then return ']c' end
-    vim.schedule(function() gs.next_hunk() end)
-    return '<Ignore>'
-  end, {expr=true})
-
-  keymap('n', '[c', function()
-    if vim.wo.diff then return '[c' end
-    vim.schedule(function() gs.prev_hunk() end)
-    return '<Ignore>'
-  end, {expr=true})
 
   local codewindow = require('codewindow')
   codewindow.setup()
