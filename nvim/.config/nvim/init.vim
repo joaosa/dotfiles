@@ -83,9 +83,6 @@ set backupcopy=yes
 " do not store swap files on the current dir (remove .)
 set directory-=.
 
-" Session
-nnoremap <leader>ss :Obsession<CR>
-
 " Display
 " show trailing whitespace
 set list
