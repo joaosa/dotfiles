@@ -161,36 +161,8 @@ lua <<EOF
   keymap({'n', 't'}, '<c-p>', '<cmd>NavigatorPrevious<cr>')
 
   require('lspsaga').init_lsp_saga()
-  -- Lsp finder find the symbol definition implement reference
-  -- if there is no implement it will hide
-  -- when you use action in finder like open vsplit then you can
-  -- use <C-t> to jump back
-  keymap("n", "gh", "<cmd>Lspsaga lsp_finder<cr>", { silent = true })
 
-  -- Code action
-  keymap({"n","v"}, "<leader>ca", "<cmd>Lspsaga code_action<cr>", { silent = true })
-
-  -- Rename
-  keymap("n", "gr", "<cmd>Lspsaga rename<cr>", { silent = true })
-
-  -- Peek Definition
-  -- you can edit the definition file in this flaotwindow
-  -- also support open/vsplit/etc operation check definition_action_keys
-  -- support tagstack C-t jump back
-  keymap("n", "gd", "<cmd>Lspsaga peek_definition<cr>", { silent = true })
-
-  -- Show line diagnostics
-  keymap("n", "<leader>cd", "<cmd>Lspsaga show_line_diagnostics<cr>", { silent = true })
-
-  -- Show cursor diagnostics
-  keymap("n", "<leader>cd", "<cmd>Lspsaga show_cursor_diagnostics<cr>", { silent = true })
-
-  -- Outline
-  keymap("n","<leader>o", "<cmd>LSoutlineToggle<cr>",{ silent = true })
-
-  -- Hover Doc
-  keymap("n", "K", "<cmd>Lspsaga hover_doc<cr>", { silent = true })
-
+  -- TODO replace lazygit.nvim with this
   -- Float terminal
   keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm<cr>", { silent = true })
   -- if you want to pass some cli command into a terminal you can do it like this
@@ -202,7 +174,23 @@ lua <<EOF
   local gs = require('gitsigns')
   -- ref - from https://github.com/folke/which-key.nvim#%EF%B8%8F-mappings
   require("which-key").register {
+    -- Lsp finder find the symbol definition implement reference
+    -- if there is no implement it will hide
+    -- when you use action in finder like open vsplit then you can
+    -- use <C-t> to jump back
+    gh = { "<cmd>Lspsaga lsp_finder<cr>", "Lspsaga finder" },
+    gr = { "<cmd>Lspsaga rename<cr>", "Lspsaga rename" },
+    -- Peek Definition
+    -- you can edit the definition file in this floatwindow
+    -- also support open/vsplit/etc operation check definition_action_keys
+    -- support tagstack C-t jump back
+    gd = { "<cmd>Lspsaga peek_definition<cr>", "Lspsaga peek definition" },
+    K = { "<cmd>Lspsaga hover_doc<cr>", "Lspsaga hover doc" },
     ["<leader>"] = {
+      ca = { "<cmd>Lspsaga code_action<cr>", "code action" },
+      ld = { "<cmd>Lspsaga show_line_diagnostics<cr>", "show line diagnostics" },
+      cd = { "<cmd>Lspsaga show_cursor_diagnostics<cr>", "show cursor diagnostics" },
+      o = { "<cmd>LSoutlineToggle<cr>", "outline" },
       a = { ":Telescope live_grep<cr>", "search word" },
       t = { ":Telescope git_files<cr>", "search files" },
       s = { ":Telescope grep_string<cr>", "search cursor" },
