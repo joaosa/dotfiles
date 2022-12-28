@@ -24,7 +24,6 @@ Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-speeddating'
 Plug 'tpope/vim-repeat'
 Plug 'numToStr/Navigator.nvim'
-Plug 'kassio/neoterm'
 Plug 'szw/vim-g'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'windwp/nvim-autopairs'
@@ -63,7 +62,6 @@ Plug 'gorbit99/codewindow.nvim'
 " external tools
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'lervag/vimtex'
-Plug 'janko-m/vim-test'
 Plug 'pwntester/octo.nvim'
 Plug 'f-person/git-blame.nvim'
 Plug 'kdheepak/lazygit.nvim'
@@ -436,28 +434,6 @@ let g:tmuxline_theme = {
 
 " reload nvimrc
 noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
-
-" vim test
-" ref - https://github.com/janko/vim-test#strategies
-" ref - https://bernheisel.com/blog/vim-workflow/
-let test#strategy = 'neoterm'
-let g:neoterm_shell = '$SHELL -l' " use the login shell
-let g:neoterm_default_mod = 'vert'
-let g:neoterm_autoscroll = 1
-let g:neoterm_size = 80
-let g:neoterm_fixedsize = 1
-let g:neoterm_keep_term_open = 0
-nnoremap <silent> <localleader>t :TestNearest<CR>
-nnoremap <silent> <localleader>T :TestFile<CR>
-nnoremap <silent> <localleader>a :TestSuite<CR>
-nnoremap <silent> <localleader>l :TestLast<CR>
-nnoremap <silent> <localleader>g :TestVisit<CR>
-
-" use neoterm
-tnoremap <C-h> <C-\><C-n><C-w>h
-tnoremap <C-j> <C-\><C-n><C-w>j
-tnoremap <C-k> <C-\><C-n><C-w>k
-tnoremap <C-l> <C-\><C-n><C-w>l
 
 " git (reusing the prezto aliases)
 nnoremap <leader>gws :Telescope git_status<CR>
