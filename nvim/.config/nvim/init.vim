@@ -57,7 +57,6 @@ Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCM
 Plug 'camgraff/telescope-tmux.nvim'
 Plug 'folke/todo-comments.nvim'
 Plug 'folke/trouble.nvim'
-Plug 'simrat39/symbols-outline.nvim'
 Plug 'SmiteshP/nvim-navic'
 Plug 'gorbit99/codewindow.nvim'
 " external tools
@@ -247,7 +246,6 @@ lua <<EOF
       xt = { "<cmd>TodoTrouble<cr>", "todos" },
     },
     ["<localleader>"] = {
-      o = { ":SymbolsOutline<cr>", "symbols" },
       ll = { ":Glow<cr>", "preview markdown" },
     },
     ["<esc><esc>"] = { ":noh<cr><Esc>", "clear the highlight from the last search" },
@@ -397,7 +395,6 @@ lua <<EOF
   end
 
   require('gitsigns').setup()
-  require("symbols-outline").setup()
   require("nvim-autopairs").setup {}
   require('Comment').setup()
 
@@ -501,7 +498,6 @@ snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
 
 " Search
 autocmd User TelescopePreviewerLoaded setlocal wrap
-" outline
 
 " search for stuff on the internet
 let g:vim_g_command='Go'
