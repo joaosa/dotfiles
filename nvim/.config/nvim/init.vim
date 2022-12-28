@@ -63,7 +63,6 @@ Plug 'gorbit99/codewindow.nvim'
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'lervag/vimtex'
 Plug 'pwntester/octo.nvim'
-Plug 'f-person/git-blame.nvim'
 Plug 'kdheepak/lazygit.nvim'
 Plug 'epwalsh/obsidian.nvim'
 Plug 'tpope/vim-dadbod'
@@ -438,7 +437,7 @@ noremap <silent> <leader>V :source ~/.config/nvim/init.vim<CR>:filetype detect<C
 " git (reusing the prezto aliases)
 nnoremap <leader>gws :Telescope git_status<CR>
 nnoremap <leader>gwd :LazyGit<CR>
-nnoremap <leader>gb :GitBlameToggle<CR>
+nnoremap <leader>gb :Gitsigns toggle_current_line_blame<CR>
 nnoremap <leader>gl :LazyGitFilter<CR>
 " open PRs
 nnoremap <localleader>gp :Octo pr create<CR>
