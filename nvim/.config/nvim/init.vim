@@ -392,7 +392,8 @@ lua <<EOF
   codewindow.setup()
   codewindow.apply_default_keybinds()
 
-  require("obsidian").setup({
+  local obsidian = require('obsidian')
+  obsidian.setup({
     completion = {
       nvim_cmp = true, -- if using nvim-cmp, otherwise set to false
     },
@@ -403,7 +404,7 @@ lua <<EOF
     "n",
     "gf",
     function()
-      if require('obsidian').util.cursor_on_markdown_link() then
+      if obsidian.util.cursor_on_markdown_link() then
         return "<cmd>ObsidianFollowLink<cr>"
       else
         return "gf"
