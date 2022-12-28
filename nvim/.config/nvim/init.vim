@@ -61,8 +61,8 @@ Plug 'simrat39/symbols-outline.nvim'
 Plug 'SmiteshP/nvim-navic'
 Plug 'gorbit99/codewindow.nvim'
 " external tools
-Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
 Plug 'lervag/vimtex'
+Plug 'ellisonleao/glow.nvim'
 Plug 'pwntester/octo.nvim'
 Plug 'kdheepak/lazygit.nvim'
 Plug 'epwalsh/obsidian.nvim'
@@ -474,9 +474,9 @@ nnoremap <leader>gl :LazyGitFilter<CR>
 " open PRs
 nnoremap <leader>gp :Octo pr create<CR>
 
-" preview markdown with livedown
-augroup livedown
-  autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :LivedownToggle<CR>
+" preview markdown
+augroup mdpreview
+  autocmd BufRead,BufNewFile *.md nnoremap <localleader>ll :Glow<CR>
 augroup end
 
 " autocomplete
