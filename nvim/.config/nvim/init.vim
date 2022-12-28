@@ -74,7 +74,7 @@ call plug#end()
 let g:netrw_banner = 0
 " let g:netrw_liststyle = 3
 let g:netrw_winsize = 25
-nnoremap <leader>d :Lexplore<CR>
+nnoremap <leader>d :Lexplore<cr>
 
 " yank and paste with the system clipboard
 set clipboard=unnamedplus
@@ -155,40 +155,40 @@ lua <<EOF
 
   local keymap = vim.keymap.set
   require('Navigator').setup()
-  keymap({'n', 't'}, '<c-h>', '<CMD>NavigatorLeft<CR>')
-  keymap({'n', 't'}, '<c-l>', '<CMD>NavigatorRight<CR>')
-  keymap({'n', 't'}, '<c-k>', '<CMD>NavigatorUp<CR>')
-  keymap({'n', 't'}, '<c-j>', '<CMD>NavigatorDown<CR>')
-  keymap({'n', 't'}, '<c-p>', '<CMD>NavigatorPrevious<CR>')
+  keymap({'n', 't'}, '<c-h>', '<CMD>NavigatorLeft<cr>')
+  keymap({'n', 't'}, '<c-l>', '<CMD>NavigatorRight<cr>')
+  keymap({'n', 't'}, '<c-k>', '<CMD>NavigatorUp<cr>')
+  keymap({'n', 't'}, '<c-j>', '<CMD>NavigatorDown<cr>')
+  keymap({'n', 't'}, '<c-p>', '<CMD>NavigatorPrevious<cr>')
 
   require('lspsaga').init_lsp_saga()
   -- Lsp finder find the symbol definition implement reference
   -- if there is no implement it will hide
   -- when you use action in finder like open vsplit then you can
   -- use <C-t> to jump back
-  keymap("n", "gh", "<cmd>Lspsaga lsp_finder<CR>", { silent = true })
+  keymap("n", "gh", "<cmd>Lspsaga lsp_finder<cr>", { silent = true })
 
   -- Code action
-  keymap({"n","v"}, "<leader>ca", "<cmd>Lspsaga code_action<CR>", { silent = true })
+  keymap({"n","v"}, "<leader>ca", "<cmd>Lspsaga code_action<cr>", { silent = true })
 
   -- Rename
-  keymap("n", "gr", "<cmd>Lspsaga rename<CR>", { silent = true })
+  keymap("n", "gr", "<cmd>Lspsaga rename<cr>", { silent = true })
 
   -- Peek Definition
   -- you can edit the definition file in this flaotwindow
   -- also support open/vsplit/etc operation check definition_action_keys
   -- support tagstack C-t jump back
-  keymap("n", "gd", "<cmd>Lspsaga peek_definition<CR>", { silent = true })
+  keymap("n", "gd", "<cmd>Lspsaga peek_definition<cr>", { silent = true })
 
   -- Show line diagnostics
-  keymap("n", "<leader>cd", "<cmd>Lspsaga show_line_diagnostics<CR>", { silent = true })
+  keymap("n", "<leader>cd", "<cmd>Lspsaga show_line_diagnostics<cr>", { silent = true })
 
   -- Show cursor diagnostics
-  keymap("n", "<leader>cd", "<cmd>Lspsaga show_cursor_diagnostics<CR>", { silent = true })
+  keymap("n", "<leader>cd", "<cmd>Lspsaga show_cursor_diagnostics<cr>", { silent = true })
 
   -- Diagnostic jump can use `<c-o>` to jump back
-  keymap("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<CR>", { silent = true })
-  keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>", { silent = true })
+  keymap("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<cr>", { silent = true })
+  keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<cr>", { silent = true })
 
   -- Only jump to error
   keymap("n", "[E", function()
@@ -199,16 +199,16 @@ lua <<EOF
   end, { silent = true })
 
   -- Outline
-  keymap("n","<leader>o", "<cmd>LSoutlineToggle<CR>",{ silent = true })
+  keymap("n","<leader>o", "<cmd>LSoutlineToggle<cr>",{ silent = true })
 
   -- Hover Doc
-  keymap("n", "K", "<cmd>Lspsaga hover_doc<CR>", { silent = true })
+  keymap("n", "K", "<cmd>Lspsaga hover_doc<cr>", { silent = true })
 
   -- Float terminal
-  keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm<CR>", { silent = true })
+  keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm<cr>", { silent = true })
   -- if you want to pass some cli command into a terminal you can do it like this
   -- open lazygit in lspsaga float terminal
-  keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm lazygit<CR>", { silent = true })
+  keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm lazygit<cr>", { silent = true })
   -- close floaterm
   keymap("t", "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]], { silent = true })
 
@@ -370,7 +370,7 @@ lua <<EOF
       ['<C-f>'] = cmp.mapping.scroll_docs(4),
       ['<C-Space>'] = cmp.mapping.complete(),
       ['<C-e>'] = cmp.mapping.abort(),
-      ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+      ['<cr>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     }),
     sources = cmp.config.sources({
       { name = 'nvim_lsp' },
@@ -442,7 +442,7 @@ lua <<EOF
     "gf",
     function()
       if require('obsidian').util.cursor_on_markdown_link() then
-        return "<cmd>ObsidianFollowLink<CR>"
+        return "<cmd>ObsidianFollowLink<cr>"
       else
         return "gf"
       end
