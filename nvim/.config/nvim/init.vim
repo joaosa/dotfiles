@@ -272,6 +272,8 @@ lua <<EOF
         },
       },
     },
+    -- FIXME go back to golangcli-lint
+    -- command = { "golangci-lint", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
     gopls = {},
     rust_analyzer = {},
     terraformls = {},
@@ -341,24 +343,13 @@ lua <<EOF
     })
   })
 
-  local on_attach = function(client) require("lsp-format").on_attach(client) end
-  local capabilities = require('cmp_nvim_lsp').default_capabilities()
-  require("lspconfig").rust_analyzer.setup {
-    on_attach = on_attach,
-    capabilities = capabilities
-  }
-  require("lspconfig").gopls.setup {
-    -- FIXME go back to golangcli-lint
-    -- command = { "golangci-lint", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
-    on_attach = on_attach,
-    capabilities = capabilities
-  }
-
   for server, settings in pairs(lsp_servers) do
     require("lspconfig")[server].setup {
       settings = settings,
-      on_attach = on_attach,
-      capabilities = capabilities,
+      on_attach = function(client)
+        require("lsp-format").on_attach(client)
+      end,
+      capabilities = require('cmp_nvim_lsp').default_capabilities(),
     }
   end
 
