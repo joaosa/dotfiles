@@ -133,19 +133,11 @@ endif
 
 " Spelling
 augroup spelling
-  autocmd BufRead,BufNewFile *.md set filetype=markdown
   autocmd BufRead,BufNewFile *.md set spell
   autocmd FileType vim set spell
   autocmd BufRead,BufNewFile *.tex set spell
   autocmd BufRead,BufNewFile PULLREQ_EDITMSG,COMMIT_EDITMSG, set spell
 augroup end
-" http://vi.stackexchange.com/questions/68/autocorrect-spelling-mistakes
-" go back to last misspelled word and pick first suggestion
-" this corresponds to <A-l>
-nnoremap ¬ <C-g>u<Esc>[s1z=`]a<C-g>u
-" select last misspelled word (typing will edit)
-" this corresponds to <A-k>
-nnoremap ˚ <Esc>[sve<C-g>
 
 set completeopt=menu,menuone,noselect
 
