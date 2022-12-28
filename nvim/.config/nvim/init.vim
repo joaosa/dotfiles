@@ -492,6 +492,7 @@ nnoremap <leader>tms :Telescope tmux sessions<CR>
 nnoremap <leader>tmw :Telescope tmux windows<CR>
 nnoremap <leader>ts :Telescope treesitter<CR>
 nnoremap <leader>ss :Telescope spell_suggest<CR>
+nnoremap <leader>m :Telescope man_pages<CR>
 nnoremap <leader>p :Telescope resume<CR>
 " outline
 nnoremap <silent> <localleader>o :SymbolsOutline<CR>
