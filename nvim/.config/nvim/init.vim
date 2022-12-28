@@ -59,13 +59,16 @@ Plug 'folke/trouble.nvim'
 Plug 'simrat39/symbols-outline.nvim'
 Plug 'gorbit99/codewindow.nvim'
 " external tools
+" Plug 'github/copilot.vim'
+Plug 'sebdah/vim-delve', { 'do': 'go get -u github.com/go-delve/delve/cmd/dlv' }
 Plug 'shime/vim-livedown', { 'do': 'npm install -g livedown' , 'for': ['markdown', 'apiblueprint'] }
+Plug 'ledger/vim-ledger'
 Plug 'lervag/vimtex'
 Plug 'janko-m/vim-test'
 Plug 'pwntester/octo.nvim'
-Plug 'tpope/vim-fugitive'
-" GitHub extension for fugitive.vim
-Plug 'tpope/vim-rhubarb'
+Plug 'AckslD/nvim-gfold.lua'
+Plug 'f-person/git-blame.nvim'
+Plug 'kdheepak/lazygit.nvim'
 Plug 'tpope/vim-dadbod'
 call plug#end()
 
@@ -438,19 +441,11 @@ tnoremap <C-j> <C-\><C-n><C-w>j
 tnoremap <C-k> <C-\><C-n><C-w>k
 tnoremap <C-l> <C-\><C-n><C-w>l
 
-" git fugitive (reusing the prezto aliases)
-nnoremap <leader>gws :Git<CR>
-nnoremap <leader>gwd :Git diff<CR>
-nnoremap <leader>gco :Git checkout %<CR>
-nnoremap <leader>gia :Git add %<CR>
-nnoremap <leader>gcm :Git commit<CR>
-nnoremap <leader>gfm :exec ':Git pull origin ' . fugitive#head() . ' --rebase --autostash'<CR>
-nnoremap <leader>gp :exec ':Git push origin ' . fugitive#head() . ' -u'<CR>
-nnoremap <leader>gb :Git blame<CR>
-nnoremap <leader>gl :Gclog<CR>
-nnoremap <leader>gs :Git stash<CR>
-nnoremap <leader>gsp :Git stash pop<CR>
-nnoremap <leader>gsd :Git stash drop<CR>
+" git (reusing the prezto aliases)
+nnoremap <leader>gws :Telescope git_status<CR>
+nnoremap <leader>gwd :LazyGit<CR>
+nnoremap <leader>gb :GitBlameToggle<CR>
+nnoremap <leader>gl :LazyGitFilter<CR>
 " open PRs
 nnoremap <localleader>gp :Octo pr create<CR>
 
@@ -476,7 +471,6 @@ nnoremap <leader>s :Telescope grep_string<CR>
 nnoremap <leader>c :Telescope command_history<CR>
 nnoremap <leader>q :Telescope quickfix<CR>
 nnoremap <leader>w :Telescope loclist<CR>
-nnoremap <leader>g :Telescope git_status<CR>
 nnoremap <leader>ts :Telescope treesitter<CR>
 nnoremap <leader>p :Telescope resume<CR>
 " outline
