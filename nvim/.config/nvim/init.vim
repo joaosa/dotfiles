@@ -255,7 +255,7 @@ lua <<EOF
     sources = {
       null_ls.builtins.formatting.pg_format,
       null_ls.builtins.formatting.goimports,
-      -- null_ls.builtins.diagnostics.luacheck,
+      null_ls.builtins.formatting.black,
       null_ls.builtins.diagnostics.eslint,
       null_ls.builtins.completion.spell,
     },
