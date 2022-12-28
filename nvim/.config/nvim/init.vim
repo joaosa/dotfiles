@@ -361,15 +361,29 @@ lua <<EOF
   require('Comment').setup()
 
   require("todo-comments").setup {}
-  vim.keymap.set("n", "]t", function()
+  keymap("n", "]t", function()
     require("todo-comments").jump_next()
   end, { desc = "Next todo comment" })
-  vim.keymap.set("n", "[t", function()
+  keymap("n", "[t", function()
     require("todo-comments").jump_prev()
   end, { desc = "Previous todo comment" })
 
   require("cmp_git").setup()
   require"octo".setup()
+
+  -- gitsigns
+  local gs = require('gitsigns')
+  keymap('n', ']c', function()
+    if vim.wo.diff then return ']c' end
+    vim.schedule(function() gs.next_hunk() end)
+    return '<Ignore>'
+  end, {expr=true})
+
+  keymap('n', '[c', function()
+    if vim.wo.diff then return '[c' end
+    vim.schedule(function() gs.prev_hunk() end)
+    return '<Ignore>'
+  end, {expr=true})
 
   local codewindow = require('codewindow')
   codewindow.setup()
