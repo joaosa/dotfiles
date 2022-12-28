@@ -161,7 +161,9 @@ lua <<EOF
   keymap({'n', 't'}, '<c-j>', '<cmd>NavigatorDown<cr>')
   keymap({'n', 't'}, '<c-p>', '<cmd>NavigatorPrevious<cr>')
 
-  require('lspsaga').init_lsp_saga()
+  require('lspsaga').init_lsp_saga {
+    code_action_icon = "",
+  } 
 
   -- TODO replace lazygit.nvim with this
   -- Float terminal
