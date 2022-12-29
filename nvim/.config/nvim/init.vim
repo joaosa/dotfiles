@@ -128,12 +128,7 @@ if has('persistent_undo')
 endif
 
 " Spelling
-augroup spelling
-  autocmd BufRead,BufNewFile *.md set spell
-  autocmd FileType vim set spell
-  autocmd BufRead,BufNewFile *.tex set spell
-  autocmd BufRead,BufNewFile PULLREQ_EDITMSG,COMMIT_EDITMSG, set spell
-augroup end
+set spell
 
 set completeopt=menu,menuone,noselect
 set winbar=%f
