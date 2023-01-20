@@ -265,6 +265,10 @@ local function pasteDate(dayDiff)
     pasteString(formattedDate)
 end
 
+local function pasteToday() pasteDate(0) end
+
+local function pasteYesterday() pasteDate(-1) end
+
 -- https://eastmanreference.com/complete-list-of-applescript-key-codes
 local keyCodes = { 18, 19, 20, 21, 23, 22, 26, 28 }
 for index, keyCode in ipairs(keyCodes) do
@@ -276,8 +280,6 @@ for index, keyCode in ipairs(keyCodes) do
         end
     )
 end
-local function pasteToday()
-    pasteDate(0)
-end
 
 hs.hotkey.bind(altCmd, "]", pasteToday)
+hs.hotkey.bind(altCmd, "[", pasteYesterday)
