@@ -296,7 +296,7 @@ lua <<EOF
     sumneko_lua = {
       Lua = {
         diagnostics = {
-          globals = {'hs'},
+          globals = {'hs','vim'},
         },
       },
     },
