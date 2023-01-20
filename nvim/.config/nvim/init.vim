@@ -156,8 +156,12 @@ lua <<EOF
   keymap({'n', 't'}, '<c-j>', '<cmd>NavigatorDown<cr>')
   keymap({'n', 't'}, '<c-p>', '<cmd>NavigatorPrevious<cr>')
 
-  require('lspsaga').init_lsp_saga {
-    code_action_icon = "",
+  require('lspsaga').setup {
+    lightbulb = { enable = false },
+    diagnostic = {
+      show_code_action = false,
+      jump_num_shortcut = false,
+    },
   } 
 
   -- TODO replace lazygit.nvim with this
