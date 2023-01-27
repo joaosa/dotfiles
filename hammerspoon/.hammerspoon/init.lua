@@ -258,6 +258,7 @@ local displays = hs.screen.allScreens()
 for i = 1, #displays do
     hs.hotkey.bind(altCmd, tostring(i), moveWindowToDisplay(displays, i))
 end
+
 -----------------------------------------------
 -- Insert dates
 -----------------------------------------------
