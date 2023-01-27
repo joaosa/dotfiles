@@ -242,7 +242,22 @@ hs.hotkey.bind(
         )
     end
 )
+--
+-----------------------------------------------
+-- Move to display
+-----------------------------------------------
+-- ref https://stackoverflow.com/questions/54151343/how-to-move-an-application-between-monitors-in-hammerspoon
+local function moveWindowToDisplay(displays, index)
+    return function()
+        local win = hs.window.focusedWindow()
+        win:moveToScreen(displays[index], false, true)
+    end
+end
 
+local displays = hs.screen.allScreens()
+for i = 1, #displays do
+    hs.hotkey.bind(altCmd, tostring(i), moveWindowToDisplay(displays, i))
+end
 -----------------------------------------------
 -- Insert dates
 -----------------------------------------------
@@ -268,18 +283,6 @@ end
 local function pasteToday() pasteDate(0) end
 
 local function pasteYesterday() pasteDate(-1) end
-
--- https://eastmanreference.com/complete-list-of-applescript-key-codes
-local keyCodes = { 18, 19, 20, 21, 23, 22, 26, 28 }
-for index, keyCode in ipairs(keyCodes) do
-    hs.hotkey.bind(
-        altCmd,
-        keyCode,
-        function()
-            pasteDate(index)
-        end
-    )
-end
 
 hs.hotkey.bind(altCmd, "]", pasteToday)
 hs.hotkey.bind(altCmd, "[", pasteYesterday)
