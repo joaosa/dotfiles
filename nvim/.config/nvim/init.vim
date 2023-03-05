@@ -289,7 +289,7 @@ lua <<EOF
   require('treesj').setup {}
 
   lsp_servers = {
-    sumneko_lua = {
+    lua_ls = {
       Lua = {
         diagnostics = {
           globals = {'hs','vim'},
