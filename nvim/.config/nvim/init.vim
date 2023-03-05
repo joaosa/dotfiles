@@ -158,11 +158,7 @@ lua <<EOF
 
   require('lspsaga').setup {
     lightbulb = { enable = false },
-    diagnostic = {
-      show_code_action = false,
-      jump_num_shortcut = false,
-    },
-  } 
+  }
 
   -- TODO replace lazygit.nvim with this
   -- Float terminal
