@@ -67,8 +67,8 @@ gw() {
 docker-aws-login() {
   vault_user="$1"
   ecr_repo="$(aws-vault exec $vault_user -- aws ecr get-authorization-token --output text --query 'authorizationData[].proxyEndpoint')"
-  login="$(aws-vault exec $vault_user -- aws ecr get-login --no-include-email)"
-  echo "$login" | awk '{print $6}' | docker login -u AWS --password-stdin "$ecr_repo"
+  login="$(aws-vault exec $vault_user -- aws ecr get-login-password)"
+  echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
 }
 
 # python
