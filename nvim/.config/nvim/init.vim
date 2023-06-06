@@ -280,11 +280,10 @@ lua <<EOF
     auto_install = true,
   }
 
-  local ft_to_parser = require"nvim-treesitter.parsers".filetype_to_parsername
-  ft_to_parser.terraform = "hcl"
-  ft_to_parser["terraform-vars"] = "hcl"
-  ft_to_parser.ansible = "yaml"
-  ft_to_parser.diff = "git"
+  vim.treesitter.language.register('terraform', 'hcl')
+  vim.treesitter.language.register('terraform-vars', 'hcl')
+  vim.treesitter.language.register('ansible', 'yaml')
+  vim.treesitter.language.register('diff', 'git')
 
   require('treesj').setup {}
 
