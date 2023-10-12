@@ -281,9 +281,8 @@ lua <<EOF
     auto_install = true,
   }
 
-  vim.treesitter.language.register('terraform', 'hcl')
-  vim.treesitter.language.register('terraform-vars', 'hcl')
-  vim.treesitter.language.register('ansible', 'yaml')
+  vim.cmd("autocmd BufRead,BufNewFile *.tfvars,*.tf set filetype=hcl")
+  vim.cmd("autocmd BufRead,BufNewFile *.tftpl, set filetype=yaml")
   vim.treesitter.language.register('diff', 'git')
 
   require('treesj').setup {}
