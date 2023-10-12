@@ -296,8 +296,9 @@ lua <<EOF
       },
     },
     -- FIXME go back to golangcli-lint
-    -- command = { "golangci-lint", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
-    gopls = {},
+    golangci_lint_ls = {
+      command = { "golangci-lint-langserver", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
+    },
     rust_analyzer = {},
     terraformls = {},
     pyright = {},
