@@ -267,6 +267,7 @@ lua <<EOF
       "python",
       "javascript",
       "typescript",
+      "sql",
       "hcl",
       "yaml",
       "json",
