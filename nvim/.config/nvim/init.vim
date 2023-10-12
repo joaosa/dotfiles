@@ -316,6 +316,10 @@ lua <<EOF
     ensure_installed = lsp_servers,
   })
 
+  local sqlfluff = {
+    args = { "fix", "--disable-progress-bar", "-f", "-n", "-" },
+    extra_args = { "--dialect", "postgres" },
+  }
   local null_ls = require("null-ls")
   null_ls.setup({
     on_attach = function(client, bufnr)
@@ -326,14 +330,16 @@ lua <<EOF
           group = augroup,
           buffer = bufnr,
           callback = function()
-            vim.lsp.buf.format()
+          -- need this timeout for sqlfluff to work
+            vim.lsp.buf.format({ timeout_ms = 20000 })
           end,
         })
       end
     end,
     sources = {
       null_ls.builtins.code_actions.gitsigns,
-      null_ls.builtins.formatting.pg_format,
+      null_ls.builtins.formatting.sqlfluff.with(sqlfluff),
+      null_ls.builtins.diagnostics.sqlfluff.with(sqlfluff),
       null_ls.builtins.formatting.goimports,
       null_ls.builtins.formatting.black,
       null_ls.builtins.diagnostics.eslint,
