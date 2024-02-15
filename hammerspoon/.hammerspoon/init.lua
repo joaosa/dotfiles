@@ -146,6 +146,9 @@ local function handleWindowState(appName, frame)
     for i = 1, #apps do
         local app = apps[i]
         local w = app:mainWindow()
+        if not w then
+            return false
+        end
         local unit = w:frame():toUnitRect(screenFrame)
 
         -- handle the window visiblity
