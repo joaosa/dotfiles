@@ -301,7 +301,7 @@ lua <<EOF
     rust_analyzer = {},
     terraformls = {},
     pyright = {},
-    tsserver = {},
+    ts_ls = {},
     yamlls = {},
     vimls = {},
     ansiblels = {},
