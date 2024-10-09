@@ -399,27 +399,6 @@ lua <<EOF
   local codewindow = require('codewindow')
   codewindow.setup()
   codewindow.apply_default_keybinds()
-
-  local obsidian = require('obsidian')
-  obsidian.setup({
-    completion = {
-      nvim_cmp = true, -- if using nvim-cmp, otherwise set to false
-    },
-    use_advanced_uri = true
-  })
-
-  keymap(
-    "n",
-    "gf",
-    function()
-      if obsidian.util.cursor_on_markdown_link() then
-        return "<cmd>ObsidianFollowLink<cr>"
-      else
-        return "gf"
-      end
-    end,
-    { noremap = false, expr = true}
-  )
 EOF
 
 " tmuxline
