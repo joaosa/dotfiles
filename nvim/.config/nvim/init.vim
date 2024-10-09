@@ -53,7 +53,7 @@ Plug 'folke/which-key.nvim'
 Plug 'unblevable/quick-scope'
 Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
 Plug 'nvim-telescope/telescope.nvim'
-Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release' }
 Plug 'camgraff/telescope-tmux.nvim'
 Plug 'folke/todo-comments.nvim'
 Plug 'folke/trouble.nvim'
