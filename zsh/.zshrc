@@ -71,10 +71,6 @@ docker-aws-login() {
   echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
 }
 
-# python
-eval "$(pyenv init -)"
-if which pyenv-virtualenv-init > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
-
 # wasm
 export BINARYEN=/usr/local/opt/binaryen
 export LLVM=/usr/local/opt/llvm/bin
