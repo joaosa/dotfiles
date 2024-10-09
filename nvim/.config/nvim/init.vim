@@ -64,7 +64,6 @@ Plug 'lervag/vimtex'
 Plug 'ellisonleao/glow.nvim'
 Plug 'pwntester/octo.nvim'
 Plug 'kdheepak/lazygit.nvim'
-Plug 'epwalsh/obsidian.nvim'
 Plug 'tpope/vim-dadbod'
 call plug#end()
 
