@@ -65,8 +65,6 @@ fi
 
 # tmux true colors - https://github.com/gruvbox-community/gruvbox/wiki/Terminal-specific#3-colors-look-off-in-tmux
 export TERM=xterm-256color
-# Go
+# Golang
 export GOPATH="$HOME/.go"
 export PATH="$PATH:${GOPATH//://bin:}/bin"
-# Haskell
-export PATH="$HOME/.local/bin:$PATH"
