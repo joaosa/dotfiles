@@ -86,7 +86,7 @@ require("lazy").setup({
 
   -- external tools
   "lervag/vimtex",
-  "ellisonleao/glow.nvim",
+  "MeanderingProgrammer/render-markdown.nvim",
   "pwntester/octo.nvim",
   "kdheepak/lazygit.nvim",
   "tpope/vim-dadbod",
@@ -272,7 +272,7 @@ require("which-key").add({
   { "<leader>xt",      "<cmd>TodoTrouble<cr>",                              desc = "todos" },
 
   -- Local leader mappings
-  { "<localleader>ll", ":Glow<cr>",                                         desc = "preview markdown" },
+  { "<localleader>ll", "<cmd>RenderMarkdown toggle<cr>",                    desc = "toggle markdown rendering" },
 
   -- Navigation mappings
   { "]t",              function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
