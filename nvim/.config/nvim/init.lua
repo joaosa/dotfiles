@@ -9,7 +9,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
   if vim.v.shell_error ~= 0 then
     vim.api.nvim_echo({
       { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-      { out, "WarningMsg" },
+      { out,                            "WarningMsg" },
       { "\nPress any key to exit..." },
     }, true, {})
     vim.fn.getchar()
@@ -223,15 +223,15 @@ require('Navigator').setup()
 
 require("which-key").add({
   -- LSP mappings
-  { "gh",              "<cmd>Trouble lsp_references<cr>",                    desc = "LSP references" },
-  { "gr",              vim.lsp.buf.rename,                                 desc = "LSP rename" },
-  { "gd",              vim.lsp.buf.definition,                             desc = "LSP definition" },
-  { "K",               vim.lsp.buf.hover,                                  desc = "LSP hover" },
+  { "gh",              "<cmd>Trouble lsp_references<cr>",                   desc = "LSP references" },
+  { "gr",              vim.lsp.buf.rename,                                  desc = "LSP rename" },
+  { "gd",              vim.lsp.buf.definition,                              desc = "LSP definition" },
+  { "K",               vim.lsp.buf.hover,                                   desc = "LSP hover" },
 
   -- Leader mappings
-  { "<leader>ca",      vim.lsp.buf.code_action,                            desc = "code action" },
-  { "<leader>ld",      vim.diagnostic.open_float,                          desc = "show line diagnostics" },
-  { "<leader>cd",      vim.diagnostic.open_float,                          desc = "show cursor diagnostics" },
+  { "<leader>ca",      vim.lsp.buf.code_action,                             desc = "code action" },
+  { "<leader>ld",      vim.diagnostic.open_float,                           desc = "show line diagnostics" },
+  { "<leader>cd",      vim.diagnostic.open_float,                           desc = "show cursor diagnostics" },
   { "<leader>o",       "<cmd>LSoutlineToggle<cr>",                          desc = "outline" },
 
   -- Telescope mappings
@@ -332,7 +332,7 @@ require("which-key").add({
   { "<c-p>",     "<cmd>NavigatorPrevious<cr>",                                                                    desc = "Navigate previous",        mode = { "n", "t" } },
 
   -- Terminal mappings
-  { "<A-d>",     ":terminal lazygit<cr>",                                                                        desc = "Open lazygit in terminal", mode = "n" },
+  { "<A-d>",     ":terminal lazygit<cr>",                                                                         desc = "Open lazygit in terminal", mode = "n" },
 
   -- Vim legacy mappings
   { "<leader>V", ":source ~/.config/nvim/init.lua<cr>:filetype detect<cr>:exe \":echo 'init.lua reloaded'\"<cr>", desc = "reload init.lua" },
