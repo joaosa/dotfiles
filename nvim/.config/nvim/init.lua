@@ -33,7 +33,6 @@ require("lazy").setup({
 
   -- behaviour
   "takac/vim-hardtime",
-  "declancm/cinnamon.nvim",
   "tpope/vim-obsession",
   "tpope/vim-surround",
   "tpope/vim-unimpaired",
