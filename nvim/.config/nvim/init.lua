@@ -41,7 +41,6 @@ require("lazy").setup({
   "numToStr/Navigator.nvim",
   "szw/vim-g",
   "windwp/nvim-autopairs",
-  "sitiom/nvim-numbertoggle",
 
   -- language syntax
   {
@@ -160,6 +159,35 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 -- show context above/below cursorline
 vim.opt.scrolloff = 5
+
+-- Native line number toggling (replaces nvim-numbertoggle)
+local numbertoggle_group = vim.api.nvim_create_augroup("NumberToggle", {})
+
+vim.api.nvim_create_autocmd(
+  { "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" },
+  {
+    pattern = "*",
+    group = numbertoggle_group,
+    callback = function()
+      if vim.o.nu and vim.api.nvim_get_mode().mode ~= "i" then
+        vim.opt.relativenumber = true
+      end
+    end,
+  }
+)
+
+vim.api.nvim_create_autocmd(
+  { "BufLeave", "FocusLost", "InsertEnter", "CmdlineEnter", "WinLeave" },
+  {
+    pattern = "*",
+    group = numbertoggle_group,
+    callback = function()
+      if vim.o.nu then
+        vim.opt.relativenumber = false
+      end
+    end,
+  }
+)
 
 -- Navigation settings
 -- enable hard mode on all buffers
