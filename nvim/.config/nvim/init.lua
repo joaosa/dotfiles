@@ -75,10 +75,6 @@ require("lazy").setup({
   "nvim-lua/plenary.nvim",
   "folke/which-key.nvim",
   "unblevable/quick-scope",
-  {
-    "glepnir/lspsaga.nvim",
-    branch = "main",
-  },
   "nvim-telescope/telescope.nvim",
   {
     'nvim-telescope/telescope-fzf-native.nvim',
@@ -226,21 +222,18 @@ require('lualine').setup {
 
 require('Navigator').setup()
 
-require('lspsaga').setup {
-  lightbulb = { enable = false },
-}
 
 require("which-key").add({
   -- LSP mappings
-  { "gh",              "<cmd>Lspsaga lsp_finder<cr>",                       desc = "Lspsaga finder" },
-  { "gr",              "<cmd>Lspsaga rename<cr>",                           desc = "Lspsaga rename" },
-  { "gd",              "<cmd>Lspsaga peek_definition<cr>",                  desc = "Lspsaga peek definition" },
-  { "K",               "<cmd>Lspsaga hover_doc<cr>",                        desc = "Lspsaga hover doc" },
+  { "gh",              "<cmd>Trouble lsp_references<cr>",                    desc = "LSP references" },
+  { "gr",              vim.lsp.buf.rename,                                 desc = "LSP rename" },
+  { "gd",              vim.lsp.buf.definition,                             desc = "LSP definition" },
+  { "K",               vim.lsp.buf.hover,                                  desc = "LSP hover" },
 
   -- Leader mappings
-  { "<leader>ca",      "<cmd>Lspsaga code_action<cr>",                      desc = "code action" },
-  { "<leader>ld",      "<cmd>Lspsaga show_line_diagnostics<cr>",            desc = "show line diagnostics" },
-  { "<leader>cd",      "<cmd>Lspsaga show_cursor_diagnostics<cr>",          desc = "show cursor diagnostics" },
+  { "<leader>ca",      vim.lsp.buf.code_action,                            desc = "code action" },
+  { "<leader>ld",      vim.diagnostic.open_float,                          desc = "show line diagnostics" },
+  { "<leader>cd",      vim.diagnostic.open_float,                          desc = "show cursor diagnostics" },
   { "<leader>o",       "<cmd>LSoutlineToggle<cr>",                          desc = "outline" },
 
   -- Telescope mappings
@@ -316,19 +309,19 @@ require("which-key").add({
   },
 
   -- Diagnostic navigation
-  { "]e", "<cmd>Lspsaga diagnostic_jump_next<cr>", desc = "Next diagnostic" },
-  { "[e", "<cmd>Lspsaga diagnostic_jump_prev<cr>", desc = "Previous diagnostic" },
+  { "]e", vim.diagnostic.goto_next, desc = "Next diagnostic" },
+  { "[e", vim.diagnostic.goto_prev, desc = "Previous diagnostic" },
   {
     "]E",
     function()
-      require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR })
+      vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
     end,
     desc = "Next error"
   },
   {
     "[E",
     function()
-      require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR })
+      vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR })
     end,
     desc = "Previous error"
   },
@@ -341,8 +334,7 @@ require("which-key").add({
   { "<c-p>",     "<cmd>NavigatorPrevious<cr>",                                                                    desc = "Navigate previous",        mode = { "n", "t" } },
 
   -- Terminal mappings
-  { "<A-d>",     "<cmd>Lspsaga open_floaterm lazygit<cr>",                                                        desc = "Open lazygit in terminal", mode = "n" },
-  { "<A-d>",     [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]],                                                   desc = "Close terminal",           mode = "t" },
+  { "<A-d>",     ":terminal lazygit<cr>",                                                                        desc = "Open lazygit in terminal", mode = "n" },
 
   -- Vim legacy mappings
   { "<leader>V", ":source ~/.config/nvim/init.lua<cr>:filetype detect<cr>:exe \":echo 'init.lua reloaded'\"<cr>", desc = "reload init.lua" },
