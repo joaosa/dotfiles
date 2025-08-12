@@ -168,75 +168,112 @@ lua <<EOF
   -- close floaterm
   keymap("t", "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]], { silent = true })
 
-  local gs = require('gitsigns')
-  -- ref - from https://github.com/folke/which-key.nvim#%EF%B8%8F-mappings
-  require("which-key").register {
-    -- Lsp finder find the symbol definition implement reference
-    -- if there is no implement it will hide
-    -- when you use action in finder like open vsplit then you can
-    -- use <C-t> to jump back
-    gh = { "<cmd>Lspsaga lsp_finder<cr>", "Lspsaga finder" },
-    gr = { "<cmd>Lspsaga rename<cr>", "Lspsaga rename" },
-    -- Peek Definition
-    -- you can edit the definition file in this floatwindow
-    -- also support open/vsplit/etc operation check definition_action_keys
-    -- support tagstack C-t jump back
-    gd = { "<cmd>Lspsaga peek_definition<cr>", "Lspsaga peek definition" },
-    K = { "<cmd>Lspsaga hover_doc<cr>", "Lspsaga hover doc" },
-    ["<leader>"] = {
-      ca = { "<cmd>Lspsaga code_action<cr>", "code action" },
-      ld = { "<cmd>Lspsaga show_line_diagnostics<cr>", "show line diagnostics" },
-      cd = { "<cmd>Lspsaga show_cursor_diagnostics<cr>", "show cursor diagnostics" },
-      o = { "<cmd>LSoutlineToggle<cr>", "outline" },
-      a = { ":Telescope live_grep<cr>", "search word" },
-      tt = { ":Telescope git_files<cr>", "search versioned files" },
-      t = { ":Telescope find_files<cr>", "search files" },
-      s = { ":Telescope grep_string<cr>", "search cursor" },
-      c = { ":Telescope command_history<cr>", "command history" },
-      q = { ":Telescope quickfix<cr>", "telescope quickfix" },
-      w = { ":Telescope loclist<cr>", "telescope loclist" },
-      tms = { ":Telescope tmux sessions<cr>", "tmux sessions" },
-      tmw = { ":Telescope tmux windows<cr>", "tmux windos" },
-      ts = { ":Telescope treesitter<cr>", "treesitter" },
-      ss = { ":Telescope spell_suggest<cr>", "spelling" },
-      m = { ":Telescope man_pages<cr>", "manpages" },
-      p = { ":Telescope resume<cr>", "telescope resume" },
-      -- git (reusing the prezto aliases)
-      g = { ":LazyGit<cr>", "LazyGit" },
-      gws = { ":Telescope git_status<cr>", "git status" },
-      gwd = { ":Gitsigns diffthis<cr>", "git diff" },
-      gco = { ":Gitsigns reset_buffer<cr>", "git checkout" },
-      gcop = { "<cmd>Gitsigns reset_hunk<cr>", "git checkout -p" },
-      gia = { ":Gitsigns stage_buffer<cr>", "git add" },
-      giap = { "<cmd>Gitsigns stage_hunk<cr>", "git add -p" },
-      gir = { ":Gitsigns reset_buffer_index<cr>", "git reset" },
-      gb = { ":Gitsigns toggle_current_line_blame<cr>", "git blame" },
-      gl = { ":LazyGitFilter<cr>", "git logs"},
-      gp = { ":Octo pr create<cr>", "git pr"},
-      -- trouble
-      xx = { "<cmd>TroubleToggle<cr>", "trouble" },
-      xw = { "<cmd>TroubleToggle workspace_diagnostics<cr>", "workspace diagnostics" },
-      xd = { "<cmd>TroubleToggle document_diagnostics<cr>", "workspace diagnostics" },
-      xq = { "<cmd>TroubleToggle quickfix<cr>", "trouble quickfix" },
-      xl = { "<cmd>TroubleToggle loclist<cr", "trouble loclist" },
-      xR = { "<cmd>TroubleToggle lsp_references<cr>", "trouble lsp refs" },
-      xt = { "<cmd>TodoTrouble<cr>", "todos" },
+  require("which-key").add({
+    -- LSP mappings
+    { "gh", "<cmd>Lspsaga lsp_finder<cr>", desc = "Lspsaga finder" },
+    { "gr", "<cmd>Lspsaga rename<cr>", desc = "Lspsaga rename" },
+    { "gd", "<cmd>Lspsaga peek_definition<cr>", desc = "Lspsaga peek definition" },
+    { "K", "<cmd>Lspsaga hover_doc<cr>", desc = "Lspsaga hover doc" },
+
+    -- Leader mappings
+    { "<leader>ca", "<cmd>Lspsaga code_action<cr>", desc = "code action" },
+    { "<leader>ld", "<cmd>Lspsaga show_line_diagnostics<cr>", desc = "show line diagnostics" },
+    { "<leader>cd", "<cmd>Lspsaga show_cursor_diagnostics<cr>", desc = "show cursor diagnostics" },
+    { "<leader>o", "<cmd>LSoutlineToggle<cr>", desc = "outline" },
+
+    -- Telescope mappings
+    { "<leader>a", ":Telescope live_grep<cr>", desc = "search word" },
+    { "<leader>tt", ":Telescope git_files<cr>", desc = "search versioned files" },
+    { "<leader>t", ":Telescope find_files<cr>", desc = "search files" },
+    { "<leader>s", ":Telescope grep_string<cr>", desc = "search cursor" },
+    { "<leader>c", ":Telescope command_history<cr>", desc = "command history" },
+    { "<leader>q", ":Telescope quickfix<cr>", desc = "telescope quickfix" },
+    { "<leader>w", ":Telescope loclist<cr>", desc = "telescope loclist" },
+    { "<leader>tms", ":Telescope tmux sessions<cr>", desc = "tmux sessions" },
+    { "<leader>tmw", ":Telescope tmux windows<cr>", desc = "tmux windows" },
+    { "<leader>ts", ":Telescope treesitter<cr>", desc = "treesitter" },
+    { "<leader>ss", ":Telescope spell_suggest<cr>", desc = "spelling" },
+    { "<leader>m", ":Telescope man_pages<cr>", desc = "manpages" },
+    { "<leader>p", ":Telescope resume<cr>", desc = "telescope resume" },
+
+    -- Git mappings
+    { "<leader>g", ":LazyGit<cr>", desc = "LazyGit" },
+    { "<leader>gws", ":Telescope git_status<cr>", desc = "git status" },
+    { "<leader>gwd", ":Gitsigns diffthis<cr>", desc = "git diff" },
+    { "<leader>gco", ":Gitsigns reset_buffer<cr>", desc = "git checkout" },
+    { "<leader>gcop", "<cmd>Gitsigns reset_hunk<cr>", desc = "git checkout -p" },
+    { "<leader>gia", ":Gitsigns stage_buffer<cr>", desc = "git add" },
+    { "<leader>giap", "<cmd>Gitsigns stage_hunk<cr>", desc = "git add -p" },
+    { "<leader>gir", ":Gitsigns reset_buffer_index<cr>", desc = "git reset" },
+    { "<leader>gb", ":Gitsigns toggle_current_line_blame<cr>", desc = "git blame" },
+    { "<leader>gl", ":LazyGitFilter<cr>", desc = "git logs" },
+    { "<leader>gp", ":Octo pr create<cr>", desc = "git pr" },
+
+    -- Trouble mappings
+    { "<leader>xx", "<cmd>TroubleToggle<cr>", desc = "trouble" },
+    { "<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>", desc = "workspace diagnostics" },
+    { "<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>", desc = "document diagnostics" },
+    { "<leader>xq", "<cmd>TroubleToggle quickfix<cr>", desc = "trouble quickfix" },
+    { "<leader>xl", "<cmd>TroubleToggle loclist<cr>", desc = "trouble loclist" },
+    { "<leader>xR", "<cmd>TroubleToggle lsp_references<cr>", desc = "trouble lsp refs" },
+    { "<leader>xt", "<cmd>TodoTrouble<cr>", desc = "todos" },
+
+    -- Local leader mappings
+    { "<localleader>ll", ":Glow<cr>", desc = "preview markdown" },
+
+    -- Navigation mappings
+    { "]t", function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
+    { "[t", function() require("todo-comments").jump_prev() end, desc = "Previous todo comment" },
+    { 
+      "]c", 
+      function() 
+        if vim.wo.diff then 
+          return ']c' 
+        end 
+        vim.schedule(function() 
+          require('gitsigns').next_hunk() 
+        end) 
+        return '<Ignore>' 
+      end, 
+      desc = "Next git hunk",
+      expr = true
     },
-    ["<localleader>"] = {
-      ll = { ":Glow<cr>", "preview markdown" },
+    { 
+      "[c", 
+      function() 
+        if vim.wo.diff then 
+          return '[c' 
+        end 
+        vim.schedule(function() 
+          require('gitsigns').prev_hunk() 
+        end) 
+        return '<Ignore>' 
+      end, 
+      desc = "Previous git hunk",
+      expr = true
     },
-    ["]t"] = { function() require("todo-comments").jump_next() end, "Next todo comment" },
-    ["[t"] = { function() require("todo-comments").jump_prev() end, "Previous todo comment" },
-    ["]c"] = { function() if vim.wo.diff then return ']c' end vim.schedule(function() gs.next_hunk() end) return '<Ignore>' end, "Next git hunk" },
-    ["[c"] = { function() if vim.wo.diff then return '[c' end vim.schedule(function() gs.prev_hunk() end) return '<Ignore>' end, "Previous git hunk" },
-    -- Diagnostic jump can use `<c-o>` to jump back
-    ["]e"] = { "<cmd>Lspsaga diagnostic_jump_next<cr>", "Next diagnostic" },
-    ["[e"] = { "<cmd>Lspsaga diagnostic_jump_prev<cr>", "Previous diagnostic" },
-    -- Only jump to error
-    ["]E"] = { function() require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR }) end, "Next error" },
-    ["[E"] = { function() require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR }) end, "Previous error" },
-    ["<esc><esc>"] = { ":noh<cr><esc>", "clear the highlight from the last search" },
-  }
+
+    -- Diagnostic navigation
+    { "]e", "<cmd>Lspsaga diagnostic_jump_next<cr>", desc = "Next diagnostic" },
+    { "[e", "<cmd>Lspsaga diagnostic_jump_prev<cr>", desc = "Previous diagnostic" },
+    { 
+      "]E", 
+      function() 
+        require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR }) 
+      end, 
+      desc = "Next error" 
+    },
+    { 
+      "[E", 
+      function() 
+        require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR }) 
+      end, 
+      desc = "Previous error" 
+    },
+
+    -- Utility mappings
+    { "<esc><esc>", ":noh<cr><esc>", desc = "clear the highlight from the last search" },
+  })
 
   local trouble = require("trouble")
   trouble.setup {}
