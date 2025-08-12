@@ -1,80 +1,102 @@
 -- Plugin configuration
 vim.g.mapleader = ','
 
--- configure vim-plug
-local Plug = vim.fn['plug#']
-vim.call('plug#begin', '~/.config/nvim/plugged')
+-- Bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
+end
+vim.opt.rtp:prepend(lazypath)
 
--- aesthetics
-Plug('ellisonleao/gruvbox.nvim')
-Plug('nvim-tree/nvim-web-devicons')
-Plug('lukas-reineke/indent-blankline.nvim')
-Plug('nmac427/guess-indent.nvim')
-Plug('lewis6991/gitsigns.nvim')
-Plug('nvim-lualine/lualine.nvim')
-Plug('edkolev/tmuxline.vim')
-Plug('folke/zen-mode.nvim')
-Plug('goolord/alpha-nvim')
+-- Setup lazy.nvim
+require("lazy").setup({
+  -- aesthetics
+  "ellisonleao/gruvbox.nvim",
+  "nvim-tree/nvim-web-devicons",
+  "lukas-reineke/indent-blankline.nvim",
+  "nmac427/guess-indent.nvim",
+  "lewis6991/gitsigns.nvim",
+  "nvim-lualine/lualine.nvim",
+  "edkolev/tmuxline.vim",
+  "folke/zen-mode.nvim",
+  "goolord/alpha-nvim",
 
--- behaviour
-Plug('takac/vim-hardtime')
-Plug('declancm/cinnamon.nvim')
-Plug('tpope/vim-obsession')
-Plug('tpope/vim-surround')
-Plug('tpope/vim-unimpaired')
-Plug('tpope/vim-speeddating')
-Plug('tpope/vim-repeat')
-Plug('numToStr/Navigator.nvim')
-Plug('szw/vim-g')
-Plug('windwp/nvim-autopairs')
-Plug('sitiom/nvim-numbertoggle')
+  -- behaviour
+  "takac/vim-hardtime",
+  "declancm/cinnamon.nvim",
+  "tpope/vim-obsession",
+  "tpope/vim-surround",
+  "tpope/vim-unimpaired",
+  "tpope/vim-speeddating",
+  "tpope/vim-repeat",
+  "numToStr/Navigator.nvim",
+  "szw/vim-g",
+  "windwp/nvim-autopairs",
+  "sitiom/nvim-numbertoggle",
 
--- language syntax
-Plug('nvim-treesitter/nvim-treesitter', { ['do'] = ':TSUpdate' })
-Plug('nvim-treesitter/nvim-treesitter-textobjects')
-Plug('numToStr/Comment.nvim')
+  -- language syntax
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+  },
+  "nvim-treesitter/nvim-treesitter-textobjects",
+  "numToStr/Comment.nvim",
 
--- lsp
-Plug('williamboman/mason.nvim')
-Plug('williamboman/mason-lspconfig.nvim')
-Plug('neovim/nvim-lspconfig')
-Plug('nvimtools/none-ls.nvim')
-Plug('lukas-reineke/lsp-format.nvim')
-Plug('Wansmer/treesj')
+  -- lsp
+  "williamboman/mason.nvim",
+  "williamboman/mason-lspconfig.nvim",
+  "neovim/nvim-lspconfig",
+  "nvimtools/none-ls.nvim",
+  "lukas-reineke/lsp-format.nvim",
+  "Wansmer/treesj",
 
--- autocomplete
-Plug('hrsh7th/cmp-nvim-lsp')
-Plug('hrsh7th/nvim-cmp')
-Plug('hrsh7th/cmp-nvim-lsp-signature-help')
-Plug('petertriho/cmp-git')
+  -- autocomplete
+  "hrsh7th/cmp-nvim-lsp",
+  "hrsh7th/nvim-cmp",
+  "hrsh7th/cmp-nvim-lsp-signature-help",
+  "petertriho/cmp-git",
 
--- snippets
-Plug('L3MON4D3/LuaSnip')
-Plug('saadparwaiz1/cmp_luasnip')
-Plug('rafamadriz/friendly-snippets')
+  -- snippets
+  "L3MON4D3/LuaSnip",
+  "saadparwaiz1/cmp_luasnip",
+  "rafamadriz/friendly-snippets",
 
--- discoverability
-Plug('nvim-lua/plenary.nvim')
-Plug('folke/which-key.nvim')
-Plug('unblevable/quick-scope')
-Plug('glepnir/lspsaga.nvim', { branch = 'main' })
-Plug('nvim-telescope/telescope.nvim')
-Plug('nvim-telescope/telescope-fzf-native.nvim',
-  { ['do'] = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release' })
-Plug('camgraff/telescope-tmux.nvim')
-Plug('folke/todo-comments.nvim')
-Plug('folke/trouble.nvim')
-Plug('SmiteshP/nvim-navic')
-Plug('gorbit99/codewindow.nvim')
+  -- discoverability
+  "nvim-lua/plenary.nvim",
+  "folke/which-key.nvim",
+  "unblevable/quick-scope",
+  {
+    "glepnir/lspsaga.nvim",
+    branch = "main",
+  },
+  "nvim-telescope/telescope.nvim",
+  {
+    'nvim-telescope/telescope-fzf-native.nvim',
+    build = 'make'
+  },
+  "camgraff/telescope-tmux.nvim",
+  "folke/todo-comments.nvim",
+  "folke/trouble.nvim",
+  "SmiteshP/nvim-navic",
+  "gorbit99/codewindow.nvim",
 
--- external tools
-Plug('lervag/vimtex')
-Plug('ellisonleao/glow.nvim')
-Plug('pwntester/octo.nvim')
-Plug('kdheepak/lazygit.nvim')
-Plug('tpope/vim-dadbod')
-
-vim.call('plug#end')
+  -- external tools
+  "lervag/vimtex",
+  "ellisonleao/glow.nvim",
+  "pwntester/octo.nvim",
+  "kdheepak/lazygit.nvim",
+  "tpope/vim-dadbod",
+})
 
 -- General settings
 -- yank and paste with the system clipboard
