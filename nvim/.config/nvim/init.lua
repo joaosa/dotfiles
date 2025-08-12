@@ -414,7 +414,10 @@ local lsp_servers = {
   lua_ls = {
     Lua = {
       diagnostics = {
-        globals = { 'hs', 'vim' },
+        globals = {
+          'hs',
+          'vim',
+        },
       },
     },
   },
