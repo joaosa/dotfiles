@@ -197,6 +197,7 @@ lua <<EOF
     -- Local leader mappings
     { "<localleader>ll", ":Glow<cr>", desc = "preview markdown" },
 
+
     -- Navigation mappings
     { "]t", function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
     { "[t", function() require("todo-comments").jump_prev() end, desc = "Previous todo comment" },
@@ -255,6 +256,7 @@ lua <<EOF
     { "<c-p>", "<cmd>NavigatorPrevious<cr>", desc = "Navigate previous", mode = {"n", "t"} },
 
     -- Terminal mappings
+    -- TODO replace lazygit.nvim with this
     { "<A-d>", "<cmd>Lspsaga open_floaterm lazygit<cr>", desc = "Open lazygit in terminal", mode = "n" },
     { "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]], desc = "Close terminal", mode = "t" },
 
