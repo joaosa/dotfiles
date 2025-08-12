@@ -84,7 +84,6 @@ require("lazy").setup({
   "folke/todo-comments.nvim",
   "folke/trouble.nvim",
   "SmiteshP/nvim-navic",
-  "gorbit99/codewindow.nvim",
 
   -- external tools
   "lervag/vimtex",
@@ -543,7 +542,3 @@ require('Comment').setup()
 require("todo-comments").setup {}
 require("cmp_git").setup()
 require "octo".setup()
-
-local codewindow = require('codewindow')
-codewindow.setup()
-codewindow.apply_default_keybinds()
