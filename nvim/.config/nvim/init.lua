@@ -160,6 +160,16 @@ vim.opt.smartcase = true
 -- show context above/below cursorline
 vim.opt.scrolloff = 5
 
+-- Automatic whitespace cleanup
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*",
+  callback = function()
+    local save_cursor = vim.fn.getpos(".")
+    vim.cmd([[%s/\s\+$//e]])
+    vim.fn.setpos(".", save_cursor)
+  end,
+})
+
 -- Native line number toggling (replaces nvim-numbertoggle)
 local numbertoggle_group = vim.api.nvim_create_augroup("NumberToggle", {})
 
