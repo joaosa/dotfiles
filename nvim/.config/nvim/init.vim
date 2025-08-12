@@ -100,15 +100,6 @@ set tabstop=2
 " Navigation
 " enable hard mode on all buffers
 let g:hardtime_default_on = 1
-" disable arrow keys in normal and insert mode
-nnoremap <up> <nop>
-nnoremap <down> <nop>
-nnoremap <left> <nop>
-nnoremap <right> <nop>
-inoremap <up> <nop>
-inoremap <down> <nop>
-inoremap <left> <nop>
-inoremap <right> <nop>
 
 " Undo
 " keep undo history across sessions by storing it in a file
@@ -147,26 +138,11 @@ lua <<EOF
     },
   }
 
-  local keymap = vim.keymap.set
   require('Navigator').setup()
-  keymap({'n', 't'}, '<c-h>', '<cmd>NavigatorLeft<cr>')
-  keymap({'n', 't'}, '<c-l>', '<cmd>NavigatorRight<cr>')
-  keymap({'n', 't'}, '<c-k>', '<cmd>NavigatorUp<cr>')
-  keymap({'n', 't'}, '<c-j>', '<cmd>NavigatorDown<cr>')
-  keymap({'n', 't'}, '<c-p>', '<cmd>NavigatorPrevious<cr>')
 
   require('lspsaga').setup {
     lightbulb = { enable = false },
   }
-
-  -- TODO replace lazygit.nvim with this
-  -- Float terminal
-  keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm<cr>", { silent = true })
-  -- if you want to pass some cli command into a terminal you can do it like this
-  -- open lazygit in lspsaga float terminal
-  keymap("n", "<A-d>", "<cmd>Lspsaga open_floaterm lazygit<cr>", { silent = true })
-  -- close floaterm
-  keymap("t", "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]], { silent = true })
 
   require("which-key").add({
     -- LSP mappings
@@ -270,6 +246,36 @@ lua <<EOF
       end, 
       desc = "Previous error" 
     },
+
+    -- Navigation mappings (tmux/vim pane navigation)
+    { "<c-h>", "<cmd>NavigatorLeft<cr>", desc = "Navigate left", mode = {"n", "t"} },
+    { "<c-l>", "<cmd>NavigatorRight<cr>", desc = "Navigate right", mode = {"n", "t"} },
+    { "<c-k>", "<cmd>NavigatorUp<cr>", desc = "Navigate up", mode = {"n", "t"} },
+    { "<c-j>", "<cmd>NavigatorDown<cr>", desc = "Navigate down", mode = {"n", "t"} },
+    { "<c-p>", "<cmd>NavigatorPrevious<cr>", desc = "Navigate previous", mode = {"n", "t"} },
+
+    -- Terminal mappings
+    { "<A-d>", "<cmd>Lspsaga open_floaterm lazygit<cr>", desc = "Open lazygit in terminal", mode = "n" },
+    { "<A-d>", [[<C-\><C-n><cmd>Lspsaga close_floaterm<cr>]], desc = "Close terminal", mode = "t" },
+
+    -- Vim legacy mappings
+    { "<leader>V", ":source ~/.config/nvim/init.vim<cr>:filetype detect<cr>:exe \":echo 'vimrc reloaded'\"<cr>", desc = "reload nvimrc" },
+    { "<up>", "<nop>", desc = "disabled", mode = {"n", "i"} },
+    { "<down>", "<nop>", desc = "disabled", mode = {"n", "i"} },
+    { "<left>", "<nop>", desc = "disabled", mode = {"n", "i"} },
+    { "<right>", "<nop>", desc = "disabled", mode = {"n", "i"} },
+
+    -- LuaSnip mappings
+    { "<Tab>", function()
+        local luasnip = require('luasnip')
+        if luasnip.expand_or_jumpable() then
+          return '<Plug>luasnip-expand-or-jump'
+        else
+          return '<Tab>'
+        end
+      end, desc = "Expand or jump snippet", mode = "i", expr = true },
+    { "<S-Tab>", function() require('luasnip').jump(-1) end, desc = "Jump to previous snippet", mode = {"i", "s"} },
+    { "<Tab>", function() require('luasnip').jump(1) end, desc = "Jump to next snippet", mode = "s" },
 
     -- Utility mappings
     { "<esc><esc>", ":noh<cr><esc>", desc = "clear the highlight from the last search" },
@@ -475,17 +481,7 @@ let g:tmuxline_theme = {
   \'bg'  : ['#534d4a','#534d4a'],
 \}
 
-" reload nvimrc
-noremap <silent> <leader>V :source ~/.config/nvim/init.vim<cr>:filetype detect<cr>:exe ":echo 'vimrc reloaded'"<cr>
 
-" autocomplete
-" press <Tab> to expand or jump in a snippet. These can also be mapped separately
-" via <Plug>luasnip-expand-snippet and <Plug>luasnip-jump-next.
-imap <silent><expr> <Tab> luasnip#expand_or_jumpable() ? '<Plug>luasnip-expand-or-jump' : '<Tab>'
-" -1 for jumping backwards.
-inoremap <silent> <S-Tab> <cmd>lua require'luasnip'.jump(-1)<Cr>
-snoremap <silent> <Tab> <cmd>lua require('luasnip').jump(1)<Cr>
-snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
 
 " Search
 autocmd User TelescopePreviewerLoaded setlocal wrap
