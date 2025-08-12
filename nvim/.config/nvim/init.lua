@@ -309,12 +309,39 @@ require("which-key").add({
   { "<leader>xR",      "<cmd>TroubleToggle lsp_references<cr>",             desc = "trouble lsp refs" },
   { "<leader>xt",      "<cmd>TodoTrouble<cr>",                              desc = "todos" },
 
+  -- Treesitter text object swap mappings
+  { "<leader>s",       group = "swap" },
+  { "<leader>sn",      desc = "swap next parameter" },
+  { "<leader>sp",      desc = "swap previous parameter" },
+  { "<leader>sf",      desc = "swap next function" },
+  { "<leader>sF",      desc = "swap previous function" },
+
+  -- Treesitter peek definition mappings
+  { "<leader>p",       group = "peek definition" },
+  { "<leader>pf",      desc = "peek function definition" },
+  { "<leader>pc",      desc = "peek class definition" },
+
   -- Local leader mappings
   { "<localleader>ll", "<cmd>RenderMarkdown toggle<cr>",                    desc = "toggle markdown rendering" },
 
   -- Navigation mappings
   { "]t",              function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
   { "[t",              function() require("todo-comments").jump_prev() end, desc = "Previous todo comment" },
+
+  -- Treesitter navigation (with descriptive labels)
+  { "]f",              desc = "Next function start" },
+  { "[f",              desc = "Previous function start" },
+  { "]F",              desc = "Next function end" },
+  { "[F",              desc = "Previous function end" },
+  { "]a",              desc = "Next parameter" },
+  { "[a",              desc = "Previous parameter" },
+  { "]i",              desc = "Next conditional" },
+  { "[i",              desc = "Previous conditional" },
+  { "]l",              desc = "Next loop" },
+  { "[l",              desc = "Previous loop" },
+  { "]s",              desc = "Next statement" },
+  { "[s",              desc = "Previous statement" },
+
   {
     "]c",
     function()
@@ -444,6 +471,123 @@ require 'nvim-treesitter.configs'.setup {
   -- Automatically install missing parsers when entering buffer
   -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
   auto_install = true,
+
+  textobjects = {
+    select = {
+      enable = true,
+      lookahead = true,
+      keymaps = {
+        -- Function/method text objects
+        ["af"] = "@function.outer",
+        ["if"] = "@function.inner",
+        ["am"] = "@function.outer",
+        ["im"] = "@function.inner",
+
+        -- Class text objects
+        ["ac"] = "@class.outer",
+        ["ic"] = "@class.inner",
+
+        -- Parameter/argument text objects
+        ["aa"] = "@parameter.outer",
+        ["ia"] = "@parameter.inner",
+
+        -- Conditional text objects
+        ["ai"] = "@conditional.outer",
+        ["ii"] = "@conditional.inner",
+
+        -- Loop text objects
+        ["al"] = "@loop.outer",
+        ["il"] = "@loop.inner",
+
+        -- Comment text objects
+        ["a/"] = "@comment.outer",
+        ["i/"] = "@comment.inner",
+
+        -- Block text objects
+        ["ab"] = "@block.outer",
+        ["ib"] = "@block.inner",
+
+        -- Statement text objects
+        ["as"] = "@statement.outer",
+        ["is"] = "@statement.inner",
+
+        -- Assignment text objects
+        ["a="] = "@assignment.outer",
+        ["i="] = "@assignment.inner",
+
+        -- Call text objects
+        ["aF"] = "@call.outer",
+        ["iF"] = "@call.inner",
+      },
+      selection_modes = {
+        ['@parameter.outer'] = 'v',
+        ['@function.outer'] = 'V',
+        ['@class.outer'] = 'V',
+        ['@conditional.outer'] = 'V',
+        ['@loop.outer'] = 'V',
+        ['@block.outer'] = 'V',
+      },
+    },
+
+    move = {
+      enable = true,
+      set_jumps = true,
+      goto_next_start = {
+        ["]f"] = "@function.outer",
+        ["]c"] = "@class.outer",
+        ["]a"] = "@parameter.inner",
+        ["]i"] = "@conditional.outer",
+        ["]l"] = "@loop.outer",
+        ["]s"] = "@statement.outer",
+      },
+      goto_next_end = {
+        ["]F"] = "@function.outer",
+        ["]C"] = "@class.outer",
+        ["]A"] = "@parameter.inner",
+        ["]I"] = "@conditional.outer",
+        ["]L"] = "@loop.outer",
+        ["]S"] = "@statement.outer",
+      },
+      goto_previous_start = {
+        ["[f"] = "@function.outer",
+        ["[c"] = "@class.outer",
+        ["[a"] = "@parameter.inner",
+        ["[i"] = "@conditional.outer",
+        ["[l"] = "@loop.outer",
+        ["[s"] = "@statement.outer",
+      },
+      goto_previous_end = {
+        ["[F"] = "@function.outer",
+        ["[C"] = "@class.outer",
+        ["[A"] = "@parameter.inner",
+        ["[I"] = "@conditional.outer",
+        ["[L"] = "@loop.outer",
+        ["[S"] = "@statement.outer",
+      },
+    },
+
+    swap = {
+      enable = true,
+      swap_next = {
+        ["<leader>sn"] = "@parameter.inner",
+        ["<leader>sf"] = "@function.outer",
+      },
+      swap_previous = {
+        ["<leader>sp"] = "@parameter.inner",
+        ["<leader>sF"] = "@function.outer",
+      },
+    },
+
+    lsp_interop = {
+      enable = true,
+      border = 'none',
+      floating_preview_opts = {},
+      peek_definition_code = {
+        ["<leader>pf"] = "@function.outer",
+        ["<leader>pc"] = "@class.outer",
+      },
+    },
+  },
 }
 
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
