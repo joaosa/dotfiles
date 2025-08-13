@@ -272,17 +272,16 @@ end
 -----------------------------------------------
 -- Insert dates
 -----------------------------------------------
--- More reliable paste function
 local function pasteString(string)
     if not string or string == "" then
         hs.alert.show("Nothing to paste")
         return
     end
-    
+
     local current = hs.pasteboard.getContents()
     hs.pasteboard.setContents(string)
     hs.eventtap.keyStrokes(string)
-    
+
     -- Restore previous clipboard content after a delay
     hs.timer.doAfter(0.1, function()
         if current then
@@ -305,5 +304,45 @@ local function pasteToday() pasteDate(0) end
 
 local function pasteYesterday() pasteDate(-1) end
 
+-- Date shortcuts
 hs.hotkey.bind(altCmd, "]", pasteToday)
 hs.hotkey.bind(altCmd, "[", pasteYesterday)
+
+-----------------------------------------------
+-- Additional Utilities
+-----------------------------------------------
+
+-- Toggle Do Not Disturb
+hs.hotkey.bind(hyper, "d", function()
+    local script = [[
+        tell application "System Events"
+            tell process "Control Center"
+                click menu bar item "Control Center" of menu bar 1
+                delay 0.5
+                click button "Do Not Disturb" of group 1 of scroll area 1 of sheet 1 of application process "Control Center"
+            end tell
+        end tell
+    ]]
+    hs.osascript.applescript(script)
+    hs.alert.show("Toggled Do Not Disturb")
+end)
+
+-- Show current WiFi network
+hs.hotkey.bind(hyper, "w", function()
+    local wifi = hs.wifi.currentNetwork()
+    if wifi then
+        hs.alert.show("WiFi: " .. wifi, {}, 3)
+    else
+        hs.alert.show("No WiFi connected", {}, 2)
+    end
+end)
+
+-- Lock screen
+hs.hotkey.bind(hyper, "l", function()
+    hs.caffeinate.lockScreen()
+end)
+
+-- Sleep
+hs.hotkey.bind(hyper, "s", function()
+    hs.caffeinate.systemSleep()
+end)
