@@ -26,9 +26,12 @@ end
 -- Reload config on write
 -----------------------------------------------
 local function reloadConfig(files)
+    log.i("Files changed:", hs.inspect(files))
     local doReload = false
     for _, file in pairs(files) do
+        log.i("Checking file:", file)
         if file:sub(-4) == ".lua" then
+            log.i("Lua file detected, reloading...")
             doReload = true
             break
         end
@@ -38,7 +41,9 @@ local function reloadConfig(files)
     end
 end
 
-local configWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+-- Watch both the symlinked directory and the original dotfiles directory
+local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/ghq/github.com/joaosa/dotfiles/hammerspoon/.hammerspoon/", reloadConfig):start()
 hs.alert.show("🔨 Hammerspoon Config Loaded", {}, 2)
 
 -----------------------------------------------
