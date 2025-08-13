@@ -1,16 +1,45 @@
 -----------------------------------------------
--- Set up
+-- Configuration
 -----------------------------------------------
 local hyper = { "shift", "ctrl", "alt", "cmd" }
 local altCmd = { "ctrl", "cmd" }
 local doAfter = 0.5
+
+-- Performance settings
 hs.window.animationDuration = 0
+hs.window.setFrameCorrectness = true
+
+-- Logger for debugging
+local log = hs.logger.new('config', 'info')
+
+-- Helper function for safe window operations
+local function safeWindowOperation(operation, errorMsg)
+    local window = hs.window.focusedWindow()
+    if not window then
+        hs.alert.show(errorMsg or "No active window")
+        return false
+    end
+    return operation(window)
+end
 
 -----------------------------------------------
 -- Reload config on write
 -----------------------------------------------
-local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", hs.reload):start()
-hs.alert.show("Config loaded")
+local function reloadConfig(files)
+    local doReload = false
+    for _, file in pairs(files) do
+        if file:sub(-4) == ".lua" then
+            doReload = true
+            break
+        end
+    end
+    if doReload then
+        hs.reload()
+    end
+end
+
+local configWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
+hs.alert.show("🔨 Hammerspoon Config Loaded", {}, 2)
 
 -----------------------------------------------
 -- Open the hammerspoon console
@@ -50,8 +79,13 @@ for key, pos in pairs(windowPositionBindings) do
         hyper,
         key,
         function()
-            local window = hs.window.focusedWindow()
-            window:moveToUnit(pos)
+            safeWindowOperation(
+                function(window)
+                    window:moveToUnit(pos)
+                    return true
+                end,
+                "Cannot resize: no active window"
+            )
         end
     )
 end
@@ -76,12 +110,13 @@ for key, action in pairs(windowFocusBindings) do
         altCmd,
         key,
         function()
-            local window = hs.window.focusedWindow()
-            if window then
-                window[action](window)
-            else
-                hs.alert.show("No active window")
-            end
+            safeWindowOperation(
+                function(window)
+                    window[action](window)
+                    return true
+                end,
+                "Cannot focus window: no active window"
+            )
         end
     )
 end
@@ -103,7 +138,12 @@ for key, appName in pairs(appBindings) do
         altCmd,
         key,
         function()
-            hs.application.launchOrFocus(appName)
+            local app = hs.application.find(appName)
+            if app and app:isRunning() then
+                app:activate()
+            else
+                hs.application.launchOrFocus(appName)
+            end
         end
     )
 end
@@ -119,7 +159,7 @@ local function findAppPID(appName)
   | sort \
   | awk '{print $2}' \
   | head -n1
-  ]]     ,
+  ]],
         appName:lower()
     )
 end
@@ -209,8 +249,18 @@ hs.hotkey.bind(
 -- ref https://stackoverflow.com/questions/54151343/how-to-move-an-application-between-monitors-in-hammerspoon
 local function moveWindowToDisplay(displays, index)
     return function()
-        local win = hs.window.focusedWindow()
-        win:moveToScreen(displays[index], false, true)
+        safeWindowOperation(
+            function(window)
+                if displays[index] then
+                    window:moveToScreen(displays[index], false, true)
+                    return true
+                else
+                    hs.alert.show("Display " .. index .. " not found")
+                    return false
+                end
+            end,
+            "Cannot move window: no active window"
+        )
     end
 end
 
@@ -222,13 +272,23 @@ end
 -----------------------------------------------
 -- Insert dates
 -----------------------------------------------
+-- More reliable paste function
 local function pasteString(string)
+    if not string or string == "" then
+        hs.alert.show("Nothing to paste")
+        return
+    end
+    
     local current = hs.pasteboard.getContents()
-
     hs.pasteboard.setContents(string)
-    hs.eventtap.keyStrokes(hs.pasteboard.getContents())
-
-    hs.pasteboard.setContents(current)
+    hs.eventtap.keyStrokes(string)
+    
+    -- Restore previous clipboard content after a delay
+    hs.timer.doAfter(0.1, function()
+        if current then
+            hs.pasteboard.setContents(current)
+        end
+    end)
 end
 
 local function pasteDate(dayDiff)
