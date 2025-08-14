@@ -89,6 +89,88 @@ require("lazy").setup({
   "pwntester/octo.nvim",
   "kdheepak/lazygit.nvim",
   "tpope/vim-dadbod",
+  "greggh/claude-code.nvim",
+  {
+    "yetone/avante.nvim",
+    event = "VeryLazy",
+    lazy = true,
+    version = false,
+    opts = {
+      provider = "ollama_gemma",
+      providers = {
+        claude = {
+          endpoint = "https://api.anthropic.com",
+          model = "claude-sonnet-4-20250514",
+          api_key_name = "AVANTE_ANTHROPIC_API_KEY",
+          timeout = 30000,
+        },
+        opus = {
+          endpoint = "https://api.anthropic.com",
+          model = "claude-opus-4-20250514",
+          api_key_name = "AVANTE_ANTHROPIC_API_KEY",
+          timeout = 60000,
+        },
+        kimi = {
+          endpoint = "https://api.moonshot.ai/v1",
+          model = "kimi-k2-0711-preview",
+          api_key_name = "AVANTE_MOONSHOT_API_KEY",
+          timeout = 30000,
+        },
+        ollama_gemma = {
+          __inherited_from = "ollama",
+          endpoint = "http://localhost:11434",
+          model = "gemma3:latest",
+          timeout = 60000,
+        },
+        ollama_deepseek = {
+          __inherited_from = "ollama",
+          endpoint = "http://localhost:11434",
+          model = "deepseek-r1:latest",
+          timeout = 60000,
+        },
+      },
+      behaviour = {
+        auto_suggestions = false,
+        auto_set_keymaps = true,
+      },
+      mappings = {
+        ask = "<localleader>aa",
+        edit = "<localleader>ae",
+        refresh = "<localleader>ar",
+        clear = "<localleader>ac",
+      },
+      windows = {
+        position = "right",
+        wrap = true,
+        width = 30,
+      },
+    },
+    build = "make",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+      "stevearc/dressing.nvim",
+      "nvim-lua/plenary.nvim",
+      "MunifTanjim/nui.nvim",
+      "nvim-tree/nvim-web-devicons",
+      {
+        "HakonHarnes/img-clip.nvim",
+        event = "VeryLazy",
+        opts = {
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = { insert_mode = true },
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        "MeanderingProgrammer/render-markdown.nvim",
+        opts = { file_types = { "markdown", "Avante" } },
+        ft = { "markdown", "Avante" },
+      },
+    },
+  },
 })
 
 -- General settings
@@ -261,86 +343,95 @@ require('Navigator').setup()
 
 require("which-key").add({
   -- LSP mappings
-  { "gh",              "<cmd>Trouble lsp_references<cr>",                   desc = "LSP references" },
-  { "gr",              vim.lsp.buf.rename,                                  desc = "LSP rename" },
-  { "gd",              vim.lsp.buf.definition,                              desc = "LSP definition" },
-  { "K",               vim.lsp.buf.hover,                                   desc = "LSP hover" },
+  { "gh",               "<cmd>Trouble lsp_references<cr>",                                       desc = "LSP references" },
+  { "gr",               vim.lsp.buf.rename,                                                      desc = "LSP rename" },
+  { "gd",               vim.lsp.buf.definition,                                                  desc = "LSP definition" },
+  { "K",                vim.lsp.buf.hover,                                                       desc = "LSP hover" },
 
   -- Leader mappings
-  { "<leader>ca",      vim.lsp.buf.code_action,                             desc = "code action" },
-  { "<leader>ld",      vim.diagnostic.open_float,                           desc = "show line diagnostics" },
-  { "<leader>cd",      vim.diagnostic.open_float,                           desc = "show cursor diagnostics" },
-  { "<leader>o",       "<cmd>LSoutlineToggle<cr>",                          desc = "outline" },
+  { "<leader>ca",       vim.lsp.buf.code_action,                                                 desc = "code action" },
+  { "<leader>ld",       vim.diagnostic.open_float,                                               desc = "show line diagnostics" },
+  { "<leader>cd",       vim.diagnostic.open_float,                                               desc = "show cursor diagnostics" },
+  { "<leader>o",        "<cmd>LSoutlineToggle<cr>",                                              desc = "outline" },
 
   -- Telescope mappings
-  { "<leader>a",       ":Telescope live_grep<cr>",                          desc = "search word" },
-  { "<leader>tt",      ":Telescope git_files<cr>",                          desc = "search versioned files" },
-  { "<leader>t",       ":Telescope find_files<cr>",                         desc = "search files" },
-  { "<leader>s",       ":Telescope grep_string<cr>",                        desc = "search cursor" },
-  { "<leader>c",       ":Telescope command_history<cr>",                    desc = "command history" },
-  { "<leader>q",       ":Telescope quickfix<cr>",                           desc = "telescope quickfix" },
-  { "<leader>w",       ":Telescope loclist<cr>",                            desc = "telescope loclist" },
-  { "<leader>tms",     ":Telescope tmux sessions<cr>",                      desc = "tmux sessions" },
-  { "<leader>tmw",     ":Telescope tmux windows<cr>",                       desc = "tmux windows" },
-  { "<leader>ts",      ":Telescope treesitter<cr>",                         desc = "treesitter" },
-  { "<leader>ss",      ":Telescope spell_suggest<cr>",                      desc = "spelling" },
-  { "<leader>m",       ":Telescope man_pages<cr>",                          desc = "manpages" },
-  { "<leader>p",       ":Telescope resume<cr>",                             desc = "telescope resume" },
+  { "<leader>a",        ":Telescope live_grep<cr>",                                              desc = "search word" },
+  { "<leader>tt",       ":Telescope git_files<cr>",                                              desc = "search versioned files" },
+  { "<leader>t",        ":Telescope find_files<cr>",                                             desc = "search files" },
+  { "<leader>s",        ":Telescope grep_string<cr>",                                            desc = "search cursor" },
+  { "<leader>c",        ":Telescope command_history<cr>",                                        desc = "command history" },
+  { "<leader>q",        ":Telescope quickfix<cr>",                                               desc = "telescope quickfix" },
+  { "<leader>w",        ":Telescope loclist<cr>",                                                desc = "telescope loclist" },
+  { "<leader>tms",      ":Telescope tmux sessions<cr>",                                          desc = "tmux sessions" },
+  { "<leader>tmw",      ":Telescope tmux windows<cr>",                                           desc = "tmux windows" },
+  { "<leader>ts",       ":Telescope treesitter<cr>",                                             desc = "treesitter" },
+  { "<leader>ss",       ":Telescope spell_suggest<cr>",                                          desc = "spelling" },
+  { "<leader>m",        ":Telescope man_pages<cr>",                                              desc = "manpages" },
+  { "<leader>p",        ":Telescope resume<cr>",                                                 desc = "telescope resume" },
 
   -- Git mappings
-  { "<leader>g",       ":LazyGit<cr>",                                      desc = "LazyGit" },
-  { "<leader>gws",     ":Telescope git_status<cr>",                         desc = "git status" },
-  { "<leader>gwd",     ":Gitsigns diffthis<cr>",                            desc = "git diff" },
-  { "<leader>gco",     ":Gitsigns reset_buffer<cr>",                        desc = "git checkout" },
-  { "<leader>gcop",    "<cmd>Gitsigns reset_hunk<cr>",                      desc = "git checkout -p" },
-  { "<leader>gia",     ":Gitsigns stage_buffer<cr>",                        desc = "git add" },
-  { "<leader>giap",    "<cmd>Gitsigns stage_hunk<cr>",                      desc = "git add -p" },
-  { "<leader>gir",     ":Gitsigns reset_buffer_index<cr>",                  desc = "git reset" },
-  { "<leader>gb",      ":Gitsigns toggle_current_line_blame<cr>",           desc = "git blame" },
-  { "<leader>gl",      ":LazyGitFilter<cr>",                                desc = "git logs" },
-  { "<leader>gp",      ":Octo pr create<cr>",                               desc = "git pr" },
+  { "<leader>g",        ":LazyGit<cr>",                                                          desc = "LazyGit" },
+  { "<leader>gws",      ":Telescope git_status<cr>",                                             desc = "git status" },
+  { "<leader>gwd",      ":Gitsigns diffthis<cr>",                                                desc = "git diff" },
+  { "<leader>gco",      ":Gitsigns reset_buffer<cr>",                                            desc = "git checkout" },
+  { "<leader>gcop",     "<cmd>Gitsigns reset_hunk<cr>",                                          desc = "git checkout -p" },
+  { "<leader>gia",      ":Gitsigns stage_buffer<cr>",                                            desc = "git add" },
+  { "<leader>giap",     "<cmd>Gitsigns stage_hunk<cr>",                                          desc = "git add -p" },
+  { "<leader>gir",      ":Gitsigns reset_buffer_index<cr>",                                      desc = "git reset" },
+  { "<leader>gb",       ":Gitsigns toggle_current_line_blame<cr>",                               desc = "git blame" },
+  { "<leader>gl",       ":LazyGitFilter<cr>",                                                    desc = "git logs" },
+  { "<leader>gp",       ":Octo pr create<cr>",                                                   desc = "git pr" },
 
   -- Trouble mappings
-  { "<leader>xx",      "<cmd>TroubleToggle<cr>",                            desc = "trouble" },
-  { "<leader>xw",      "<cmd>TroubleToggle workspace_diagnostics<cr>",      desc = "workspace diagnostics" },
-  { "<leader>xd",      "<cmd>TroubleToggle document_diagnostics<cr>",       desc = "document diagnostics" },
-  { "<leader>xq",      "<cmd>TroubleToggle quickfix<cr>",                   desc = "trouble quickfix" },
-  { "<leader>xl",      "<cmd>TroubleToggle loclist<cr>",                    desc = "trouble loclist" },
-  { "<leader>xR",      "<cmd>TroubleToggle lsp_references<cr>",             desc = "trouble lsp refs" },
-  { "<leader>xt",      "<cmd>TodoTrouble<cr>",                              desc = "todos" },
+  { "<leader>xx",       "<cmd>TroubleToggle<cr>",                                                desc = "trouble" },
+  { "<leader>xw",       "<cmd>TroubleToggle workspace_diagnostics<cr>",                          desc = "workspace diagnostics" },
+  { "<leader>xd",       "<cmd>TroubleToggle document_diagnostics<cr>",                           desc = "document diagnostics" },
+  { "<leader>xq",       "<cmd>TroubleToggle quickfix<cr>",                                       desc = "trouble quickfix" },
+  { "<leader>xl",       "<cmd>TroubleToggle loclist<cr>",                                        desc = "trouble loclist" },
+  { "<leader>xR",       "<cmd>TroubleToggle lsp_references<cr>",                                 desc = "trouble lsp refs" },
+  { "<leader>xt",       "<cmd>TodoTrouble<cr>",                                                  desc = "todos" },
 
   -- Treesitter text object swap mappings
-  { "<leader>s",       group = "swap" },
-  { "<leader>sn",      desc = "swap next parameter" },
-  { "<leader>sp",      desc = "swap previous parameter" },
-  { "<leader>sf",      desc = "swap next function" },
-  { "<leader>sF",      desc = "swap previous function" },
+  { "<leader>s",        group = "swap" },
+  { "<leader>sn",       desc = "swap next parameter" },
+  { "<leader>sp",       desc = "swap previous parameter" },
+  { "<leader>sf",       desc = "swap next function" },
+  { "<leader>sF",       desc = "swap previous function" },
 
   -- Treesitter peek definition mappings
-  { "<leader>p",       group = "peek definition" },
-  { "<leader>pf",      desc = "peek function definition" },
-  { "<leader>pc",      desc = "peek class definition" },
+  { "<leader>p",        group = "peek definition" },
+  { "<leader>pf",       desc = "peek function definition" },
+  { "<leader>pc",       desc = "peek class definition" },
 
   -- Local leader mappings
-  { "<localleader>ll", "<cmd>RenderMarkdown toggle<cr>",                    desc = "toggle markdown rendering" },
+  { "<localleader>ll",  "<cmd>RenderMarkdown toggle<cr>",                                        desc = "toggle markdown rendering" },
+  { "<localleader>cc",  "<cmd>ClaudeCode<cr>",                                                   desc = "toggle claude code" },
+
+  -- Avante provider switching mappings
+  { "<localleader>ap",  group = "avante providers" },
+  { "<localleader>apc", "<cmd>lua require('avante.api').switch_provider('claude')<cr>",          desc = "switch to claude sonnet 4" },
+  { "<localleader>apo", "<cmd>lua require('avante.api').switch_provider('opus')<cr>",            desc = "switch to claude opus 4" },
+  { "<localleader>apk", "<cmd>lua require('avante.api').switch_provider('kimi')<cr>",            desc = "switch to kimi k2" },
+  { "<localleader>apd", "<cmd>lua require('avante.api').switch_provider('ollama_deepseek')<cr>", desc = "switch to deepseek ollama local" },
+  { "<localleader>apg", "<cmd>lua require('avante.api').switch_provider('ollama_gemma')<cr>",    desc = "switch to gemma3 ollama local" },
 
   -- Navigation mappings
-  { "]t",              function() require("todo-comments").jump_next() end, desc = "Next todo comment" },
-  { "[t",              function() require("todo-comments").jump_prev() end, desc = "Previous todo comment" },
+  { "]t",               function() require("todo-comments").jump_next() end,                     desc = "Next todo comment" },
+  { "[t",               function() require("todo-comments").jump_prev() end,                     desc = "Previous todo comment" },
 
   -- Treesitter navigation (with descriptive labels)
-  { "]f",              desc = "Next function start" },
-  { "[f",              desc = "Previous function start" },
-  { "]F",              desc = "Next function end" },
-  { "[F",              desc = "Previous function end" },
-  { "]a",              desc = "Next parameter" },
-  { "[a",              desc = "Previous parameter" },
-  { "]i",              desc = "Next conditional" },
-  { "[i",              desc = "Previous conditional" },
-  { "]l",              desc = "Next loop" },
-  { "[l",              desc = "Previous loop" },
-  { "]s",              desc = "Next statement" },
-  { "[s",              desc = "Previous statement" },
+  { "]f",               desc = "Next function start" },
+  { "[f",               desc = "Previous function start" },
+  { "]F",               desc = "Next function end" },
+  { "[F",               desc = "Previous function end" },
+  { "]a",               desc = "Next parameter" },
+  { "[a",               desc = "Previous parameter" },
+  { "]i",               desc = "Next conditional" },
+  { "[i",               desc = "Previous conditional" },
+  { "]l",               desc = "Next loop" },
+  { "[l",               desc = "Previous loop" },
+  { "]s",               desc = "Next statement" },
+  { "[s",               desc = "Previous statement" },
 
   {
     "]c",
@@ -723,3 +814,4 @@ require('Comment').setup()
 require("todo-comments").setup {}
 require("cmp_git").setup()
 require "octo".setup()
+require('claude-code').setup()
