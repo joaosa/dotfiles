@@ -92,6 +92,18 @@ require("lazy").setup({
   "tpope/vim-dadbod",
   "greggh/claude-code.nvim",
   {
+    "ravitemer/mcphub.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+    build = "bundled_build.lua",
+    config = function()
+      require("mcphub").setup({
+        use_bundled_binary = true,
+      })
+    end,
+  },
+  {
     "olimorris/codecompanion.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
@@ -171,7 +183,8 @@ require("lazy").setup({
               name = "ollama_coder",
               schema = {
                 model = {
-                  default = "qwen2.5-coder:32b"
+                  default = "qwen3:30b-a3b-instruct-2507-fp16"
+                  -- default = "hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL"
                 },
               },
             })
@@ -200,200 +213,22 @@ require("lazy").setup({
             },
           },
         },
-        prompt_library = {
-          ["Custom Commit Message"] = {
-            strategy = "chat",
-            description = "Generate a conventional commit message",
+        extensions = {
+          mcphub = {
+            callback = "mcphub.extensions.codecompanion",
             opts = {
-              mapping = "<LocalLeader>agc",
-              modes = { "n" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are an expert at writing conventional commit messages. Write a clear, concise commit message following the conventional commits format based on the staged changes.",
-              },
-              {
-                role = "user",
-                content = function()
-                  return "Here are the staged changes:\n\n```\n" ..
-                      vim.fn.system("git diff --staged") .. "\n```\n\nPlease write a conventional commit message."
-                end,
-              },
-            },
-          },
-          ["Explain Code"] = {
-            strategy = "chat",
-            description = "Explain the selected code",
-            opts = {
-              mapping = "<LocalLeader>aex",
-              modes = { "v" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are an expert programmer. Explain the provided code in detail, including what it does, how it works, and any notable patterns or techniques used.",
-              },
-              {
-                role = "user",
-                content = function(context)
-                  return "Explain this code:\n\n```" ..
-                      context.filetype ..
-                      "\n" ..
-                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
-                end,
-              },
-            },
-          },
-          ["Generate Tests"] = {
-            strategy = "inline",
-            description = "Generate unit tests for the selected code",
-            opts = {
-              mapping = "<LocalLeader>agt",
-              modes = { "v" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are a testing expert. Generate comprehensive unit tests for the provided code using the appropriate testing framework for the language. Include edge cases and error scenarios.",
-              },
-              {
-                role = "user",
-                content = function(context)
-                  return "Generate unit tests for this code:\n\n```" ..
-                      context.filetype ..
-                      "\n" ..
-                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
-                end,
-              },
-            },
-          },
-          ["Optimize Code"] = {
-            strategy = "inline",
-            description = "Optimize the selected code for performance",
-            opts = {
-              mapping = "<LocalLeader>aop",
-              modes = { "v" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are a performance optimization expert. Analyze the provided code and suggest optimizations for better performance, readability, and maintainability. Preserve the original functionality.",
-              },
-              {
-                role = "user",
-                content = function(context)
-                  return "Optimize this code:\n\n```" ..
-                      context.filetype ..
-                      "\n" ..
-                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
-                end,
-              },
-            },
-          },
-          ["Add Documentation"] = {
-            strategy = "inline",
-            description = "Add documentation to the selected code",
-            opts = {
-              mapping = "<LocalLeader>adoc",
-              modes = { "v" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are a documentation expert. Add comprehensive documentation to the provided code including docstrings, comments, and type hints where appropriate. Follow the language's documentation standards.",
-              },
-              {
-                role = "user",
-                content = function(context)
-                  return "Add documentation to this code:\n\n```" ..
-                      context.filetype ..
-                      "\n" ..
-                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
-                end,
-              },
-            },
-          },
-          ["Refactor Code"] = {
-            strategy = "inline",
-            description = "Refactor the selected code",
-            opts = {
-              mapping = "<LocalLeader>arf",
-              modes = { "v" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are a refactoring expert. Refactor the provided code to improve readability, maintainability, and follow best practices. Preserve the original functionality and behavior.",
-              },
-              {
-                role = "user",
-                content = function(context)
-                  return "Refactor this code:\n\n```" ..
-                      context.filetype ..
-                      "\n" ..
-                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
-                end,
-              },
-            },
-          },
-          ["Review Code"] = {
-            strategy = "chat",
-            description = "Review the selected code for issues",
-            opts = {
-              mapping = "<LocalLeader>arv",
-              modes = { "v" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are a senior code reviewer. Review the provided code for potential issues, security vulnerabilities, performance problems, and adherence to best practices. Provide constructive feedback and suggestions.",
-              },
-              {
-                role = "user",
-                content = function(context)
-                  return "Please review this code:\n\n```" ..
-                      context.filetype ..
-                      "\n" ..
-                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
-                end,
-              },
-            },
-          },
-          ["Debug Help"] = {
-            strategy = "chat",
-            description = "Help debug the selected code",
-            opts = {
-              mapping = "<LocalLeader>adb",
-              modes = { "v" },
-            },
-            prompts = {
-              {
-                role = "system",
-                content =
-                "You are a debugging expert. Analyze the provided code for potential bugs, logical errors, and suggest debugging strategies. Provide specific suggestions for fixing issues.",
-              },
-              {
-                role = "user",
-                content = function(context)
-                  return "Help me debug this code:\n\n```" ..
-                      context.filetype ..
-                      "\n" ..
-                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
-                end,
-              },
-            },
-          },
-        },
-        opts = {
-          log_level = "ERROR",
+              -- MCP Tools
+              make_tools = true,                    -- Make individual tools (@server__tool) and server groups (@server) from MCP servers
+              show_server_tools_in_chat = true,     -- Show individual tools in chat completion (when make_tools=true)
+              add_mcp_prefix_to_tool_names = false, -- Add mcp__ prefix (e.g `@mcp__github`, `@mcp__neovim__list_issues`)
+              show_result_in_chat = true,           -- Show tool results directly in chat buffer
+              format_tool = nil,                    -- function(tool_name:string, tool: CodeCompanion.Agent.Tool) : string Function to format tool names to show in the chat buffer
+              -- MCP Resources
+              make_vars = true,                     -- Convert MCP resources to #variables for prompts
+              -- MCP Prompts
+              make_slash_commands = true,           -- Add MCP prompts as /slash commands
+            }
+          }
         },
       })
     end,
@@ -639,11 +474,13 @@ require("which-key").add({
   { "<localleader>pi",  function() vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } } }) end, desc = "Organize imports" },
 
   -- CodeCompanion mappings
-  { "<localleader>aa",  "<cmd>CodeCompanionChat<cr>",                                                                  desc = "codecompanion chat",        mode = { "n", "v" } },
+  { "<localleader>ac",  "<cmd>CodeCompanionChat<cr>",                                                                  desc = "codecompanion chat",        mode = { "n", "v" } },
   { "<localleader>ae",  "<cmd>CodeCompanion<cr>",                                                                      desc = "codecompanion inline edit", mode = { "n", "v" } },
-  { "<localleader>ar",  "<cmd>CodeCompanionActions<cr>",                                                               desc = "codecompanion actions",     mode = { "n", "v" } },
-  { "<localleader>ac",  "<cmd>CodeCompanionChat Toggle<cr>",                                                           desc = "codecompanion toggle" },
+  { "<localleader>aa",  "<cmd>CodeCompanionActions<cr>",                                                               desc = "codecompanion actions",     mode = { "n", "v" } },
   { "<localleader>ad",  "<cmd>CodeCompanionChat Add<cr>",                                                              desc = "codecompanion add to chat", mode = { "n", "v" } },
+
+  -- MCPHub mappings
+  { "<localleader>mc",  "<cmd>MCPHub<cr>",                                                                             desc = "mcphub",                    mode = { "n", "v" } },
 
   -- Quick model selection (without switching default)
   { "<localleader>am",  group = "codecompanion models" },
@@ -1074,7 +911,6 @@ for server, settings in pairs(lsp_servers) do
       if client.server_capabilities.documentSymbolProvider then
         navic.attach(client, bufnr)
       end
-
       require("lsp-format").on_attach(client)
     end,
     capabilities = require('cmp_nvim_lsp').default_capabilities(),
