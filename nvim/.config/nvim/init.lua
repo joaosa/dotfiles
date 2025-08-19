@@ -726,6 +726,7 @@ require "mason".setup()
 require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(lsp_servers),
   automatic_installation = true,
+  automatic_enable = false,
 })
 
 local sqlfluff = {
