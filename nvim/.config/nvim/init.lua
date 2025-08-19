@@ -91,85 +91,311 @@ require("lazy").setup({
   "tpope/vim-dadbod",
   "greggh/claude-code.nvim",
   {
-    "yetone/avante.nvim",
-    event = "VeryLazy",
-    lazy = true,
-    version = false,
-    opts = {
-      provider = "ollama_gemma",
-      providers = {
-        claude = {
-          endpoint = "https://api.anthropic.com",
-          model = "claude-sonnet-4-20250514",
-          api_key_name = "AVANTE_ANTHROPIC_API_KEY",
-          timeout = 30000,
-        },
-        opus = {
-          endpoint = "https://api.anthropic.com",
-          model = "claude-opus-4-20250514",
-          api_key_name = "AVANTE_ANTHROPIC_API_KEY",
-          timeout = 60000,
-        },
-        kimi = {
-          endpoint = "https://api.moonshot.ai/v1",
-          model = "kimi-k2-0711-preview",
-          api_key_name = "AVANTE_MOONSHOT_API_KEY",
-          timeout = 30000,
-        },
-        ollama_gemma = {
-          __inherited_from = "ollama",
-          endpoint = "http://localhost:11434",
-          model = "gemma3:latest",
-          timeout = 60000,
-        },
-        ollama_deepseek = {
-          __inherited_from = "ollama",
-          endpoint = "http://localhost:11434",
-          model = "deepseek-r1:latest",
-          timeout = 60000,
-        },
-      },
-      behaviour = {
-        auto_suggestions = false,
-        auto_set_keymaps = true,
-      },
-      mappings = {
-        ask = "<localleader>aa",
-        edit = "<localleader>ae",
-        refresh = "<localleader>ar",
-        clear = "<localleader>ac",
-      },
-      windows = {
-        position = "right",
-        wrap = true,
-        width = 30,
-      },
-    },
-    build = "make",
+    "olimorris/codecompanion.nvim",
     dependencies = {
-      "nvim-treesitter/nvim-treesitter",
-      "stevearc/dressing.nvim",
       "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-      "nvim-tree/nvim-web-devicons",
+      "nvim-treesitter/nvim-treesitter",
+      "hrsh7th/nvim-cmp",
+      "nvim-telescope/telescope.nvim",
       {
-        "HakonHarnes/img-clip.nvim",
-        event = "VeryLazy",
+        "stevearc/dressing.nvim",
         opts = {
-          default = {
-            embed_image_as_base64 = false,
-            prompt_for_file_name = false,
-            drag_and_drop = { insert_mode = true },
-            use_absolute_path = true,
+          input = {
+            prefer_width = 0.3,
+            max_width = 0.7,
           },
         },
       },
-      {
-        "MeanderingProgrammer/render-markdown.nvim",
-        opts = { file_types = { "markdown", "Avante" } },
-        ft = { "markdown", "Avante" },
-      },
     },
+    config = function()
+      require("codecompanion").setup({
+        strategies = {
+          chat = {
+            adapter = "ollama_coder",
+            roles = {
+              llm = "CodeCompanion",
+              user = "You",
+            },
+          },
+          inline = {
+            adapter = "ollama_coder",
+          },
+          agent = {
+            adapter = "ollama_coder",
+          },
+        },
+        adapters = {
+          claude = function()
+            return require("codecompanion.adapters").extend("anthropic", {
+              name = "claude",
+              env = {
+                api_key = "AVANTE_ANTHROPIC_API_KEY",
+              },
+              schema = {
+                model = {
+                  default = "claude-sonnet-4-20250514",
+                },
+              },
+            })
+          end,
+          opus = function()
+            return require("codecompanion.adapters").extend("anthropic", {
+              name = "opus",
+              env = {
+                api_key = "AVANTE_ANTHROPIC_API_KEY",
+              },
+              schema = {
+                model = {
+                  default = "claude-opus-4-20250514",
+                },
+              },
+            })
+          end,
+          kimi = function()
+            return require("codecompanion.adapters").extend("openai", {
+              name = "kimi",
+              url = "https://api.moonshot.ai/v1",
+              env = {
+                api_key = "AVANTE_MOONSHOT_API_KEY",
+              },
+              schema = {
+                model = {
+                  default = "kimi-k2-0711-preview",
+                },
+              },
+            })
+          end,
+          ollama_coder = function()
+            return require("codecompanion.adapters").extend("ollama", {
+              name = "ollama_coder",
+              schema = {
+                model = {
+                  default = "qwen2.5-coder:32b"
+                },
+              },
+            })
+          end,
+        },
+        display = {
+          action_palette = {
+            width = 95,
+            height = 10,
+          },
+          chat = {
+            window = {
+              layout = "vertical",
+              width = 0.30,
+              height = 0.85,
+              relative = "editor",
+              border = "rounded",
+            },
+            show_settings = true,
+            show_token_count = true,
+          },
+          inline = {
+            diff = {
+              enabled = true,
+              close_chat_at = 240,
+            },
+          },
+        },
+        prompt_library = {
+          ["Custom Commit Message"] = {
+            strategy = "chat",
+            description = "Generate a conventional commit message",
+            opts = {
+              mapping = "<LocalLeader>agc",
+              modes = { "n" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are an expert at writing conventional commit messages. Write a clear, concise commit message following the conventional commits format based on the staged changes.",
+              },
+              {
+                role = "user",
+                content = function()
+                  return "Here are the staged changes:\n\n```\n" ..
+                      vim.fn.system("git diff --staged") .. "\n```\n\nPlease write a conventional commit message."
+                end,
+              },
+            },
+          },
+          ["Explain Code"] = {
+            strategy = "chat",
+            description = "Explain the selected code",
+            opts = {
+              mapping = "<LocalLeader>aex",
+              modes = { "v" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are an expert programmer. Explain the provided code in detail, including what it does, how it works, and any notable patterns or techniques used.",
+              },
+              {
+                role = "user",
+                content = function(context)
+                  return "Explain this code:\n\n```" ..
+                      context.filetype ..
+                      "\n" ..
+                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
+                end,
+              },
+            },
+          },
+          ["Generate Tests"] = {
+            strategy = "inline",
+            description = "Generate unit tests for the selected code",
+            opts = {
+              mapping = "<LocalLeader>agt",
+              modes = { "v" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are a testing expert. Generate comprehensive unit tests for the provided code using the appropriate testing framework for the language. Include edge cases and error scenarios.",
+              },
+              {
+                role = "user",
+                content = function(context)
+                  return "Generate unit tests for this code:\n\n```" ..
+                      context.filetype ..
+                      "\n" ..
+                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
+                end,
+              },
+            },
+          },
+          ["Optimize Code"] = {
+            strategy = "inline",
+            description = "Optimize the selected code for performance",
+            opts = {
+              mapping = "<LocalLeader>aop",
+              modes = { "v" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are a performance optimization expert. Analyze the provided code and suggest optimizations for better performance, readability, and maintainability. Preserve the original functionality.",
+              },
+              {
+                role = "user",
+                content = function(context)
+                  return "Optimize this code:\n\n```" ..
+                      context.filetype ..
+                      "\n" ..
+                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
+                end,
+              },
+            },
+          },
+          ["Add Documentation"] = {
+            strategy = "inline",
+            description = "Add documentation to the selected code",
+            opts = {
+              mapping = "<LocalLeader>adoc",
+              modes = { "v" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are a documentation expert. Add comprehensive documentation to the provided code including docstrings, comments, and type hints where appropriate. Follow the language's documentation standards.",
+              },
+              {
+                role = "user",
+                content = function(context)
+                  return "Add documentation to this code:\n\n```" ..
+                      context.filetype ..
+                      "\n" ..
+                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
+                end,
+              },
+            },
+          },
+          ["Refactor Code"] = {
+            strategy = "inline",
+            description = "Refactor the selected code",
+            opts = {
+              mapping = "<LocalLeader>arf",
+              modes = { "v" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are a refactoring expert. Refactor the provided code to improve readability, maintainability, and follow best practices. Preserve the original functionality and behavior.",
+              },
+              {
+                role = "user",
+                content = function(context)
+                  return "Refactor this code:\n\n```" ..
+                      context.filetype ..
+                      "\n" ..
+                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
+                end,
+              },
+            },
+          },
+          ["Review Code"] = {
+            strategy = "chat",
+            description = "Review the selected code for issues",
+            opts = {
+              mapping = "<LocalLeader>arv",
+              modes = { "v" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are a senior code reviewer. Review the provided code for potential issues, security vulnerabilities, performance problems, and adherence to best practices. Provide constructive feedback and suggestions.",
+              },
+              {
+                role = "user",
+                content = function(context)
+                  return "Please review this code:\n\n```" ..
+                      context.filetype ..
+                      "\n" ..
+                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
+                end,
+              },
+            },
+          },
+          ["Debug Help"] = {
+            strategy = "chat",
+            description = "Help debug the selected code",
+            opts = {
+              mapping = "<LocalLeader>adb",
+              modes = { "v" },
+            },
+            prompts = {
+              {
+                role = "system",
+                content =
+                "You are a debugging expert. Analyze the provided code for potential bugs, logical errors, and suggest debugging strategies. Provide specific suggestions for fixing issues.",
+              },
+              {
+                role = "user",
+                content = function(context)
+                  return "Help me debug this code:\n\n```" ..
+                      context.filetype ..
+                      "\n" ..
+                      require("codecompanion.helpers.actions").get_code(context.start_line, context.end_line) .. "\n```"
+                end,
+              },
+            },
+          },
+        },
+        opts = {
+          log_level = "ERROR",
+        },
+      })
+    end,
   },
 })
 
@@ -343,53 +569,53 @@ require('Navigator').setup()
 
 require("which-key").add({
   -- LSP mappings
-  { "gh",               "<cmd>Trouble lsp_references<cr>",                                       desc = "LSP references" },
-  { "gr",               vim.lsp.buf.rename,                                                      desc = "LSP rename" },
-  { "gd",               vim.lsp.buf.definition,                                                  desc = "LSP definition" },
-  { "K",                vim.lsp.buf.hover,                                                       desc = "LSP hover" },
+  { "gh",               "<cmd>Trouble lsp_references<cr>",                                                             desc = "LSP references" },
+  { "gr",               vim.lsp.buf.rename,                                                                            desc = "LSP rename" },
+  { "gd",               vim.lsp.buf.definition,                                                                        desc = "LSP definition" },
+  { "K",                vim.lsp.buf.hover,                                                                             desc = "LSP hover" },
 
   -- Leader mappings
-  { "<leader>ca",       vim.lsp.buf.code_action,                                                 desc = "code action" },
-  { "<leader>ld",       vim.diagnostic.open_float,                                               desc = "show line diagnostics" },
-  { "<leader>cd",       vim.diagnostic.open_float,                                               desc = "show cursor diagnostics" },
-  { "<leader>o",        "<cmd>LSoutlineToggle<cr>",                                              desc = "outline" },
+  { "<leader>ca",       vim.lsp.buf.code_action,                                                                       desc = "code action" },
+  { "<leader>ld",       vim.diagnostic.open_float,                                                                     desc = "show line diagnostics" },
+  { "<leader>cd",       vim.diagnostic.open_float,                                                                     desc = "show cursor diagnostics" },
+  { "<leader>o",        "<cmd>LSoutlineToggle<cr>",                                                                    desc = "outline" },
 
   -- Telescope mappings
-  { "<leader>a",        ":Telescope live_grep<cr>",                                              desc = "search word" },
-  { "<leader>tt",       ":Telescope git_files<cr>",                                              desc = "search versioned files" },
-  { "<leader>t",        ":Telescope find_files<cr>",                                             desc = "search files" },
-  { "<leader>s",        ":Telescope grep_string<cr>",                                            desc = "search cursor" },
-  { "<leader>c",        ":Telescope command_history<cr>",                                        desc = "command history" },
-  { "<leader>q",        ":Telescope quickfix<cr>",                                               desc = "telescope quickfix" },
-  { "<leader>w",        ":Telescope loclist<cr>",                                                desc = "telescope loclist" },
-  { "<leader>tms",      ":Telescope tmux sessions<cr>",                                          desc = "tmux sessions" },
-  { "<leader>tmw",      ":Telescope tmux windows<cr>",                                           desc = "tmux windows" },
-  { "<leader>ts",       ":Telescope treesitter<cr>",                                             desc = "treesitter" },
-  { "<leader>ss",       ":Telescope spell_suggest<cr>",                                          desc = "spelling" },
-  { "<leader>m",        ":Telescope man_pages<cr>",                                              desc = "manpages" },
-  { "<leader>p",        ":Telescope resume<cr>",                                                 desc = "telescope resume" },
+  { "<leader>a",        ":Telescope live_grep<cr>",                                                                    desc = "search word" },
+  { "<leader>tt",       ":Telescope git_files<cr>",                                                                    desc = "search versioned files" },
+  { "<leader>t",        ":Telescope find_files<cr>",                                                                   desc = "search files" },
+  { "<leader>s",        ":Telescope grep_string<cr>",                                                                  desc = "search cursor" },
+  { "<leader>c",        ":Telescope command_history<cr>",                                                              desc = "command history" },
+  { "<leader>q",        ":Telescope quickfix<cr>",                                                                     desc = "telescope quickfix" },
+  { "<leader>w",        ":Telescope loclist<cr>",                                                                      desc = "telescope loclist" },
+  { "<leader>tms",      ":Telescope tmux sessions<cr>",                                                                desc = "tmux sessions" },
+  { "<leader>tmw",      ":Telescope tmux windows<cr>",                                                                 desc = "tmux windows" },
+  { "<leader>ts",       ":Telescope treesitter<cr>",                                                                   desc = "treesitter" },
+  { "<leader>ss",       ":Telescope spell_suggest<cr>",                                                                desc = "spelling" },
+  { "<leader>m",        ":Telescope man_pages<cr>",                                                                    desc = "manpages" },
+  { "<leader>p",        ":Telescope resume<cr>",                                                                       desc = "telescope resume" },
 
   -- Git mappings
-  { "<leader>g",        ":LazyGit<cr>",                                                          desc = "LazyGit" },
-  { "<leader>gws",      ":Telescope git_status<cr>",                                             desc = "git status" },
-  { "<leader>gwd",      ":Gitsigns diffthis<cr>",                                                desc = "git diff" },
-  { "<leader>gco",      ":Gitsigns reset_buffer<cr>",                                            desc = "git checkout" },
-  { "<leader>gcop",     "<cmd>Gitsigns reset_hunk<cr>",                                          desc = "git checkout -p" },
-  { "<leader>gia",      ":Gitsigns stage_buffer<cr>",                                            desc = "git add" },
-  { "<leader>giap",     "<cmd>Gitsigns stage_hunk<cr>",                                          desc = "git add -p" },
-  { "<leader>gir",      ":Gitsigns reset_buffer_index<cr>",                                      desc = "git reset" },
-  { "<leader>gb",       ":Gitsigns toggle_current_line_blame<cr>",                               desc = "git blame" },
-  { "<leader>gl",       ":LazyGitFilter<cr>",                                                    desc = "git logs" },
-  { "<leader>gp",       ":Octo pr create<cr>",                                                   desc = "git pr" },
+  { "<leader>g",        ":LazyGit<cr>",                                                                                desc = "LazyGit" },
+  { "<leader>gws",      ":Telescope git_status<cr>",                                                                   desc = "git status" },
+  { "<leader>gwd",      ":Gitsigns diffthis<cr>",                                                                      desc = "git diff" },
+  { "<leader>gco",      ":Gitsigns reset_buffer<cr>",                                                                  desc = "git checkout" },
+  { "<leader>gcop",     "<cmd>Gitsigns reset_hunk<cr>",                                                                desc = "git checkout -p" },
+  { "<leader>gia",      ":Gitsigns stage_buffer<cr>",                                                                  desc = "git add" },
+  { "<leader>giap",     "<cmd>Gitsigns stage_hunk<cr>",                                                                desc = "git add -p" },
+  { "<leader>gir",      ":Gitsigns reset_buffer_index<cr>",                                                            desc = "git reset" },
+  { "<leader>gb",       ":Gitsigns toggle_current_line_blame<cr>",                                                     desc = "git blame" },
+  { "<leader>gl",       ":LazyGitFilter<cr>",                                                                          desc = "git logs" },
+  { "<leader>gp",       ":Octo pr create<cr>",                                                                         desc = "git pr" },
 
   -- Trouble mappings
-  { "<leader>xx",       "<cmd>TroubleToggle<cr>",                                                desc = "trouble" },
-  { "<leader>xw",       "<cmd>TroubleToggle workspace_diagnostics<cr>",                          desc = "workspace diagnostics" },
-  { "<leader>xd",       "<cmd>TroubleToggle document_diagnostics<cr>",                           desc = "document diagnostics" },
-  { "<leader>xq",       "<cmd>TroubleToggle quickfix<cr>",                                       desc = "trouble quickfix" },
-  { "<leader>xl",       "<cmd>TroubleToggle loclist<cr>",                                        desc = "trouble loclist" },
-  { "<leader>xR",       "<cmd>TroubleToggle lsp_references<cr>",                                 desc = "trouble lsp refs" },
-  { "<leader>xt",       "<cmd>TodoTrouble<cr>",                                                  desc = "todos" },
+  { "<leader>xx",       "<cmd>TroubleToggle<cr>",                                                                      desc = "trouble" },
+  { "<leader>xw",       "<cmd>TroubleToggle workspace_diagnostics<cr>",                                                desc = "workspace diagnostics" },
+  { "<leader>xd",       "<cmd>TroubleToggle document_diagnostics<cr>",                                                 desc = "document diagnostics" },
+  { "<leader>xq",       "<cmd>TroubleToggle quickfix<cr>",                                                             desc = "trouble quickfix" },
+  { "<leader>xl",       "<cmd>TroubleToggle loclist<cr>",                                                              desc = "trouble loclist" },
+  { "<leader>xR",       "<cmd>TroubleToggle lsp_references<cr>",                                                       desc = "trouble lsp refs" },
+  { "<leader>xt",       "<cmd>TodoTrouble<cr>",                                                                        desc = "todos" },
 
   -- Treesitter text object swap mappings
   { "<leader>s",        group = "swap" },
@@ -404,20 +630,42 @@ require("which-key").add({
   { "<leader>pc",       desc = "peek class definition" },
 
   -- Local leader mappings
-  { "<localleader>ll",  "<cmd>RenderMarkdown toggle<cr>",                                        desc = "toggle markdown rendering" },
-  { "<localleader>cc",  "<cmd>ClaudeCode<cr>",                                                   desc = "toggle claude code" },
+  { "<localleader>ll",  "<cmd>RenderMarkdown toggle<cr>",                                                              desc = "toggle markdown rendering" },
+  { "<localleader>cc",  "<cmd>ClaudeCode<cr>",                                                                         desc = "toggle claude code" },
 
-  -- Avante provider switching mappings
-  { "<localleader>ap",  group = "avante providers" },
-  { "<localleader>apc", "<cmd>lua require('avante.api').switch_provider('claude')<cr>",          desc = "switch to claude sonnet 4" },
-  { "<localleader>apo", "<cmd>lua require('avante.api').switch_provider('opus')<cr>",            desc = "switch to claude opus 4" },
-  { "<localleader>apk", "<cmd>lua require('avante.api').switch_provider('kimi')<cr>",            desc = "switch to kimi k2" },
-  { "<localleader>apd", "<cmd>lua require('avante.api').switch_provider('ollama_deepseek')<cr>", desc = "switch to deepseek ollama local" },
-  { "<localleader>apg", "<cmd>lua require('avante.api').switch_provider('ollama_gemma')<cr>",    desc = "switch to gemma3 ollama local" },
+  -- Python-specific mappings
+  { "<localleader>pv",  function() vim.cmd("!python3 -c 'import sys; print(sys.executable)'") end,                     desc = "Show Python path" },
+  { "<localleader>pi",  function() vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } } }) end, desc = "Organize imports" },
+
+  -- CodeCompanion mappings
+  { "<localleader>aa",  "<cmd>CodeCompanionChat<cr>",                                                                  desc = "codecompanion chat",        mode = { "n", "v" } },
+  { "<localleader>ae",  "<cmd>CodeCompanion<cr>",                                                                      desc = "codecompanion inline edit", mode = { "n", "v" } },
+  { "<localleader>ar",  "<cmd>CodeCompanionActions<cr>",                                                               desc = "codecompanion actions",     mode = { "n", "v" } },
+  { "<localleader>ac",  "<cmd>CodeCompanionChat Toggle<cr>",                                                           desc = "codecompanion toggle" },
+  { "<localleader>ad",  "<cmd>CodeCompanionChat Add<cr>",                                                              desc = "codecompanion add to chat", mode = { "n", "v" } },
+
+  -- Quick model selection (without switching default)
+  { "<localleader>am",  group = "codecompanion models" },
+  { "<localleader>amc", function() vim.cmd("CodeCompanionChat claude") end,                                            desc = "chat with claude sonnet 4" },
+  { "<localleader>amo", function() vim.cmd("CodeCompanionChat opus") end,                                              desc = "chat with claude opus 4" },
+  { "<localleader>amk", function() vim.cmd("CodeCompanionChat kimi") end,                                              desc = "chat with kimi k2" },
+  { "<localleader>aml", function() vim.cmd("CodeCompanionChat ollama_coder") end,                                      desc = "chat with local ollama" },
+
+  -- Inline editing with specific models
+  { "<localleader>aic", function() vim.cmd("CodeCompanion claude") end,                                                desc = "inline edit with claude",   mode = { "n", "v" } },
+  { "<localleader>aio", function() vim.cmd("CodeCompanion opus") end,                                                  desc = "inline edit with opus",     mode = { "n", "v" } },
+  { "<localleader>aik", function() vim.cmd("CodeCompanion kimi") end,                                                  desc = "inline edit with kimi",     mode = { "n", "v" } },
+  { "<localleader>ail", function() vim.cmd("CodeCompanion ollama_coder") end,                                          desc = "inline edit with ollama",   mode = { "n", "v" } },
+
+  -- Buffer management
+  { "<localleader>ab",  group = "codecompanion buffers" },
+  { "<localleader>abs", "<cmd>CodeCompanionChat Save<cr>",                                                             desc = "save current chat" },
+  { "<localleader>abl", "<cmd>CodeCompanionChat Load<cr>",                                                             desc = "load saved chat" },
+  { "<localleader>abd", "<cmd>CodeCompanionChat Delete<cr>",                                                           desc = "delete current chat" },
 
   -- Navigation mappings
-  { "]t",               function() require("todo-comments").jump_next() end,                     desc = "Next todo comment" },
-  { "[t",               function() require("todo-comments").jump_prev() end,                     desc = "Previous todo comment" },
+  { "]t",               function() require("todo-comments").jump_next() end,                                           desc = "Next todo comment" },
+  { "[t",               function() require("todo-comments").jump_prev() end,                                           desc = "Previous todo comment" },
 
   -- Treesitter navigation (with descriptive labels)
   { "]f",               desc = "Next function start" },
