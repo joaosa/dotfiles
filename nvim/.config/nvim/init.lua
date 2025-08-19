@@ -48,6 +48,7 @@ require("lazy").setup({
     build = ":TSUpdate",
   },
   "nvim-treesitter/nvim-treesitter-textobjects",
+  "nvim-treesitter/nvim-treesitter-context",
   "numToStr/Comment.nvim",
 
   -- lsp
@@ -942,6 +943,19 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 vim.treesitter.language.register('diff', 'git')
 
 require('treesj').setup {}
+
+require('treesitter-context').setup({
+  enable = true,
+  max_lines = 0,
+  min_window_height = 0,
+  line_numbers = true,
+  multiline_threshold = 20,
+  trim_scope = 'outer',
+  mode = 'cursor',
+  separator = nil,
+  zindex = 20,
+  on_attach = nil,
+})
 
 local lsp_servers = {
   lua_ls = {
