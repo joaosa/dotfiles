@@ -960,7 +960,18 @@ local lsp_servers = {
   },
   rust_analyzer = {},
   terraformls = {},
-  pyright = {},
+  pyright = {
+    python = {
+      analysis = {
+        typeCheckingMode = "strict",
+        autoSearchPaths = true,
+        useLibraryCodeForTypes = true,
+        autoImportCompletions = true,
+        diagnosticMode = "workspace",
+      },
+    },
+  },
+  ruff = {},
   ts_ls = {},
   yamlls = {},
   vimls = {},
@@ -1009,7 +1020,6 @@ null_ls.setup({
     null_ls.builtins.formatting.sqlfluff.with(sqlfluff),
     null_ls.builtins.diagnostics.sqlfluff.with(sqlfluff),
     null_ls.builtins.formatting.goimports,
-    null_ls.builtins.formatting.black,
     null_ls.builtins.completion.spell,
     null_ls.builtins.formatting.prettierd,
   },
