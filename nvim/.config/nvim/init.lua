@@ -462,7 +462,7 @@ require("which-key").add({
   { "<leader>sF",       desc = "swap previous function" },
 
   -- Treesitter peek definition mappings
-  { "<leader>p",        group = "peek definition" },
+  { "<leader>pd",       group = "peek definition" },
   { "<leader>pf",       desc = "peek function definition" },
   { "<leader>pc",       desc = "peek class definition" },
 
