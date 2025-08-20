@@ -54,6 +54,7 @@ require("lazy").setup({
   -- lsp
   "williamboman/mason.nvim",
   "williamboman/mason-lspconfig.nvim",
+  "jay-babu/mason-null-ls.nvim",
   "neovim/nvim-lspconfig",
   "nvimtools/none-ls.nvim",
   "lukas-reineke/lsp-format.nvim",
@@ -777,6 +778,27 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   command = "set filetype=yaml"
 })
 
+-- Ansible filetype detection
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = {
+    "*/playbooks/*.yml",
+    "*/playbooks/*.yaml",
+    "*playbook*.yml",
+    "*playbook*.yaml",
+    "*/roles/*/tasks/*.yml",
+    "*/roles/*/tasks/*.yaml",
+    "*/roles/*/handlers/*.yml",
+    "*/roles/*/handlers/*.yaml",
+    "*/group_vars/*",
+    "*/host_vars/*",
+    "*/inventory",
+    "*/ansible.cfg",
+    "site.yml",
+    "site.yaml"
+  },
+  command = "set filetype=yaml.ansible"
+})
+
 vim.treesitter.language.register('diff', 'git')
 
 require('treesj').setup {}
@@ -824,9 +846,27 @@ local lsp_servers = {
   },
   ruff = {},
   ts_ls = {},
-  yamlls = {},
+  yamlls = {
+    yaml = {
+      schemas = {
+        ["https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta.json"] = "/meta/main.yml",
+        ["https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json"] = "/*playbook*.yml",
+        ["https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-tasks.json"] = "/tasks/*.yml",
+      },
+    },
+  },
   vimls = {},
-  ansiblels = {},
+  ansiblels = {
+    ansible = {
+      validation = {
+        enabled = true,
+        lint = {
+          enabled = true,
+          path = "ansible-lint"
+        }
+      }
+    }
+  },
   bashls = {},
   sqlls = {},
   marksman = {},
@@ -837,6 +877,16 @@ require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(lsp_servers),
   automatic_installation = true,
   automatic_enable = false,
+})
+require("mason-null-ls").setup({
+  ensure_installed = {
+    "goimports",
+    "prettierd",
+    "sqlfluff",
+    "ansible-lint",
+    "yamlfmt"
+  },
+  automatic_installation = true,
 })
 
 local sqlfluff = {
@@ -873,6 +923,10 @@ null_ls.setup({
     null_ls.builtins.formatting.goimports,
     null_ls.builtins.completion.spell,
     null_ls.builtins.formatting.prettierd,
+    null_ls.builtins.diagnostics.ansiblelint,
+    null_ls.builtins.formatting.yamlfmt.with({
+      filetypes = { "yaml", "yaml.ansible" },
+    }),
   },
 })
 
@@ -895,17 +949,17 @@ cmp.setup({
     ['<cr>'] = cmp.mapping.confirm({ select = true }),
   }),
   sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
-    { name = 'nvim_lsp_signature_help' },
-    { name = 'luasnip' },
-    { name = 'git' },
+    { name = 'nvim_lsp',                priority = 1000 },
+    { name = 'nvim_lsp_signature_help', priority = 900 },
+    { name = 'luasnip',                 priority = 800 },
+    { name = 'git',                     priority = 700 },
   }, {
-    { name = 'buffer' },
+    { name = 'buffer', keyword_length = 3, priority = 500 },
   })
 })
 
 for server, settings in pairs(lsp_servers) do
-  require("lspconfig")[server].setup {
+  local server_config = {
     settings = settings,
     on_attach = function(client, bufnr)
       if client.server_capabilities.documentSymbolProvider then
@@ -915,6 +969,13 @@ for server, settings in pairs(lsp_servers) do
     end,
     capabilities = require('cmp_nvim_lsp').default_capabilities(),
   }
+
+  -- Special configuration for ansiblels
+  if server == "ansiblels" then
+    server_config.filetypes = { "yaml.ansible" }
+  end
+
+  require("lspconfig")[server].setup(server_config)
 end
 
 require('gitsigns').setup()
