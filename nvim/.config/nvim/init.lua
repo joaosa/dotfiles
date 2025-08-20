@@ -184,34 +184,24 @@ require("lazy").setup({
               name = "ollama_coder",
               schema = {
                 model = {
-                  default = "qwen3:30b-a3b-instruct-2507-fp16"
-                  -- default = "hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL"
+                  -- default = "qwen3:30b-a3b-instruct-2507-fp16"
+                  default = "hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL"
                 },
               },
             })
           end,
         },
         display = {
-          action_palette = {
-            width = 95,
-            height = 10,
-          },
           chat = {
             window = {
               layout = "vertical",
-              width = 0.30,
+              width = 0.3,
               height = 0.85,
               relative = "editor",
               border = "rounded",
             },
             show_settings = true,
             show_token_count = true,
-          },
-          inline = {
-            diff = {
-              enabled = true,
-              close_chat_at = 240,
-            },
           },
         },
         extensions = {
