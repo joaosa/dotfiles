@@ -446,12 +446,12 @@ require("which-key").add({
   { "<leader>gp",       ":Octo pr create<cr>",                                                                         desc = "git pr" },
 
   -- Trouble mappings
-  { "<leader>xx",       "<cmd>TroubleToggle<cr>",                                                                      desc = "trouble" },
-  { "<leader>xw",       "<cmd>TroubleToggle workspace_diagnostics<cr>",                                                desc = "workspace diagnostics" },
-  { "<leader>xd",       "<cmd>TroubleToggle document_diagnostics<cr>",                                                 desc = "document diagnostics" },
-  { "<leader>xq",       "<cmd>TroubleToggle quickfix<cr>",                                                             desc = "trouble quickfix" },
-  { "<leader>xl",       "<cmd>TroubleToggle loclist<cr>",                                                              desc = "trouble loclist" },
-  { "<leader>xR",       "<cmd>TroubleToggle lsp_references<cr>",                                                       desc = "trouble lsp refs" },
+  { "<leader>xx",       "<cmd>Trouble<cr>",                                                                            desc = "trouble" },
+  { "<leader>xw",       "<cmd>Trouble workspace_diagnostics<cr>",                                                      desc = "workspace diagnostics" },
+  { "<leader>xd",       "<cmd>Trouble document_diagnostics<cr>",                                                       desc = "document diagnostics" },
+  { "<leader>xq",       "<cmd>Trouble quickfix<cr>",                                                                   desc = "trouble quickfix" },
+  { "<leader>xl",       "<cmd>Trouble loclist<cr>",                                                                    desc = "trouble loclist" },
+  { "<leader>xR",       "<cmd>Trouble lsp_references<cr>",                                                             desc = "trouble lsp refs" },
   { "<leader>xt",       "<cmd>TodoTrouble<cr>",                                                                        desc = "todos" },
 
   -- Treesitter text object swap mappings
