@@ -846,27 +846,9 @@ local lsp_servers = {
   },
   ruff = {},
   ts_ls = {},
-  yamlls = {
-    yaml = {
-      schemas = {
-        ["https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta.json"] = "/meta/main.yml",
-        ["https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json"] = "/*playbook*.yml",
-        ["https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-tasks.json"] = "/tasks/*.yml",
-      },
-    },
-  },
+  yamlls = {},
   vimls = {},
-  ansiblels = {
-    ansible = {
-      validation = {
-        enabled = true,
-        lint = {
-          enabled = true,
-          path = "ansible-lint"
-        }
-      }
-    }
-  },
+  ansiblels = {},
   bashls = {},
   sqlls = {},
   marksman = {},
@@ -883,7 +865,6 @@ require("mason-null-ls").setup({
     "goimports",
     "prettierd",
     "sqlfluff",
-    "ansible-lint",
     "yamlfmt"
   },
   automatic_installation = true,
@@ -923,9 +904,8 @@ null_ls.setup({
     null_ls.builtins.formatting.goimports,
     null_ls.builtins.completion.spell,
     null_ls.builtins.formatting.prettierd,
-    null_ls.builtins.diagnostics.ansiblelint,
     null_ls.builtins.formatting.yamlfmt.with({
-      filetypes = { "yaml", "yaml.ansible" },
+      filetypes = { "yaml" }, -- Only format regular YAML files, not Ansible
     }),
   },
 })
@@ -973,6 +953,10 @@ for server, settings in pairs(lsp_servers) do
   -- Special configuration for ansiblels
   if server == "ansiblels" then
     server_config.filetypes = { "yaml.ansible" }
+  end
+  -- Exclude ansible files from yamlls
+  if server == "yamlls" then
+    server_config.filetypes = { "yaml" }
   end
 
   require("lspconfig")[server].setup(server_config)
