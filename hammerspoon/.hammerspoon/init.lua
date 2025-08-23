@@ -43,7 +43,8 @@ end
 
 -- Watch both the symlinked directory and the original dotfiles directory
 local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
-local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/ghq/github.com/joaosa/dotfiles/hammerspoon/.hammerspoon/", reloadConfig):start()
+local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/ghq/github.com/joaosa/dotfiles/hammerspoon/.hammerspoon/",
+    reloadConfig):start()
 hs.alert.show("🔨 Hammerspoon Config Loaded", {}, 2)
 
 -----------------------------------------------
@@ -316,21 +317,6 @@ hs.hotkey.bind(altCmd, "[", pasteYesterday)
 -----------------------------------------------
 -- Additional Utilities
 -----------------------------------------------
-
--- Toggle Do Not Disturb
-hs.hotkey.bind(hyper, "d", function()
-    local script = [[
-        tell application "System Events"
-            tell process "Control Center"
-                click menu bar item "Control Center" of menu bar 1
-                delay 0.5
-                click button "Do Not Disturb" of group 1 of scroll area 1 of sheet 1 of application process "Control Center"
-            end tell
-        end tell
-    ]]
-    hs.osascript.applescript(script)
-    hs.alert.show("Toggled Do Not Disturb")
-end)
 
 -- Show current WiFi network
 hs.hotkey.bind(hyper, "w", function()
