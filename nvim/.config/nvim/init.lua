@@ -932,6 +932,12 @@ for server, settings in pairs(lsp_servers) do
   local server_config = {
     settings = settings,
     on_attach = function(client, bufnr)
+      -- Prevent yamlls from attaching to ansible files
+      if client.name == "yamlls" and vim.bo[bufnr].filetype == "yaml.ansible" then
+        client.stop()
+        return
+      end
+      
       if client.server_capabilities.documentSymbolProvider then
         navic.attach(client, bufnr)
       end
@@ -947,6 +953,29 @@ for server, settings in pairs(lsp_servers) do
   -- Exclude ansible files from yamlls
   if server == "yamlls" then
     server_config.filetypes = { "yaml" }
+    server_config.root_dir = function(fname)
+      local util = require('lspconfig.util')
+      -- Check if this is an Ansible file based on path patterns
+      local ansible_patterns = {
+        ".*/playbooks/.*%.ya?ml$",
+        ".*playbook.*%.ya?ml$",
+        ".*/roles/.*/tasks/.*%.ya?ml$",
+        ".*/roles/.*/handlers/.*%.ya?ml$",
+        ".*/group_vars/.*",
+        ".*/host_vars/.*",
+        ".*/inventory$",
+        ".*/ansible%.cfg$",
+        "site%.ya?ml$"
+      }
+      
+      for _, pattern in ipairs(ansible_patterns) do
+        if fname:match(pattern) then
+          return nil -- Don't start yamlls for Ansible files
+        end
+      end
+      
+      return util.root_pattern('.git')(fname) or util.path.dirname(fname)
+    end
   end
 
   require("lspconfig")[server].setup(server_config)
