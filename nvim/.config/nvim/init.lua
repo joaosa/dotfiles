@@ -273,6 +273,8 @@ end
 
 -- Spelling
 vim.opt.spell = true
+vim.opt.spelllang = 'en_us'
+vim.opt.spellsuggest = 'best,9'
 
 vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
 vim.opt.winbar = '%f'
@@ -419,6 +421,7 @@ require("which-key").add({
   { "<leader>tmw",      ":Telescope tmux windows<cr>",                                                                 desc = "tmux windows" },
   { "<leader>ts",       ":Telescope treesitter<cr>",                                                                   desc = "treesitter" },
   { "<leader>ss",       ":Telescope spell_suggest<cr>",                                                                desc = "spelling" },
+  { "z=",               ":Telescope spell_suggest<cr>",                                                                desc = "spell suggest (telescope)" },
   { "<leader>m",        ":Telescope man_pages<cr>",                                                                    desc = "manpages" },
   { "<leader>p",        ":Telescope resume<cr>",                                                                       desc = "telescope resume" },
 
@@ -507,8 +510,8 @@ require("which-key").add({
   { "[i",               desc = "Previous conditional" },
   { "]l",               desc = "Next loop" },
   { "[l",               desc = "Previous loop" },
-  { "]s",               desc = "Next statement" },
-  { "[s",               desc = "Previous statement" },
+  { "]z",               desc = "Next statement" },
+  { "[z",               desc = "Previous statement" },
 
   {
     "]c",
@@ -539,9 +542,13 @@ require("which-key").add({
     expr = true
   },
 
+  -- Spelling navigation (using vim defaults)
+  { "]s", desc = "Next misspelled word" },
+  { "[s", desc = "Previous misspelled word" },
+
   -- Diagnostic navigation
-  { "]e", vim.diagnostic.goto_next, desc = "Next diagnostic" },
-  { "[e", vim.diagnostic.goto_prev, desc = "Previous diagnostic" },
+  { "]e", vim.diagnostic.goto_next,         desc = "Next diagnostic" },
+  { "[e", vim.diagnostic.goto_prev,         desc = "Previous diagnostic" },
   {
     "]E",
     function()
@@ -557,22 +564,26 @@ require("which-key").add({
     desc = "Previous error"
   },
 
+  -- Quick typo fixes
+  { "<leader>f", "1z=",                                                                                           desc = "Fix typo with first suggestion" },
+  { "<leader>F", "<cmd>normal! [s1z=<cr>",                                                                        desc = "Fix previous typo with first suggestion" },
+
   -- Navigation mappings (tmux/vim pane navigation)
-  { "<c-h>",     "<cmd>NavigatorLeft<cr>",                                                                        desc = "Navigate left",            mode = { "n", "t" } },
-  { "<c-l>",     "<cmd>NavigatorRight<cr>",                                                                       desc = "Navigate right",           mode = { "n", "t" } },
-  { "<c-k>",     "<cmd>NavigatorUp<cr>",                                                                          desc = "Navigate up",              mode = { "n", "t" } },
-  { "<c-j>",     "<cmd>NavigatorDown<cr>",                                                                        desc = "Navigate down",            mode = { "n", "t" } },
-  { "<c-p>",     "<cmd>NavigatorPrevious<cr>",                                                                    desc = "Navigate previous",        mode = { "n", "t" } },
+  { "<c-h>",     "<cmd>NavigatorLeft<cr>",                                                                        desc = "Navigate left",                          mode = { "n", "t" } },
+  { "<c-l>",     "<cmd>NavigatorRight<cr>",                                                                       desc = "Navigate right",                         mode = { "n", "t" } },
+  { "<c-k>",     "<cmd>NavigatorUp<cr>",                                                                          desc = "Navigate up",                            mode = { "n", "t" } },
+  { "<c-j>",     "<cmd>NavigatorDown<cr>",                                                                        desc = "Navigate down",                          mode = { "n", "t" } },
+  { "<c-p>",     "<cmd>NavigatorPrevious<cr>",                                                                    desc = "Navigate previous",                      mode = { "n", "t" } },
 
   -- Terminal mappings
-  { "<A-d>",     ":terminal lazygit<cr>",                                                                         desc = "Open lazygit in terminal", mode = "n" },
+  { "<A-d>",     ":terminal lazygit<cr>",                                                                         desc = "Open lazygit in terminal",               mode = "n" },
 
   -- Vim legacy mappings
   { "<leader>V", ":source ~/.config/nvim/init.lua<cr>:filetype detect<cr>:exe \":echo 'init.lua reloaded'\"<cr>", desc = "reload init.lua" },
-  { "<up>",      "<nop>",                                                                                         desc = "disabled",                 mode = { "n", "i" } },
-  { "<down>",    "<nop>",                                                                                         desc = "disabled",                 mode = { "n", "i" } },
-  { "<left>",    "<nop>",                                                                                         desc = "disabled",                 mode = { "n", "i" } },
-  { "<right>",   "<nop>",                                                                                         desc = "disabled",                 mode = { "n", "i" } },
+  { "<up>",      "<nop>",                                                                                         desc = "disabled",                               mode = { "n", "i" } },
+  { "<down>",    "<nop>",                                                                                         desc = "disabled",                               mode = { "n", "i" } },
+  { "<left>",    "<nop>",                                                                                         desc = "disabled",                               mode = { "n", "i" } },
+  { "<right>",   "<nop>",                                                                                         desc = "disabled",                               mode = { "n", "i" } },
 
   -- LuaSnip mappings
   {
@@ -706,7 +717,7 @@ require 'nvim-treesitter.configs'.setup {
         ["]a"] = "@parameter.inner",
         ["]i"] = "@conditional.outer",
         ["]l"] = "@loop.outer",
-        ["]s"] = "@statement.outer",
+        ["]z"] = "@statement.outer",
       },
       goto_next_end = {
         ["]F"] = "@function.outer",
@@ -714,7 +725,7 @@ require 'nvim-treesitter.configs'.setup {
         ["]A"] = "@parameter.inner",
         ["]I"] = "@conditional.outer",
         ["]L"] = "@loop.outer",
-        ["]S"] = "@statement.outer",
+        ["]Z"] = "@statement.outer",
       },
       goto_previous_start = {
         ["[f"] = "@function.outer",
@@ -722,7 +733,7 @@ require 'nvim-treesitter.configs'.setup {
         ["[a"] = "@parameter.inner",
         ["[i"] = "@conditional.outer",
         ["[l"] = "@loop.outer",
-        ["[s"] = "@statement.outer",
+        ["[z"] = "@statement.outer",
       },
       goto_previous_end = {
         ["[F"] = "@function.outer",
@@ -730,7 +741,7 @@ require 'nvim-treesitter.configs'.setup {
         ["[A"] = "@parameter.inner",
         ["[I"] = "@conditional.outer",
         ["[L"] = "@loop.outer",
-        ["[S"] = "@statement.outer",
+        ["[Z"] = "@statement.outer",
       },
     },
 
@@ -937,7 +948,7 @@ for server, settings in pairs(lsp_servers) do
         client.stop()
         return
       end
-      
+
       if client.server_capabilities.documentSymbolProvider then
         navic.attach(client, bufnr)
       end
@@ -967,13 +978,13 @@ for server, settings in pairs(lsp_servers) do
         ".*/ansible%.cfg$",
         "site%.ya?ml$"
       }
-      
+
       for _, pattern in ipairs(ansible_patterns) do
         if fname:match(pattern) then
           return nil -- Don't start yamlls for Ansible files
         end
       end
-      
+
       return util.root_pattern('.git')(fname) or util.path.dirname(fname)
     end
   end
