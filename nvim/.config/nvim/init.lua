@@ -138,57 +138,59 @@ require("lazy").setup({
           },
         },
         adapters = {
-          claude = function()
-            return require("codecompanion.adapters").extend("anthropic", {
-              name = "claude",
-              env = {
-                api_key = "AVANTE_ANTHROPIC_API_KEY",
-              },
-              schema = {
-                model = {
-                  default = "claude-sonnet-4-20250514",
+          http = {
+            claude = function()
+              return require("codecompanion.adapters").extend("anthropic", {
+                name = "claude",
+                env = {
+                  api_key = "AVANTE_ANTHROPIC_API_KEY",
                 },
-              },
-            })
-          end,
-          opus = function()
-            return require("codecompanion.adapters").extend("anthropic", {
-              name = "opus",
-              env = {
-                api_key = "AVANTE_ANTHROPIC_API_KEY",
-              },
-              schema = {
-                model = {
-                  default = "claude-opus-4-20250514",
+                schema = {
+                  model = {
+                    default = "claude-sonnet-4-20250514",
+                  },
                 },
-              },
-            })
-          end,
-          kimi = function()
-            return require("codecompanion.adapters").extend("openai", {
-              name = "kimi",
-              url = "https://api.moonshot.ai/v1",
-              env = {
-                api_key = "AVANTE_MOONSHOT_API_KEY",
-              },
-              schema = {
-                model = {
-                  default = "kimi-k2-0711-preview",
+              })
+            end,
+            opus = function()
+              return require("codecompanion.adapters").extend("anthropic", {
+                name = "opus",
+                env = {
+                  api_key = "AVANTE_ANTHROPIC_API_KEY",
                 },
-              },
-            })
-          end,
-          ollama_coder = function()
-            return require("codecompanion.adapters").extend("ollama", {
-              name = "ollama_coder",
-              schema = {
-                model = {
-                  -- default = "qwen3:30b-a3b-instruct-2507-fp16"
-                  default = "hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL"
+                schema = {
+                  model = {
+                    default = "claude-opus-4-20250514",
+                  },
                 },
-              },
-            })
-          end,
+              })
+            end,
+            kimi = function()
+              return require("codecompanion.adapters").extend("openai", {
+                name = "kimi",
+                url = "https://api.moonshot.ai/v1",
+                env = {
+                  api_key = "AVANTE_MOONSHOT_API_KEY",
+                },
+                schema = {
+                  model = {
+                    default = "kimi-k2-0711-preview",
+                  },
+                },
+              })
+            end,
+            ollama_coder = function()
+              return require("codecompanion.adapters").extend("ollama", {
+                name = "ollama_coder",
+                schema = {
+                  model = {
+                    -- default = "qwen3:30b-a3b-instruct-2507-fp16"
+                    default = "hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL"
+                  },
+                },
+              })
+            end,
+          },
         },
         display = {
           chat = {
