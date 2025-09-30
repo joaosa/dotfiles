@@ -857,6 +857,23 @@ local lsp_servers = {
 }
 
 require "mason".setup()
+
+-- Setup capabilities for all servers
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
+-- Common on_attach function
+local function on_attach(client, bufnr)
+  -- Prevent yamlls from attaching to ansible files
+  if client.name == "yamlls" and vim.bo[bufnr].filetype == "yaml.ansible" then
+    vim.lsp.stop_client(client.id)
+    return
+  end
+
+  if client.server_capabilities.documentSymbolProvider then
+    navic.attach(client, bufnr)
+  end
+end
+
 require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(lsp_servers),
   automatic_installation = true,
