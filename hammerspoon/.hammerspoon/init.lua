@@ -337,3 +337,51 @@ end)
 hs.hotkey.bind(hyper, "s", function()
     hs.caffeinate.systemSleep()
 end)
+
+-----------------------------------------------
+-- Speech to text workaround for Alacritty
+-----------------------------------------------
+hs.hotkey.bind(altCmd, "d", function()
+    -- Remember the current window and clipboard
+    local currentWindow = hs.window.focusedWindow()
+    local currentApp = hs.application.frontmostApplication()
+    local savedClipboard = hs.pasteboard.getContents()
+
+    -- Show dictation dialog
+    local button, text = hs.dialog.textPrompt(
+        "🎤 Dictate",
+        "Press Fn Fn to speak:",
+        "",
+        "Paste",
+        "Cancel"
+    )
+
+    -- Paste the text if we got any
+    if button == "Paste" and text and text ~= "" then
+        -- Put text in clipboard
+        hs.pasteboard.setContents(text)
+
+        -- Return focus to original window
+        if currentApp then
+            currentApp:activate()
+        end
+
+        -- Wait for focus, then paste with Cmd+V
+        hs.timer.doAfter(0.2, function()
+            if currentWindow then
+                currentWindow:focus()
+            end
+            hs.timer.doAfter(0.1, function()
+                -- Send Cmd+V to paste
+                hs.eventtap.keyStroke({"cmd"}, "v")
+
+                -- Restore original clipboard after paste completes
+                hs.timer.doAfter(0.2, function()
+                    if savedClipboard then
+                        hs.pasteboard.setContents(savedClipboard)
+                    end
+                end)
+            end)
+        end)
+    end
+end)
