@@ -57,7 +57,6 @@ require("lazy").setup({
   "jay-babu/mason-null-ls.nvim",
   "neovim/nvim-lspconfig",
   "nvimtools/none-ls.nvim",
-  "lukas-reineke/lsp-format.nvim",
   "Wansmer/treesj",
 
   -- autocomplete
@@ -859,7 +858,52 @@ require "mason".setup()
 require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(lsp_servers),
   automatic_installation = true,
-  automatic_enable = false,
+  handlers = {
+    -- Default handler for all servers
+    function(server_name)
+      local settings = lsp_servers[server_name] or {}
+      local config = {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = settings,
+      }
+
+      -- Special configuration for ansiblels
+      if server_name == "ansiblels" then
+        config.filetypes = { "yaml.ansible" }
+      end
+
+      -- Exclude ansible files from yamlls
+      if server_name == "yamlls" then
+        config.filetypes = { "yaml" }
+        config.root_dir = function(fname)
+          local util = require('lspconfig.util')
+          -- Check if this is an Ansible file based on path patterns
+          local ansible_patterns = {
+            ".*/playbooks/.*%.ya?ml$",
+            ".*playbook.*%.ya?ml$",
+            ".*/roles/.*/tasks/.*%.ya?ml$",
+            ".*/roles/.*/handlers/.*%.ya?ml$",
+            ".*/group_vars/.*",
+            ".*/host_vars/.*",
+            ".*/inventory$",
+            ".*/ansible%.cfg$",
+            "site%.ya?ml$"
+          }
+
+          for _, pattern in ipairs(ansible_patterns) do
+            if fname:match(pattern) then
+              return nil -- Don't start yamlls for Ansible files
+            end
+          end
+
+          return util.root_pattern('.git')(fname) or util.path.dirname(fname)
+        end
+      end
+
+      require("lspconfig")[server_name].setup(config)
+    end,
+  },
 })
 require("mason-null-ls").setup({
   ensure_installed = {
@@ -938,59 +982,6 @@ cmp.setup({
     { name = 'buffer', keyword_length = 3, priority = 500 },
   })
 })
-
-for server, settings in pairs(lsp_servers) do
-  local server_config = {
-    settings = settings,
-    on_attach = function(client, bufnr)
-      -- Prevent yamlls from attaching to ansible files
-      if client.name == "yamlls" and vim.bo[bufnr].filetype == "yaml.ansible" then
-        client.stop()
-        return
-      end
-
-      if client.server_capabilities.documentSymbolProvider then
-        navic.attach(client, bufnr)
-      end
-      require("lsp-format").on_attach(client)
-    end,
-    capabilities = require('cmp_nvim_lsp').default_capabilities(),
-  }
-
-  -- Special configuration for ansiblels
-  if server == "ansiblels" then
-    server_config.filetypes = { "yaml.ansible" }
-  end
-  -- Exclude ansible files from yamlls
-  if server == "yamlls" then
-    server_config.filetypes = { "yaml" }
-    server_config.root_dir = function(fname)
-      local util = require('lspconfig.util')
-      -- Check if this is an Ansible file based on path patterns
-      local ansible_patterns = {
-        ".*/playbooks/.*%.ya?ml$",
-        ".*playbook.*%.ya?ml$",
-        ".*/roles/.*/tasks/.*%.ya?ml$",
-        ".*/roles/.*/handlers/.*%.ya?ml$",
-        ".*/group_vars/.*",
-        ".*/host_vars/.*",
-        ".*/inventory$",
-        ".*/ansible%.cfg$",
-        "site%.ya?ml$"
-      }
-
-      for _, pattern in ipairs(ansible_patterns) do
-        if fname:match(pattern) then
-          return nil -- Don't start yamlls for Ansible files
-        end
-      end
-
-      return util.root_pattern('.git')(fname) or util.path.dirname(fname)
-    end
-  end
-
-  require("lspconfig")[server].setup(server_config)
-end
 
 require('gitsigns').setup()
 require("nvim-autopairs").setup {}
