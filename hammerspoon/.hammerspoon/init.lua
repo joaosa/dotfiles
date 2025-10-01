@@ -348,49 +348,119 @@ hs.hotkey.bind(hyper, "s", function()
 end)
 
 -----------------------------------------------
--- Speech to text workaround for Alacritty
+-- Speech to text with Whisper
 -----------------------------------------------
+local whisper = {
+    recording = nil,
+    task = nil,
+    tempFile = os.getenv("HOME") .. "/.hammerspoon_whisper.wav",
+    model = os.getenv("HOME") .. "/.local/share/whisper/ggml-base.en.bin",
+    binary = nil,
+    sox = nil,
+}
+
+-- Find and cache binaries on load
+do
+    -- Find whisper-cli
+    local paths = {
+        "/opt/homebrew/bin/whisper-cli",
+        "/usr/local/bin/whisper-cli",
+    }
+    for _, path in ipairs(paths) do
+        if hs.fs.attributes(path) then
+            whisper.binary = path
+            break
+        end
+    end
+
+    -- Fallback: search Cellar
+    if not whisper.binary then
+        local result = hs.execute(
+            "find /opt/homebrew/Cellar/whisper-cpp -name whisper-cli -type f 2>/dev/null | head -1")
+        if result and result ~= "" then
+            whisper.binary = result:gsub("\n", "")
+        end
+    end
+
+    -- Find sox
+    whisper.sox = hs.fs.attributes("/opt/homebrew/bin/sox") and "/opt/homebrew/bin/sox" or
+        hs.fs.attributes("/usr/local/bin/sox") and "/usr/local/bin/sox" or nil
+
+    -- Validate
+    if not whisper.binary or not whisper.sox or not hs.fs.attributes(whisper.model) then
+        log.e("Whisper setup failed - missing: " ..
+            (whisper.binary and "" or "whisper-cli ") ..
+            (whisper.sox and "" or "sox ") ..
+            (hs.fs.attributes(whisper.model) and "" or "model"))
+    end
+end
+
+-- Ctrl+Cmd+D: Toggle recording/transcribe
 hs.hotkey.bind(altCmd, "d", function()
-    -- Remember the current window and clipboard
-    local currentWindow = hs.window.focusedWindow()
-    local currentApp = hs.application.frontmostApplication()
-    local savedClipboard = hs.pasteboard.getContents()
+    if whisper.recording then
+        -- Stop recording and transcribe
+        whisper.recording:terminate()
+        whisper.recording = nil
+        hs.alert.show("🎤 Transcribing...")
 
-    -- Show dictation dialog
-    local button, text = hs.dialog.textPrompt(
-        "🎤 Dictate",
-        "Press Fn Fn to speak:",
-        "",
-        "Paste",
-        "Cancel"
-    )
+        local win = hs.window.focusedWindow()
+        local app = hs.application.frontmostApplication()
+        local clip = hs.pasteboard.getContents()
 
-    -- Paste the text if we got any
-    if button == "Paste" and text and text ~= "" then
-        -- Put text in clipboard
-        hs.pasteboard.setContents(text)
+        -- Timeout after 30s
+        local timeout = hs.timer.doAfter(30, function()
+            if whisper.task then
+                whisper.task:terminate()
+                whisper.task = nil
+                hs.alert.show("❌ Timeout")
+            end
+        end)
 
-        -- Return focus to original window
-        if currentApp then
-            currentApp:activate()
+        -- Transcribe
+        whisper.task = hs.task.new(whisper.binary, function(code, stdout, stderr)
+            timeout:stop()
+            whisper.task = nil
+            pcall(os.remove, whisper.tempFile)
+
+            if code == 0 then
+                local text = stdout:gsub("^%s+", ""):gsub("%s+$", "")
+                if text ~= "" and not text:match("^%[") then
+                    hs.alert.show("✓ " .. text:sub(1, 40) .. (text:len() > 40 and "..." or ""))
+                    -- Use existing pasteString helper
+                    if app then app:activate() end
+                    hs.timer.doAfter(0.15, function()
+                        if win and win:isVisible() then win:focus() end
+                        hs.timer.doAfter(0.1, function()
+                            pasteString(text)
+                            -- Restore clipboard
+                            if clip and clip ~= "" then
+                                hs.timer.doAfter(0.3, function()
+                                    hs.pasteboard.setContents(clip)
+                                end)
+                            end
+                        end)
+                    end)
+                else
+                    hs.alert.show("❌ No speech\nCheck mic permissions")
+                end
+            else
+                hs.alert.show("❌ Failed (code " .. code .. ")")
+            end
+        end, { "-m", whisper.model, "-f", whisper.tempFile, "--no-timestamps" }):start()
+    else
+        -- Start recording
+        if not whisper.binary or not whisper.sox then
+            hs.alert.show("❌ Whisper not installed")
+            return
         end
 
-        -- Wait for focus, then paste with Cmd+V
-        hs.timer.doAfter(0.2, function()
-            if currentWindow then
-                currentWindow:focus()
-            end
-            hs.timer.doAfter(0.1, function()
-                -- Send Cmd+V to paste
-                hs.eventtap.keyStroke({"cmd"}, "v")
+        pcall(os.remove, whisper.tempFile)
+        hs.alert.show("🎤 Recording...")
 
-                -- Restore original clipboard after paste completes
-                hs.timer.doAfter(0.2, function()
-                    if savedClipboard then
-                        hs.pasteboard.setContents(savedClipboard)
-                    end
-                end)
-            end)
-        end)
+        whisper.recording = hs.task.new(whisper.sox, function(code, stdout, stderr)
+            if code ~= 0 and code ~= 2 then
+                hs.alert.show("❌ Recording failed")
+            end
+        end, { "-d", "-r", "16000", "-c", "1", whisper.tempFile }):start()
     end
 end)
