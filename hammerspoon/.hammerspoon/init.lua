@@ -41,10 +41,19 @@ local function reloadConfig(files)
     end
 end
 
--- Watch both the symlinked directory and the original dotfiles directory
-local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
-local _ = hs.pathwatcher.new(os.getenv("HOME") .. "/ghq/github.com/joaosa/dotfiles/hammerspoon/.hammerspoon/",
-    reloadConfig):start()
+-- Resolve symlink to find actual config directory
+local configPath = hs.configdir .. "/init.lua"
+local realPath = hs.execute("readlink " .. configPath):gsub("\n", "")
+if realPath ~= "" then
+    -- Extract directory from resolved path
+    local configDir = realPath:match("(.*/)")
+    log.i("Watching config directory:", configDir)
+    hs.pathwatcher.new(configDir, reloadConfig):start()
+else
+    -- Fallback to watching the config directory directly
+    hs.pathwatcher.new(hs.configdir, reloadConfig):start()
+end
+
 hs.alert.show("🔨 Hammerspoon Config Loaded", {}, 2)
 
 -----------------------------------------------
