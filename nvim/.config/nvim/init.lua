@@ -88,9 +88,18 @@ require("lazy").setup({
   "lervag/vimtex",
   "MeanderingProgrammer/render-markdown.nvim",
   "pwntester/octo.nvim",
-  "kdheepak/lazygit.nvim",
   "tpope/vim-dadbod",
   "greggh/claude-code.nvim",
+  {
+    "NeogitOrg/neogit",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "sindrets/diffview.nvim",
+      "nvim-telescope/telescope.nvim",
+    },
+  },
+  "sindrets/diffview.nvim",
+  "akinsho/git-conflict.nvim",
   {
     "ravitemer/mcphub.nvim",
     dependencies = {
@@ -340,6 +349,7 @@ vim.api.nvim_create_autocmd(
 -- Navigation settings
 -- enable hard mode on all buffers
 vim.g.hardtime_default_on = 1
+vim.g.hardtime_showmsg = 1
 
 -- tmuxline configuration
 vim.g.tmuxline_preset = {
@@ -427,17 +437,19 @@ require("which-key").add({
   { "<leader>p",        ":Telescope resume<cr>",                                                                       desc = "telescope resume" },
 
   -- Git mappings
-  { "<leader>g",        ":LazyGit<cr>",                                                                                desc = "LazyGit" },
+  { "<leader>g",        "<cmd>Neogit<cr>",                                                                             desc = "Neogit" },
   { "<leader>gws",      ":Telescope git_status<cr>",                                                                   desc = "git status" },
-  { "<leader>gwd",      ":Gitsigns diffthis<cr>",                                                                      desc = "git diff" },
+  { "<leader>gwd",      "<cmd>DiffviewOpen<cr>",                                                                       desc = "git diff" },
   { "<leader>gco",      ":Gitsigns reset_buffer<cr>",                                                                  desc = "git checkout" },
   { "<leader>gcop",     "<cmd>Gitsigns reset_hunk<cr>",                                                                desc = "git checkout -p" },
   { "<leader>gia",      ":Gitsigns stage_buffer<cr>",                                                                  desc = "git add" },
   { "<leader>giap",     "<cmd>Gitsigns stage_hunk<cr>",                                                                desc = "git add -p" },
   { "<leader>gir",      ":Gitsigns reset_buffer_index<cr>",                                                            desc = "git reset" },
   { "<leader>gb",       ":Gitsigns toggle_current_line_blame<cr>",                                                     desc = "git blame" },
-  { "<leader>gl",       ":LazyGitFilter<cr>",                                                                          desc = "git logs" },
+  { "<leader>gl",       "<cmd>DiffviewFileHistory %<cr>",                                                              desc = "git logs" },
+  { "<leader>gL",       "<cmd>DiffviewFileHistory<cr>",                                                                desc = "git logs (all)" },
   { "<leader>gp",       ":Octo pr create<cr>",                                                                         desc = "git pr" },
+  { "<leader>gc",       "<cmd>GitConflictListQf<cr>",                                                                  desc = "git conflicts" },
 
   -- Trouble mappings
   { "<leader>xx",       "<cmd>Trouble<cr>",                                                                            desc = "trouble" },
@@ -576,8 +588,6 @@ require("which-key").add({
   { "<c-j>",     "<cmd>NavigatorDown<cr>",                                                                        desc = "Navigate down",                          mode = { "n", "t" } },
   { "<c-p>",     "<cmd>NavigatorPrevious<cr>",                                                                    desc = "Navigate previous",                      mode = { "n", "t" } },
 
-  -- Terminal mappings
-  { "<A-d>",     ":terminal lazygit<cr>",                                                                         desc = "Open lazygit in terminal",               mode = "n" },
 
   -- Vim legacy mappings
   { "<leader>V", ":source ~/.config/nvim/init.lua<cr>:filetype detect<cr>:exe \":echo 'init.lua reloaded'\"<cr>", desc = "reload init.lua" },
@@ -1009,3 +1019,42 @@ require("todo-comments").setup {}
 require("cmp_git").setup()
 require "octo".setup()
 require('claude-code').setup()
+
+-- Git plugins configuration
+require('neogit').setup({
+  integrations = {
+    diffview = true,
+    telescope = true,
+  },
+  mappings = {
+    status = {
+      ["q"] = "Close",
+      ["<esc>"] = "Close",
+    },
+  },
+})
+
+require('diffview').setup({
+  enhanced_diff_hl = true,
+  use_icons = true,
+  keymaps = {
+    view = {
+      ["q"] = "<Cmd>DiffviewClose<CR>",
+      ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+    },
+    file_panel = {
+      ["q"] = "<Cmd>DiffviewClose<CR>",
+      ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+    },
+    file_history_panel = {
+      ["q"] = "<Cmd>DiffviewClose<CR>",
+      ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+    },
+  },
+})
+
+require('git-conflict').setup({
+  default_mappings = true,
+  disable_diagnostics = false,
+  list_opener = 'copen',
+})
