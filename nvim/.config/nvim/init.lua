@@ -317,6 +317,40 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   end,
 })
 
+-- Easy close for special buffers
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = {
+    "help",
+    "man",
+    "qf",
+    "lspinfo",
+    "checkhealth",
+    "startuptime",
+    "tsplayground",
+    "PlenaryTestPopup",
+    "netrw",
+    "codecompanion",
+  },
+  callback = function(event)
+    vim.bo[event.buf].buflisted = false
+    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = event.buf, silent = true, desc = "Close buffer" })
+    vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = event.buf, silent = true, desc = "Close buffer" })
+  end,
+})
+
+-- Easy close for LSP floating windows
+vim.api.nvim_create_autocmd("BufEnter", {
+  pattern = "*",
+  callback = function()
+    local win = vim.api.nvim_get_current_win()
+    local config = vim.api.nvim_win_get_config(win)
+    if config.relative ~= "" then
+      vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = 0, silent = true, desc = "Close floating window" })
+      vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = 0, silent = true, desc = "Close floating window" })
+    end
+  end,
+})
+
 -- Native line number toggling (replaces nvim-numbertoggle)
 local numbertoggle_group = vim.api.nvim_create_augroup("NumberToggle", {})
 
@@ -588,6 +622,8 @@ require("which-key").add({
   { "<c-j>",     "<cmd>NavigatorDown<cr>",                                                                        desc = "Navigate down",                          mode = { "n", "t" } },
   { "<c-p>",     "<cmd>NavigatorPrevious<cr>",                                                                    desc = "Navigate previous",                      mode = { "n", "t" } },
 
+  -- Terminal mode mappings
+  { "<esc><esc>", [[<C-\><C-n>]],                                                                                 desc = "Exit terminal insert mode",              mode = "t" },
 
   -- Vim legacy mappings
   { "<leader>V", ":source ~/.config/nvim/init.lua<cr>:filetype detect<cr>:exe \":echo 'init.lua reloaded'\"<cr>", desc = "reload init.lua" },
@@ -622,14 +658,26 @@ require("which-key").add({
 })
 
 local trouble = require("trouble")
-trouble.setup {}
+trouble.setup {
+  keys = {
+    ["q"] = "close",
+    ["<esc>"] = "close",
+  },
+}
 
 local telescope = require('telescope')
+local actions = require('telescope.actions')
 telescope.setup {
   defaults = {
     mappings = {
-      i = { ["<c-t>"] = trouble.open_with_trouble },
-      n = { ["<c-t>"] = trouble.open_with_trouble },
+      i = {
+        ["<c-t>"] = trouble.open_with_trouble,
+        ["<esc>"] = actions.close,
+      },
+      n = {
+        ["<c-t>"] = trouble.open_with_trouble,
+        ["q"] = actions.close,
+      },
     },
   },
 }
