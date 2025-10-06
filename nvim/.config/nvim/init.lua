@@ -891,7 +891,14 @@ local lsp_servers = {
   golangci_lint_ls = {
     command = { "golangci-lint-langserver", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
   },
-  rust_analyzer = {},
+  rust_analyzer = {
+    ["rust-analyzer"] = {
+      check = {
+        command = "clippy",
+        extraArgs = { "--all-targets", "--all-features" },
+      },
+    },
+  },
   terraformls = {},
   pyright = {
     python = {
