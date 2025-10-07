@@ -856,7 +856,9 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
     "site.yml",
     "site.yaml"
   },
-  command = "set filetype=yaml.ansible"
+  callback = function()
+    vim.bo.filetype = "yaml.ansible"
+  end,
 })
 
 vim.treesitter.language.register('diff', 'git')
@@ -928,12 +930,6 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 -- Common on_attach function
 local function on_attach(client, bufnr)
-  -- Prevent yamlls from attaching to ansible files
-  if client.name == "yamlls" and vim.bo[bufnr].filetype == "yaml.ansible" then
-    vim.lsp.stop_client(client.id)
-    return
-  end
-
   if client.server_capabilities.documentSymbolProvider then
     navic.attach(client, bufnr)
   end
@@ -952,39 +948,6 @@ require("mason-lspconfig").setup({
         settings = settings,
       }
 
-      -- Special configuration for ansiblels
-      if server_name == "ansiblels" then
-        config.filetypes = { "yaml.ansible" }
-      end
-
-      -- Exclude ansible files from yamlls
-      if server_name == "yamlls" then
-        config.filetypes = { "yaml" }
-        config.root_dir = function(fname)
-          local util = require('lspconfig.util')
-          -- Check if this is an Ansible file based on path patterns
-          local ansible_patterns = {
-            ".*/playbooks/.*%.ya?ml$",
-            ".*playbook.*%.ya?ml$",
-            ".*/roles/.*/tasks/.*%.ya?ml$",
-            ".*/roles/.*/handlers/.*%.ya?ml$",
-            ".*/group_vars/.*",
-            ".*/host_vars/.*",
-            ".*/inventory$",
-            ".*/ansible%.cfg$",
-            "site%.ya?ml$"
-          }
-
-          for _, pattern in ipairs(ansible_patterns) do
-            if fname:match(pattern) then
-              return nil -- Don't start yamlls for Ansible files
-            end
-          end
-
-          return util.root_pattern('.git')(fname) or util.path.dirname(fname)
-        end
-      end
-
       require("lspconfig")[server_name].setup(config)
     end,
   },
@@ -994,7 +957,7 @@ require("mason-null-ls").setup({
     "goimports",
     "prettierd",
     "sqlfluff",
-    "yamlfmt"
+    "yamllint"  -- Used by ansible-lint
   },
   automatic_installation = true,
 })
@@ -1033,10 +996,20 @@ null_ls.setup({
     null_ls.builtins.formatting.goimports,
     null_ls.builtins.completion.spell,
     null_ls.builtins.formatting.prettierd,
-    null_ls.builtins.formatting.yamlfmt.with({
-      filetypes = { "yaml" }, -- Only format regular YAML files, not Ansible
-    }),
   },
+})
+
+-- Auto-fix Ansible files after save
+vim.api.nvim_create_autocmd("BufWritePost", {
+  pattern = { "*.yml", "*.yaml" },
+  callback = function()
+    if vim.bo.filetype == "yaml.ansible" then
+      local bufnr = vim.api.nvim_get_current_buf()
+      vim.cmd("silent !ansible-lint --fix %")
+      -- Use checktime instead of edit to avoid LSP issues
+      vim.cmd("checktime")
+    end
+  end,
 })
 
 require("luasnip.loaders.from_vscode").lazy_load()
