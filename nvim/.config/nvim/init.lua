@@ -514,6 +514,12 @@ require("which-key").add({
   { "<localleader>pv",  function() vim.cmd("!python3 -c 'import sys; print(sys.executable)'") end,                     desc = "Show Python path" },
   { "<localleader>pi",  function() vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } } }) end, desc = "Organize imports" },
 
+  -- Go-specific mappings
+  { "<localleader>gt",  "<cmd>!go test %<cr>",                                                                          desc = "Run tests in current file" },
+  { "<localleader>gT",  "<cmd>!go test ./...<cr>",                                                                      desc = "Run all tests" },
+  { "<localleader>gr",  "<cmd>!go run %<cr>",                                                                           desc = "Run current file" },
+  { "<localleader>gb",  "<cmd>!go build<cr>",                                                                           desc = "Build package" },
+
   -- CodeCompanion mappings
   { "<localleader>ac",  "<cmd>CodeCompanionChat<cr>",                                                                  desc = "codecompanion chat",        mode = { "n", "v" } },
   { "<localleader>ae",  "<cmd>CodeCompanion<cr>",                                                                      desc = "codecompanion inline edit", mode = { "n", "v" } },
@@ -889,9 +895,15 @@ local lsp_servers = {
       },
     },
   },
-  -- FIXME go back to golangcli-lint
-  golangci_lint_ls = {
-    command = { "golangci-lint-langserver", "run", "--out-format", "json", "--allow-parallel-runners", "--exclude-use-default=false", "-e", "(comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)" },
+  gopls = {
+    gopls = {
+      analyses = {
+        unusedparams = true,
+        shadow = true,
+      },
+      staticcheck = true,
+      gofumpt = true,
+    },
   },
   rust_analyzer = {
     ["rust-analyzer"] = {
