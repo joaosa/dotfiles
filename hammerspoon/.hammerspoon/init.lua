@@ -164,99 +164,105 @@ for key, appName in pairs(appBindings) do
 end
 
 -----------------------------------------------
--- Have a pulldown term experience
+-- Alacritty terminal management (0-2 windows on-demand)
 -----------------------------------------------
-local function findAppPID(appName)
-    return string.format(
-        [[ps -ax -o etime,pid,command \
-  | grep  %s \
-  | grep -v grep \
-  | sort \
-  | awk '{print $2}' \
-  | head -n1
-  ]],
-        appName:lower()
-    )
-end
+local termApp = "Alacritty"
+local termBundleID = "org.alacritty"
 
-local function launchApp(appName, callback)
-    os.execute("open -nF /Applications/" .. appName .. ".app")
-    hs.timer.doAfter(
-        doAfter,
-        function()
-            local cmd = findAppPID(appName)
-            local output, status = hs.execute(cmd)
-            if status then
-                return callback(tonumber(output))
-            end
-        end
-    )
-end
+-- Terminal window configurations
+local terminalConfigs = {
+    pulldown = {
+        frame = frames.pulldown,
+        raise = true,
+        mods = { "alt" },
+        key = "space"
+    },
+    fullscreen = {
+        frame = frames.full,
+        raise = false,
+        hideOther = "pulldown",
+        mods = altCmd,
+        key = "a"
+    }
+}
 
-local function handleWindowState(appName, frame)
-    local screenFrame = hs.screen.mainScreen():frame()
-    local apps = { hs.application(appName) }
-
-    -- find if we have an app with a window with the target size
-    for i = 1, #apps do
-        local app = apps[i]
-        local w = app:mainWindow()
-        if not w then
-            return false
-        end
-        local unit = w:frame():toUnitRect(screenFrame)
-
-        -- handle the window visiblity
-        -- if there's a frame with the target size
-        if unit:equals(hs.geometry(frame)) then
-            if app:isHidden() then
-                app:activate()
-            else
-                app:hide()
-            end
-            return true
+-- Get all Alacritty windows across all instances
+local function getAllTerminalWindows()
+    local allWindows = {}
+    for _, app in ipairs(hs.application.applicationsForBundleID(termBundleID)) do
+        for _, window in ipairs(app:allWindows()) do
+            table.insert(allWindows, window)
         end
     end
-    return false
+    return allWindows
 end
 
-local function handleTermApp(appName, frame)
-    -- process the windows we have and set them right
-    -- if we manage to do that then we're good
-    if handleWindowState(appName, frame) then
+-- Find window by frame
+local function getWindowByFrame(targetFrame)
+    local screenFrame = hs.screen.mainScreen():frame()
+
+    for _, window in ipairs(getAllTerminalWindows()) do
+        local unit = window:frame():toUnitRect(screenFrame)
+        if unit:equals(hs.geometry(targetFrame)) then
+            return window
+        end
+    end
+    return nil
+end
+
+-- Activate window with optional raise
+local function activateWindow(window, raise)
+    window:application():activate()
+    if raise then window:raise() end
+    window:focus()
+end
+
+-- Toggle terminal window
+local function toggleTerminal(type)
+    local config = terminalConfigs[type]
+    local window = getWindowByFrame(config.frame)
+
+    -- Create window if it doesn't exist
+    if not window then
+        log.i("Creating", type, "window")
+        os.execute("open -n /Applications/" .. termApp .. ".app")
+        hs.timer.doAfter(0.3, function()
+            local wins = getAllTerminalWindows()
+            local newest = wins[#wins]
+            if newest then
+                newest:moveToUnit(config.frame)
+                activateWindow(newest, config.raise)
+            end
+        end)
         return
     end
 
-    -- otherwise we need to spawn a new app
-    -- and resize its window
-    launchApp(
-        appName,
-        function(pid)
-            local app = hs.application(pid)
-            if app then
-                app:mainWindow():moveToUnit(frame)
-            end
+    local app = window:application()
+    local focused = hs.window.focusedWindow()
+
+    -- Hide if already focused (toggle off)
+    if focused and focused:id() == window:id() then
+        app:hide()
+        return
+    end
+
+    -- Hide other window if exclusive mode
+    if config.hideOther then
+        local other = getWindowByFrame(terminalConfigs[config.hideOther].frame)
+        if other and other:isVisible() then
+            other:application():hide()
         end
-    )
+    end
+
+    activateWindow(window, config.raise)
 end
 
-local termApp = "Alacritty"
--- spawn fullscreen
-hs.hotkey.bind(
-    { "alt" },
-    "space",
-    function()
-        handleTermApp(termApp, frames.pulldown)
-    end
-)
--- spawn pulldown
-hs.hotkey.bind(
-    altCmd,
-    "a",
-    function()
-        handleTermApp(termApp, frames.full)
-    end
-)
+-- Register hotkeys
+for type, config in pairs(terminalConfigs) do
+    hs.hotkey.bind(config.mods, config.key, function()
+        toggleTerminal(type)
+    end)
+end
 
 -----------------------------------------------
 -- Move to display
@@ -464,3 +470,98 @@ hs.hotkey.bind(altCmd, "d", function()
         end, { "-d", "-r", "16000", "-c", "1", whisper.tempFile }):start()
     end
 end)
+
+-----------------------------------------------
+-- Auto-resize terminals on screen changes
+-----------------------------------------------
+-- Resizes Alacritty windows proportionally when docking/undocking
+-- Focuses window + uses animation to trigger proper resize events
+-- Alacritty sends SIGWINCH → tmux auto-resizes (no commands needed)
+local function resizeTerminals()
+    log.i("Screen configuration changed, resizing terminals proportionally")
+
+    local alacritty = hs.application.find("Alacritty")
+    if not alacritty then
+        log.i("No Alacritty running")
+        return
+    end
+
+    local currentScreen = hs.screen.mainScreen()
+    local screenFrame = currentScreen:frame()
+
+    log.i("New screen size:", screenFrame.w, "x", screenFrame.h)
+
+    local windows = alacritty:allWindows()
+
+    -- Resize all windows proportionally
+    for i, window in ipairs(windows) do
+        if window:isVisible() and not window:isFullScreen() then
+            local windowScreen = window:screen()
+
+            -- Skip if window is already on the target screen (no screen change)
+            if windowScreen:id() == currentScreen:id() then
+                log.i("Window", i, "already on target screen, skipping")
+            else
+                local oldFrame = window:frame()
+                local oldScreen = windowScreen:frame()
+
+                -- Calculate proportional position and size on new screen
+                local xRatio = oldFrame.x / oldScreen.w
+                local yRatio = oldFrame.y / oldScreen.h
+                local wRatio = oldFrame.w / oldScreen.w
+                local hRatio = oldFrame.h / oldScreen.h
+
+                local targetFrame = {
+                    x = screenFrame.x + (xRatio * screenFrame.w),
+                    y = screenFrame.y + (yRatio * screenFrame.h),
+                    w = wRatio * screenFrame.w,
+                    h = hRatio * screenFrame.h
+                }
+
+                -- Focus window first (research shows this is required for events)
+                window:focus()
+                hs.timer.usleep(50000) -- 0.05 second
+
+                -- Use animated resize (not instant) to trigger proper events
+                window:setFrame(targetFrame, 0.2)
+                log.i("Resized window", i, "with animation")
+            end
+        end
+    end
+
+    hs.alert.show("Terminals resized", 1)
+end
+
+local screenWatcher = hs.screen.watcher.new(resizeTerminals)
+screenWatcher:start()
+
+-- Manual trigger for testing: hyper+z
+hs.hotkey.bind(hyper, "z", function()
+    hs.alert.show("Resizing terminals and tmux...")
+    resizeTerminals()
+end)
+
+-----------------------------------------------
+-- Scheduled Shutdown
+-----------------------------------------------
+local shutdownTimer = nil
+
+local function cancelShutdown()
+    if shutdownTimer then
+        shutdownTimer:stop()
+        shutdownTimer = nil
+        hs.alert.show("🛑 Shutdown cancelled")
+    end
+end
+
+if shutdownConfig.enabled then
+    shutdownTimer = hs.timer.doAt(
+        string.format("%02d:%02d", shutdownConfig.hour, shutdownConfig.minute),
+        function()
+            hs.alert.show("💤 Good night!")
+            hs.timer.doAfter(2, hs.caffeinate.systemSleep)
+        end
+    )
+end
+
+hs.hotkey.bind(hyper, "p", cancelShutdown)
