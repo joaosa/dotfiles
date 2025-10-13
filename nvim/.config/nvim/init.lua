@@ -909,7 +909,7 @@ local lsp_servers = {
     ["rust-analyzer"] = {
       check = {
         command = "clippy",
-        extraArgs = { "--all-targets", "--all-features" },
+        extraArgs = { "--all-features", "--", "-D", "warnings" },
       },
     },
   },
