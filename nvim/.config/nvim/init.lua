@@ -950,20 +950,20 @@ end
 require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(lsp_servers),
   automatic_installation = true,
-  handlers = {
-    -- Default handler for all servers
-    function(server_name)
-      local settings = lsp_servers[server_name] or {}
-      local config = {
-        capabilities = capabilities,
-        on_attach = on_attach,
-        settings = settings,
-      }
-
-      require("lspconfig")[server_name].setup(config)
-    end,
-  },
 })
+
+-- Configure all LSP servers with Neovim 0.11 API
+for server_name, server_settings in pairs(lsp_servers) do
+  vim.lsp.config[server_name] = {
+    capabilities = capabilities,
+    on_attach = on_attach,
+    settings = server_settings,
+  }
+end
+
+-- Enable all configured LSP servers
+vim.lsp.enable(vim.tbl_keys(lsp_servers))
+
 require("mason-null-ls").setup({
   ensure_installed = {
     "goimports",
