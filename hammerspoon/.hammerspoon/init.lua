@@ -3,7 +3,6 @@
 -----------------------------------------------
 local hyper = { "shift", "ctrl", "alt", "cmd" }
 local altCmd = { "ctrl", "cmd" }
-local doAfter = 0.5
 
 -- Performance settings
 hs.window.animationDuration = 0
@@ -423,7 +422,7 @@ hs.hotkey.bind(altCmd, "d", function()
         end)
 
         -- Transcribe
-        whisper.task = hs.task.new(whisper.binary, function(code, stdout, stderr)
+        whisper.task = hs.task.new(whisper.binary, function(code, stdout)
             timeout:stop()
             whisper.task = nil
             pcall(os.remove, whisper.tempFile)
@@ -463,7 +462,7 @@ hs.hotkey.bind(altCmd, "d", function()
         pcall(os.remove, whisper.tempFile)
         hs.alert.show("🎤 Recording...")
 
-        whisper.recording = hs.task.new(whisper.sox, function(code, stdout, stderr)
+        whisper.recording = hs.task.new(whisper.sox, function(code)
             if code ~= 0 and code ~= 2 then
                 hs.alert.show("❌ Recording failed")
             end
