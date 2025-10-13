@@ -1,4 +1,38 @@
 -----------------------------------------------
+-- Bootstrap SpoonInstall (pinned to commit)
+-----------------------------------------------
+local function bootstrapSpoonInstall()
+    local spoonPath = hs.configdir .. "/Spoons/SpoonInstall.spoon"
+    if not hs.fs.attributes(spoonPath) then
+        local tmpFile = "/tmp/spooninstall.zip"
+        -- Pinned to commit 30b4f60 (2019-08-28) - last update
+        local commitSHA = "30b4f6013d48bd000a8ddecff23e5a8cce40c73c"
+
+        hs.execute(string.format(
+            "curl -sL https://github.com/Hammerspoon/Spoons/raw/%s/Spoons/SpoonInstall.spoon.zip -o %s",
+            commitSHA, tmpFile
+        ))
+        hs.execute(string.format("unzip -q %s -d '%s/Spoons/' && rm %s", tmpFile, hs.configdir, tmpFile))
+    end
+    return true
+end
+
+-- Install SpoonInstall, then use it to manage EmmyLua
+if bootstrapSpoonInstall() then
+    hs.loadSpoon("SpoonInstall")
+
+    -- Pin EmmyLua to commit d4b08cb (2024-08-07) - last update
+    spoon.SpoonInstall.repos.default = {
+        url = "https://github.com/Hammerspoon/Spoons",
+        desc = "Main Hammerspoon Spoon Repository (pinned)",
+    }
+
+    spoon.SpoonInstall:andUse("EmmyLua", {
+        start = true
+    })
+end
+
+-----------------------------------------------
 -- Configuration
 -----------------------------------------------
 local hyper = { "shift", "ctrl", "alt", "cmd" }
