@@ -38,6 +38,17 @@ end
 local hyper = { "shift", "ctrl", "alt", "cmd" }
 local altCmd = { "ctrl", "cmd" }
 
+-- Timing constants (seconds)
+local TIMING = {
+    CLIPBOARD_RESTORE_DELAY = 0.3,
+    WINDOW_FOCUS_DELAY = 0.15,
+    PASTE_DELAY = 0.1,
+    WINDOW_CREATE_DELAY = 0.3,
+    WINDOW_RESIZE_ANIMATION = 0.2,
+    SCREEN_RESIZE_DEBOUNCE = 0.5,
+    WINDOW_OPERATION_SLEEP = 50000, -- microseconds
+    WHISPER_TIMEOUT = 30,
+}
 -- Performance settings
 hs.window.animationDuration = 0
 hs.window.setFrameCorrectness = true
@@ -53,6 +64,49 @@ local function safeWindowOperation(operation, errorMsg)
         return false
     end
     return operation(window)
+end
+
+-----------------------------------------------
+-- Utility Helpers
+-----------------------------------------------
+
+-- Find binary in common paths or via fallback command
+local function findBinary(name, paths, fallbackCmd)
+    for _, path in ipairs(paths) do
+        if hs.fs.attributes(path) then
+            return path
+        end
+    end
+
+    if fallbackCmd then
+        local result = hs.execute(fallbackCmd)
+        if result and result ~= "" then
+            return result:gsub("\n", "")
+        end
+    end
+
+    return nil
+end
+
+-- Execute function with clipboard preservation
+local function withClipboard(fn)
+    local current = hs.pasteboard.getContents()
+    fn()
+    if current then
+        hs.timer.doAfter(TIMING.CLIPBOARD_RESTORE_DELAY, function()
+            hs.pasteboard.setContents(current)
+        end)
+    end
+end
+
+-- Launch or focus application
+local function launchOrFocusApp(appName)
+    local app = hs.application.find(appName)
+    if app and app:isRunning() then
+        app:activate()
+    else
+        hs.application.launchOrFocus(appName)
+    end
 end
 
 -----------------------------------------------
@@ -183,18 +237,9 @@ local appBindings = {
 }
 
 for key, appName in pairs(appBindings) do
-    hs.hotkey.bind(
-        altCmd,
-        key,
-        function()
-            local app = hs.application.find(appName)
-            if app and app:isRunning() then
-                app:activate()
-            else
-                hs.application.launchOrFocus(appName)
-            end
-        end
-    )
+    hs.hotkey.bind(altCmd, key, function()
+        launchOrFocusApp(appName)
+    end)
 end
 
 -----------------------------------------------
@@ -260,7 +305,7 @@ local function toggleTerminal(type)
     if not window then
         log.i("Creating", type, "window")
         os.execute("open -n /Applications/" .. termApp .. ".app")
-        hs.timer.doAfter(0.3, function()
+        hs.timer.doAfter(TIMING.WINDOW_CREATE_DELAY, function()
             local wins = getAllTerminalWindows()
             local newest = wins[#wins]
             if newest then
@@ -333,15 +378,9 @@ local function pasteString(string)
         return
     end
 
-    local current = hs.pasteboard.getContents()
-    hs.pasteboard.setContents(string)
-    hs.eventtap.keyStrokes(string)
-
-    -- Restore previous clipboard content after a delay
-    hs.timer.doAfter(0.1, function()
-        if current then
-            hs.pasteboard.setContents(current)
-        end
+    withClipboard(function()
+        hs.pasteboard.setContents(string)
+        hs.eventtap.keyStrokes(string)
     end)
 end
 
@@ -400,39 +439,21 @@ local whisper = {
 }
 
 -- Find and cache binaries on load
-do
-    -- Find whisper-cli
-    local paths = {
-        "/opt/homebrew/bin/whisper-cli",
-        "/usr/local/bin/whisper-cli",
-    }
-    for _, path in ipairs(paths) do
-        if hs.fs.attributes(path) then
-            whisper.binary = path
-            break
-        end
-    end
+whisper.binary = findBinary("whisper-cli",
+    { "/opt/homebrew/bin/whisper-cli", "/usr/local/bin/whisper-cli" },
+    "find /opt/homebrew/Cellar/whisper-cpp -name whisper-cli -type f 2>/dev/null | head -1"
+)
 
-    -- Fallback: search Cellar
-    if not whisper.binary then
-        local result = hs.execute(
-            "find /opt/homebrew/Cellar/whisper-cpp -name whisper-cli -type f 2>/dev/null | head -1")
-        if result and result ~= "" then
-            whisper.binary = result:gsub("\n", "")
-        end
-    end
+whisper.sox = findBinary("sox",
+    { "/opt/homebrew/bin/sox", "/usr/local/bin/sox" }
+)
 
-    -- Find sox
-    whisper.sox = hs.fs.attributes("/opt/homebrew/bin/sox") and "/opt/homebrew/bin/sox" or
-        hs.fs.attributes("/usr/local/bin/sox") and "/usr/local/bin/sox" or nil
-
-    -- Validate
-    if not whisper.binary or not whisper.sox or not hs.fs.attributes(whisper.model) then
-        log.e("Whisper setup failed - missing: " ..
-            (whisper.binary and "" or "whisper-cli ") ..
-            (whisper.sox and "" or "sox ") ..
-            (hs.fs.attributes(whisper.model) and "" or "model"))
-    end
+-- Validate dependencies
+if not whisper.binary or not whisper.sox or not hs.fs.attributes(whisper.model) then
+    log.e("Whisper setup failed - missing: " ..
+        (whisper.binary and "" or "whisper-cli ") ..
+        (whisper.sox and "" or "sox ") ..
+        (hs.fs.attributes(whisper.model) and "" or "model"))
 end
 
 -- Ctrl+Cmd+D: Toggle recording/transcribe
@@ -445,10 +466,9 @@ hs.hotkey.bind(altCmd, "d", function()
 
         local win = hs.window.focusedWindow()
         local app = hs.application.frontmostApplication()
-        local clip = hs.pasteboard.getContents()
 
         -- Timeout after 30s
-        local timeout = hs.timer.doAfter(30, function()
+        local timeout = hs.timer.doAfter(TIMING.WHISPER_TIMEOUT, function()
             if whisper.task then
                 whisper.task:terminate()
                 whisper.task = nil
@@ -466,18 +486,12 @@ hs.hotkey.bind(altCmd, "d", function()
                 local text = stdout:gsub("^%s+", ""):gsub("%s+$", "")
                 if text ~= "" and not text:match("^%[") then
                     hs.alert.show("✓ " .. text:sub(1, 40) .. (text:len() > 40 and "..." or ""))
-                    -- Use existing pasteString helper
+                    -- Return to original window and paste
                     if app then app:activate() end
-                    hs.timer.doAfter(0.15, function()
+                    hs.timer.doAfter(TIMING.WINDOW_FOCUS_DELAY, function()
                         if win and win:isVisible() then win:focus() end
-                        hs.timer.doAfter(0.1, function()
+                        hs.timer.doAfter(TIMING.PASTE_DELAY, function()
                             pasteString(text)
-                            -- Restore clipboard
-                            if clip and clip ~= "" then
-                                hs.timer.doAfter(0.3, function()
-                                    hs.pasteboard.setContents(clip)
-                                end)
-                            end
                         end)
                     end)
                 else
@@ -511,39 +525,64 @@ end)
 -- Resizes Alacritty windows proportionally when docking/undocking
 -- Focuses window + uses animation to trigger proper resize events
 -- Alacritty sends SIGWINCH → tmux auto-resizes (no commands needed)
-local function resizeTerminals()
-    log.i("Screen configuration changed, resizing terminals proportionally")
 
-    local alacritty = hs.application.find("Alacritty")
-    if not alacritty then
-        log.i("No Alacritty running")
+local resizeDebounceTimer = nil
+
+local function resizeTerminals()
+    log.i("Screen configuration changed, checking terminals")
+
+    local windows = getAllTerminalWindows()
+    if #windows == 0 then
+        log.i("No terminal windows to resize")
         return
     end
 
     local currentScreen = hs.screen.mainScreen()
     local screenFrame = currentScreen:frame()
+    local resizedCount = 0
 
-    log.i("New screen size:", screenFrame.w, "x", screenFrame.h)
+    log.i("Target screen size:", screenFrame.w, "x", screenFrame.h)
 
-    local windows = alacritty:allWindows()
-
-    -- Resize all windows proportionally
+    -- Resize all visible windows
     for i, window in ipairs(windows) do
         if window:isVisible() and not window:isFullScreen() then
             local windowScreen = window:screen()
+            local windowScreenFrame = windowScreen:frame()
+            local oldFrame = window:frame()
 
-            -- Skip if window is already on the target screen (no screen change)
-            if windowScreen:id() == currentScreen:id() then
-                log.i("Window", i, "already on target screen, skipping")
-            else
-                local oldFrame = window:frame()
-                local oldScreen = windowScreen:frame()
+            -- Check if window matches one of our managed terminal configs
+            local matchedConfig = nil
+            for configName, config in pairs(terminalConfigs) do
+                local unit = oldFrame:toUnitRect(windowScreenFrame)
+                if unit:equals(hs.geometry(config.frame)) then
+                    matchedConfig = { name = configName, config = config }
+                    break
+                end
+            end
 
-                -- Calculate proportional position and size on new screen
-                local xRatio = oldFrame.x / oldScreen.w
-                local yRatio = oldFrame.y / oldScreen.h
-                local wRatio = oldFrame.w / oldScreen.w
-                local hRatio = oldFrame.h / oldScreen.h
+            if matchedConfig then
+                -- Managed window: move to main screen if needed, then maintain exact size
+                if windowScreen:id() ~= currentScreen:id() then
+                    log.i("Window", i, "is managed", matchedConfig.name, "- moving to main screen")
+                    window:moveToScreen(currentScreen, false, true)
+                    hs.timer.usleep(TIMING.WINDOW_OPERATION_SLEEP)
+                end
+
+                log.i("Window", i, "ensuring correct", matchedConfig.name, "size")
+                window:focus()
+                hs.timer.usleep(TIMING.WINDOW_OPERATION_SLEEP)
+                window:moveToUnit(matchedConfig.config.frame)
+                resizedCount = resizedCount + 1
+
+            elseif windowScreen:id() ~= currentScreen:id() then
+                -- Unknown window moving between screens: proportional resize
+                log.i("Resizing window", i, "from", windowScreenFrame.w, "x", windowScreenFrame.h, "to", screenFrame.w, "x", screenFrame.h)
+
+                -- Calculate proportional position and size
+                local xRatio = oldFrame.x / windowScreenFrame.w
+                local yRatio = oldFrame.y / windowScreenFrame.h
+                local wRatio = oldFrame.w / windowScreenFrame.w
+                local hRatio = oldFrame.h / windowScreenFrame.h
 
                 local targetFrame = {
                     x = screenFrame.x + (xRatio * screenFrame.w),
@@ -552,28 +591,35 @@ local function resizeTerminals()
                     h = hRatio * screenFrame.h
                 }
 
-                -- Focus window first (research shows this is required for events)
+                -- Focus window first (required for events)
                 window:focus()
-                hs.timer.usleep(50000) -- 0.05 second
+                hs.timer.usleep(TIMING.WINDOW_OPERATION_SLEEP)
 
-                -- Use animated resize (not instant) to trigger proper events
-                window:setFrame(targetFrame, 0.2)
-                log.i("Resized window", i, "with animation")
+                -- Use animated resize to trigger proper events
+                window:setFrame(targetFrame, TIMING.WINDOW_RESIZE_ANIMATION)
+                resizedCount = resizedCount + 1
             end
         end
     end
 
-    hs.alert.show("Terminals resized", 1)
+    if resizedCount > 0 then
+        hs.alert.show(string.format("Resized %d terminal%s", resizedCount, resizedCount > 1 and "s" or ""), 1)
+        log.i("Resized", resizedCount, "terminal window(s)")
+    end
 end
 
-local screenWatcher = hs.screen.watcher.new(resizeTerminals)
+local function debouncedResizeTerminals()
+    if resizeDebounceTimer then
+        resizeDebounceTimer:stop()
+    end
+    resizeDebounceTimer = hs.timer.doAfter(TIMING.SCREEN_RESIZE_DEBOUNCE, resizeTerminals)
+end
+
+local screenWatcher = hs.screen.watcher.new(debouncedResizeTerminals)
 screenWatcher:start()
 
 -- Manual trigger for testing: hyper+z
-hs.hotkey.bind(hyper, "z", function()
-    hs.alert.show("Resizing terminals and tmux...")
-    resizeTerminals()
-end)
+hs.hotkey.bind(hyper, "z", resizeTerminals)
 
 -----------------------------------------------
 -- Scheduled Shutdown
