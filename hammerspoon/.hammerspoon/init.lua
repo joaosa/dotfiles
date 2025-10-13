@@ -76,8 +76,9 @@ end
 
 -- Resolve symlink to find actual config directory
 local configPath = hs.configdir .. "/init.lua"
-local realPath = hs.execute("readlink " .. configPath):gsub("\n", "")
-if realPath ~= "" then
+local output = hs.execute("readlink " .. configPath)
+if output and output ~= "" then
+    local realPath = output:gsub("\n", "")
     -- Extract directory from resolved path
     local configDir = realPath:match("(.*/)")
     log.i("Watching config directory:", configDir)
