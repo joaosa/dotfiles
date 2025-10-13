@@ -1,6 +1,5 @@
 -----------------------------------------------
 -- Alacritty Terminal Management
--- Manages 0-2 terminal windows on-demand with auto-resize on screen changes
 -----------------------------------------------
 
 local keys = require("config.keybindings")
@@ -17,17 +16,6 @@ local debounce = utils.debounce
 local focusAndSleep = windowLib.focusAndSleep
 local frames = windowMgmt.frames
 
--- Module-specific constants
-local APP_PATHS = {
-    TERMINAL = "/Applications/Alacritty.app",
-    TERMINAL_BUNDLE = "org.alacritty",
-}
-
-local TERMINAL_TIMING = {
-    WINDOW_CREATE_DELAY = 0.3,
-    WINDOW_RESIZE_ANIMATION = 0.2,
-    SCREEN_RESIZE_DEBOUNCE = 0.5,
-}
 
 -- Logger for debugging
 local log = hs.logger.new('terminal', 'info')
@@ -49,14 +37,10 @@ local terminalConfigs = {
     }
 }
 
------------------------------------------------
--- Terminal Window Management
------------------------------------------------
-
 -- Get all Alacritty windows across all instances
 local function getAllTerminalWindows()
     local allWindows = {}
-    for _, app in ipairs(hs.application.applicationsForBundleID(APP_PATHS.TERMINAL_BUNDLE)) do
+    for _, app in ipairs(hs.application.applicationsForBundleID("org.alacritty")) do
         for _, window in ipairs(app:allWindows()) do
             table.insert(allWindows, window)
         end
@@ -92,8 +76,8 @@ local function toggleTerminal(type)
     -- Create window if it doesn't exist
     if not window then
         log.i("Creating", type, "window")
-        os.execute("open -n " .. APP_PATHS.TERMINAL)
-        hs.timer.doAfter(TERMINAL_TIMING.WINDOW_CREATE_DELAY, function()
+        os.execute("open -n /Applications/Alacritty.app")
+        hs.timer.doAfter(0.3, function()
             local wins = getAllTerminalWindows()
             local newest = wins[#wins]
             if newest then
@@ -123,10 +107,6 @@ local function toggleTerminal(type)
 
     activateWindow(window, config.raise)
 end
-
------------------------------------------------
--- Auto-resize on screen changes
------------------------------------------------
 
 -- Find matching terminal config for a window
 local function findMatchedTerminalConfig(window, windowScreen)
@@ -165,7 +145,7 @@ local function resizeUnmanagedWindow(window, oldFrame, windowScreenFrame, screen
     }
 
     focusAndSleep(window)
-    window:setFrame(targetFrame, TERMINAL_TIMING.WINDOW_RESIZE_ANIMATION)
+    window:setFrame(targetFrame, 0.2)
 end
 
 local function resizeTerminals()
@@ -207,10 +187,6 @@ local function resizeTerminals()
     end
 end
 
------------------------------------------------
--- Setup
------------------------------------------------
-
 local function setup()
     -- Register hotkeys for terminal toggling
     for type, config in pairs(terminalConfigs) do
@@ -220,7 +196,7 @@ local function setup()
     end
 
     -- Auto-resize on screen changes
-    local debouncedResizeTerminals = debounce(resizeTerminals, TERMINAL_TIMING.SCREEN_RESIZE_DEBOUNCE)
+    local debouncedResizeTerminals = debounce(resizeTerminals, 0.5)
     local screenWatcher = hs.screen.watcher.new(debouncedResizeTerminals)
     screenWatcher:start()
 

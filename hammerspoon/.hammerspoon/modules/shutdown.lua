@@ -5,16 +5,6 @@
 local keys = require("config.keybindings")
 local hyper = keys.hyper
 
--- Module-specific constants
-local SHUTDOWN_TIMING = {
-    DELAY = 2,
-}
-
-local ALERTS = {
-    SHUTDOWN_CANCELLED = "🛑 Shutdown cancelled",
-    GOOD_NIGHT = "💤 Good night!",
-}
-
 -- Get Sleep Focus bedtime from macOS
 local function getSleepFocusBedtime()
     local cmd = [[python3 -c "
@@ -47,7 +37,7 @@ local function cancelShutdown()
     if shutdownTimer then
         shutdownTimer:stop()
         shutdownTimer = nil
-        hs.alert.show(ALERTS.SHUTDOWN_CANCELLED)
+        hs.alert.show("🛑 Shutdown cancelled")
     end
 end
 
@@ -65,8 +55,8 @@ local function setup()
         shutdownTimer = hs.timer.doAt(
             string.format("%02d:%02d", shutdownConfig.hour, shutdownConfig.minute),
             function()
-                hs.alert.show(ALERTS.GOOD_NIGHT)
-                hs.timer.doAfter(SHUTDOWN_TIMING.DELAY, hs.caffeinate.systemSleep)
+                hs.alert.show("💤 Good night!")
+                hs.timer.doAfter(2, hs.caffeinate.systemSleep)
             end
         )
     end

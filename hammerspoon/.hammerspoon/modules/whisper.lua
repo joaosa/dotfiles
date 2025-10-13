@@ -6,7 +6,7 @@ local keys = require("config.keybindings")
 local config = require("config.constants")
 local utils = require("lib.utils")
 local windowLib = require("lib.window")
-local datePaste = require("modules.date-paste")
+local paste = require("lib.paste")
 
 local altCmd = keys.altCmd
 local TIMING = config.TIMING
@@ -14,34 +14,7 @@ local trim = utils.trim
 local findBinary = utils.findBinary
 local missingDeps = utils.missingDeps
 local withWindowRestore = windowLib.withWindowRestore
-
--- Module-specific constants
-local WHISPER_PATHS = {
-    TEMP_FILE = os.getenv("HOME") .. "/.hammerspoon_whisper.wav",
-    MODEL = os.getenv("HOME") .. "/.local/share/whisper/ggml-base.en.bin",
-}
-
-local WHISPER_CONFIG = {
-    PREVIEW_LENGTH = 40,
-    SOX_SUCCESS_CODES = {[0] = true, [2] = true},
-    SOX_ARGS = {"-d", "-r", "16000", "-c", "1"},
-    TRANSCRIBE_ARGS_BASE = {"-m", "--no-timestamps"},
-}
-
-local WHISPER_TIMING = {
-    TIMEOUT = 30,
-}
-
-local ALERTS = {
-    WHISPER_TRANSCRIBING = "🎤 Transcribing...",
-    WHISPER_RECORDING = "🎤 Recording...",
-    WHISPER_TIMEOUT = "❌ Timeout",
-    WHISPER_NOT_INSTALLED = "❌ Whisper not installed",
-    WHISPER_NO_SPEECH = "❌ No speech\nCheck mic permissions",
-    WHISPER_FAILED = "❌ Failed (code %d)",
-    WHISPER_RECORDING_FAILED = "❌ Recording failed",
-    WHISPER_SUCCESS_PREFIX = "✓ ",
-}
+local pasteString = paste.pasteString
 
 -- Logger for debugging
 local log = hs.logger.new('whisper', 'info')
@@ -49,20 +22,70 @@ local log = hs.logger.new('whisper', 'info')
 local whisper = {
     recording = nil,
     task = nil,
-    tempFile = WHISPER_PATHS.TEMP_FILE,
-    model = WHISPER_PATHS.MODEL,
+    tempFile = os.getenv("HOME") .. "/.hammerspoon_whisper.wav",
+    model = os.getenv("HOME") .. "/.local/share/whisper/ggml-base.en.bin",
     binary = nil,
     sox = nil,
 }
 
--- Note: pasteString is defined in date-paste module but we need it here
--- We'll extract it or redefine it locally
-local function pasteString(string)
-    if not string or string == "" then
+local function startRecording()
+    if not whisper.binary or not whisper.sox then
+        hs.alert.show("❌ Whisper not installed")
         return
     end
-    hs.pasteboard.setContents(string)
-    hs.eventtap.keyStrokes(string)
+
+    pcall(os.remove, whisper.tempFile)
+    hs.alert.show("🎤 Recording...")
+
+    whisper.recording = hs.task.new(whisper.sox, function(code)
+        -- sox exits with 0 on success, 2 on SIGINT (normal stop)
+        if code ~= 0 and code ~= 2 then
+            hs.alert.show("❌ Recording failed")
+        end
+    end, {"-d", "-r", "16000", "-c", "1", whisper.tempFile}):start()
+end
+
+local function stopRecordingAndTranscribe()
+    whisper.recording:terminate()
+    whisper.recording = nil
+    hs.alert.show("🎤 Transcribing...")
+
+    local win = hs.window.focusedWindow()
+    local app = hs.application.frontmostApplication()
+
+    -- Timeout after 30s
+    local timeout = hs.timer.doAfter(30, function()
+        if whisper.task then
+            whisper.task:terminate()
+            whisper.task = nil
+            hs.alert.show("❌ Timeout")
+        end
+    end)
+
+    -- Transcribe
+    whisper.task = hs.task.new(whisper.binary, function(code, stdout)
+        timeout:stop()
+        whisper.task = nil
+        pcall(os.remove, whisper.tempFile)
+
+        if code == 0 then
+            local text = trim(stdout)
+            if text ~= "" and not text:match("^%[") then
+                local preview = text:sub(1, 40)
+                if text:len() > 40 then
+                    preview = preview .. "..."
+                end
+                hs.alert.show("✓ " .. preview)
+                withWindowRestore(app, win, function()
+                    pasteString(text)
+                end)
+            else
+                hs.alert.show("❌ No speech\nCheck mic permissions")
+            end
+        else
+            hs.alert.show(string.format("❌ Failed (code %d)", code))
+        end
+    end, { "-m", whisper.model, "-f", whisper.tempFile, "--no-timestamps" }):start()
 end
 
 local function setup()
@@ -89,64 +112,9 @@ local function setup()
     -- altCmd+d: Toggle recording/transcribe
     hs.hotkey.bind(altCmd, "d", function()
         if whisper.recording then
-            -- Stop recording and transcribe
-            whisper.recording:terminate()
-            whisper.recording = nil
-            hs.alert.show(ALERTS.WHISPER_TRANSCRIBING)
-
-            local win = hs.window.focusedWindow()
-            local app = hs.application.frontmostApplication()
-
-            -- Timeout after 30s
-            local timeout = hs.timer.doAfter(WHISPER_TIMING.TIMEOUT, function()
-                if whisper.task then
-                    whisper.task:terminate()
-                    whisper.task = nil
-                    hs.alert.show(ALERTS.WHISPER_TIMEOUT)
-                end
-            end)
-
-            -- Transcribe
-            whisper.task = hs.task.new(whisper.binary, function(code, stdout)
-                timeout:stop()
-                whisper.task = nil
-                pcall(os.remove, whisper.tempFile)
-
-                if code == 0 then
-                    local text = trim(stdout)
-                    if text ~= "" and not text:match("^%[") then
-                        local preview = text:sub(1, WHISPER_CONFIG.PREVIEW_LENGTH)
-                        if text:len() > WHISPER_CONFIG.PREVIEW_LENGTH then
-                            preview = preview .. "..."
-                        end
-                        hs.alert.show(ALERTS.WHISPER_SUCCESS_PREFIX .. preview)
-                        withWindowRestore(app, win, function()
-                            pasteString(text)
-                        end)
-                    else
-                        hs.alert.show(ALERTS.WHISPER_NO_SPEECH)
-                    end
-                else
-                    hs.alert.show(string.format(ALERTS.WHISPER_FAILED, code))
-                end
-            end, { "-m", whisper.model, "-f", whisper.tempFile, "--no-timestamps" }):start()
+            stopRecordingAndTranscribe()
         else
-            -- Start recording
-            if not whisper.binary or not whisper.sox then
-                hs.alert.show(ALERTS.WHISPER_NOT_INSTALLED)
-                return
-            end
-
-            pcall(os.remove, whisper.tempFile)
-            hs.alert.show(ALERTS.WHISPER_RECORDING)
-
-            local soxArgs = {table.unpack(WHISPER_CONFIG.SOX_ARGS)}
-            table.insert(soxArgs, whisper.tempFile)
-            whisper.recording = hs.task.new(whisper.sox, function(code)
-                if not WHISPER_CONFIG.SOX_SUCCESS_CODES[code] then
-                    hs.alert.show(ALERTS.WHISPER_RECORDING_FAILED)
-                end
-            end, soxArgs):start()
+            startRecording()
         end
     end)
 end

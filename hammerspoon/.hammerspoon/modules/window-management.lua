@@ -8,13 +8,6 @@ local hyper = keys.hyper
 local altCmd = keys.altCmd
 local bindWindowOp = windowLib.bindWindowOp
 
--- Module-specific alerts
-local ALERTS = {
-    CANNOT_RESIZE = "Cannot resize: no active window",
-    CANNOT_FOCUS = "Cannot focus window: no active window",
-    CANNOT_MOVE = "Cannot move window: no active window",
-    DISPLAY_NOT_FOUND = "Display %d not found",
-}
 
 -- Window frame definitions
 local frames = {
@@ -48,7 +41,7 @@ local function setup()
         bindWindowOp(hyper, key, function(window)
             window:moveToUnit(pos)
             return true
-        end, ALERTS.CANNOT_RESIZE)
+        end, "Cannot resize: no active window")
     end
 
     -- Window hints: altCmd + -
@@ -66,7 +59,7 @@ local function setup()
         bindWindowOp(altCmd, key, function(window)
             window[action](window)
             return true
-        end, ALERTS.CANNOT_FOCUS)
+        end, "Cannot focus window: no active window")
     end
 
     -- Move to display: altCmd + 1/2/3/...
@@ -77,10 +70,10 @@ local function setup()
                 window:moveToScreen(displays[i], false, true)
                 return true
             else
-                hs.alert.show(string.format(ALERTS.DISPLAY_NOT_FOUND, i))
+                hs.alert.show(string.format("Display %d not found", i))
                 return false
             end
-        end, ALERTS.CANNOT_MOVE)
+        end, "Cannot move window: no active window")
     end
 end
 

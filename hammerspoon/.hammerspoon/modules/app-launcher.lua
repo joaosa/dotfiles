@@ -4,25 +4,19 @@
 
 local keys = require("config.keybindings")
 local utils = require("lib.utils")
+local hotkey = require("lib.hotkey")
 local altCmd = keys.altCmd
 local launchOrFocusApp = utils.launchOrFocusApp
 
--- Application bindings
-local appBindings = {
-    e = "Obsidian",
-    w = "Firefox Developer Edition",
-    i = "Slack",
-    o = "Spotify",
-    u = "Mail",
-    n = "Notion"
-}
-
 local function setup()
-    for key, appName in pairs(appBindings) do
-        hs.hotkey.bind(altCmd, key, function()
-            launchOrFocusApp(appName)
-        end)
-    end
+    hotkey.bindHotkeys(altCmd, {
+        e = function() launchOrFocusApp("Obsidian") end,
+        w = function() launchOrFocusApp("Firefox Developer Edition") end,
+        i = function() launchOrFocusApp("Slack") end,
+        o = function() launchOrFocusApp("Spotify") end,
+        u = function() launchOrFocusApp("Mail") end,
+        n = function() launchOrFocusApp("Notion") end,
+    })
 end
 
 return {
