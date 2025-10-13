@@ -890,7 +890,13 @@ local lsp_servers = {
       diagnostics = {
         globals = {
           'hs',
+          'spoon',
           'vim',
+        },
+      },
+      workspace = {
+        library = {
+          vim.fn.expand("~/.hammerspoon/Spoons/EmmyLua.spoon/annotations"),
         },
       },
     },
