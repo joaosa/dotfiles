@@ -12,7 +12,7 @@ local function setup()
     hotkey.bindHotkeys(altCmd, {
         e = function() launchOrFocusApp("Obsidian") end,
         w = function() launchOrFocusApp("Firefox Developer Edition") end,
-        i = function() launchOrFocusApp("Slack") end,
+        i = function() launchOrFocusApp("Discord") end,
         o = function() launchOrFocusApp("Spotify") end,
         u = function() launchOrFocusApp("Mail") end,
         n = function() launchOrFocusApp("Notion") end,
