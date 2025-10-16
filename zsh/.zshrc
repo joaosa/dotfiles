@@ -53,7 +53,6 @@ xkcd() {
 }
 
 # git
-alias git='hub'
 alias gcod="git branch | grep dev | xargs git checkout"
 alias gcom="git branch | grep main | xargs git checkout"
 alias gbpm='git branch --merged | grep -v "\*" | grep -v develop | grep -v master | xargs -n 1 git branch -d'
