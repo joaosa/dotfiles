@@ -1,68 +1,67 @@
 -----------------------------------------------
--- Scheduled Shutdown
+-- Sleep Focus Shutdown
 -----------------------------------------------
 
 local keys = require("config.keybindings")
 local hyper = keys.hyper
 
--- Get Sleep Focus bedtime from macOS
-local function getSleepFocusBedtime()
-    local cmd = [[python3 -c "
-import json, datetime, os
-with open(os.path.expanduser('~/Library/DoNotDisturb/DB/Assertions.json')) as f:
-    data = json.load(f)
-for r in data['data'][0].get('storeAssertionRecords', []):
-    d = r.get('assertionDetails', {})
-    if d.get('assertionDetailsModeIdentifier') == 'com.apple.sleep.sleep-mode':
-        ts = r.get('assertionStartDateTimestamp', 0)
-        t = datetime.datetime(2001,1,1,tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=ts)
-        local_t = t.astimezone()
-        print(local_t.hour, local_t.minute)
-        break
-" 2>/dev/null]]
+local POLL_INTERVAL = 60
+local SLEEP_DELAY = 3
 
-    local output = hs.execute(cmd)
-    if output then
-        local hour, minute = output:match("(%d+)%s+(%d+)")
-        if hour and minute then
-            return tonumber(hour), tonumber(minute)
+local sleepTimer = nil
+
+local function isSleepFocusActive()
+    local home = os.getenv("HOME")
+    if not home then return false end
+
+    local dbPath = home .. "/Library/DoNotDisturb/DB/Assertions.json"
+    local output, status = hs.execute(string.format("cat '%s' 2>&1", dbPath))
+
+    if not status or not output then return false end
+
+    local ok, data = pcall(hs.json.decode, output)
+    if not ok or not data or not data.data or not data.data[1] then return false end
+
+    local records = data.data[1].storeAssertionRecords
+    if not records then return false end
+
+    for _, record in ipairs(records) do
+        if record and record.assertionDetails then
+            local modeId = record.assertionDetails.assertionDetailsModeIdentifier
+            if modeId == "com.apple.sleep.sleep-mode" then
+                return true
+            end
         end
     end
-    return nil, nil
+
+    return false
 end
 
-local shutdownTimer = nil
+local function triggerSleep()
+    hs.alert.show("💤 Good night!")
+    hs.caffeinate.systemSleep()
+end
 
-local function cancelShutdown()
-    if shutdownTimer then
-        shutdownTimer:stop()
-        shutdownTimer = nil
-        hs.alert.show("🛑 Shutdown cancelled")
+local function cancelSleep()
+    if sleepTimer then
+        sleepTimer:stop()
+        sleepTimer = nil
+        hs.alert.show("🛑 Sleep cancelled")
+    end
+end
+
+local function checkSleepFocus()
+    if isSleepFocusActive() and not sleepTimer then
+        sleepTimer = hs.timer.doAfter(SLEEP_DELAY, triggerSleep)
+    elseif not isSleepFocusActive() and sleepTimer then
+        cancelSleep()
     end
 end
 
 local function setup()
-    -- Get bedtime from Sleep Focus
-    local hour, minute = getSleepFocusBedtime()
-    local shutdownConfig = {
-        enabled = hour ~= nil,
-        hour = hour,
-        minute = minute,
-    }
-
-    -- Schedule shutdown if bedtime is configured
-    if shutdownConfig.enabled then
-        shutdownTimer = hs.timer.doAt(
-            string.format("%02d:%02d", shutdownConfig.hour, shutdownConfig.minute),
-            function()
-                hs.alert.show("💤 Good night!")
-                hs.timer.doAfter(2, hs.caffeinate.systemSleep)
-            end
-        )
-    end
-
-    -- hyper+p: Cancel scheduled shutdown
-    hs.hotkey.bind(hyper, "p", cancelShutdown)
+    hs.timer.new(POLL_INTERVAL, checkSleepFocus):start()
+    checkSleepFocus()
+    hs.hotkey.bind(hyper, "p", cancelSleep)
 end
 
 return {
