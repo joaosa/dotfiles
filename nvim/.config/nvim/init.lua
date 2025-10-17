@@ -960,11 +960,20 @@ require("mason-lspconfig").setup({
 
 -- Configure all LSP servers with Neovim 0.11 API
 for server_name, server_settings in pairs(lsp_servers) do
-  vim.lsp.config[server_name] = {
+  local config = {
     capabilities = capabilities,
     on_attach = on_attach,
     settings = server_settings,
   }
+
+  -- Disable hover for ruff to avoid conflicts with pyright
+  if server_name == "ruff" then
+    config.handlers = {
+      ["textDocument/hover"] = function() end,
+    }
+  end
+
+  vim.lsp.config[server_name] = config
 end
 
 -- Enable all configured LSP servers
@@ -975,7 +984,8 @@ require("mason-null-ls").setup({
     "goimports",
     "prettierd",
     "sqlfluff",
-    "yamllint"  -- Used by ansible-lint
+    "yamllint",  -- Used by ansible-lint
+    "ruff",      -- Python linting and formatting
   },
   automatic_installation = true,
 })
