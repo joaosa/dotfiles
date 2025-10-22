@@ -71,6 +71,9 @@ docker-aws-login() {
 export BINARYEN=/usr/local/opt/binaryen
 export LLVM=/usr/local/opt/llvm/bin
 
+# go
+export PATH="$GOPATH/bin:$PATH"
+
 # fuzzy matching
 # setting ag as the default source for fzf
 export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
