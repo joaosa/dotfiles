@@ -151,7 +151,8 @@ zstyle ':prezto:module:ssh:load' identities 'id_ecdsa'
 #
 
 # Auto start a session when Zsh is launched in a local terminal.
-zstyle ':prezto:module:tmux:auto-start' local 'yes'
+# Disabled in favor of custom smart session launcher in .zshrc
+zstyle ':prezto:module:tmux:auto-start' local 'no'
 
 # Auto start a session when Zsh is launched in a SSH connection.
 # zstyle ':prezto:module:tmux:auto-start' remote 'yes'

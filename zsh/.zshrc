@@ -94,3 +94,31 @@ eval "$(starship init zsh)"
 # kubectl aliases
 [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
 function kubectl() { echo "+ kubectl $@">&2; command kubectl $@; }
+
+# Smart tmux session launcher
+# Ensures each terminal window gets its own tmux session
+# Only auto-start if not already in tmux
+if [[ -z "$TMUX" ]]; then
+  session_base="default"
+  session_name="$session_base"
+  counter=1
+
+  while true; do
+    # Check if session exists
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+      # Check if session has attached clients
+      attached_clients=$(tmux list-clients -t "$session_name" 2>/dev/null | wc -l)
+      if [[ "$attached_clients" -eq 0 ]]; then
+        # Session exists but no clients, attach to it
+        exec tmux attach-session -t "$session_name"
+      else
+        # Session has clients, try next number
+        session_name="${session_base}-${counter}"
+        counter=$((counter + 1))
+      fi
+    else
+      # Session doesn't exist, create it
+      exec tmux new-session -s "$session_name"
+    fi
+  done
+fi
