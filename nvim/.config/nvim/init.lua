@@ -101,138 +101,24 @@ require("lazy").setup({
   "sindrets/diffview.nvim",
   "akinsho/git-conflict.nvim",
   {
-    "ravitemer/mcphub.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
-    build = "bundled_build.lua",
+    "sudo-tee/opencode.nvim",
     config = function()
-      require("mcphub").setup({
-        use_bundled_binary = true,
+      require("opencode").setup({
+        keymap_prefix = '<localleader>',
       })
     end,
-  },
-  {
-    "olimorris/codecompanion.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "nvim-treesitter/nvim-treesitter",
-      "hrsh7th/nvim-cmp",
-      "nvim-telescope/telescope.nvim",
       {
-        "stevearc/dressing.nvim",
+        "MeanderingProgrammer/render-markdown.nvim",
         opts = {
-          input = {
-            prefer_width = 0.3,
-            max_width = 0.7,
-          },
+          anti_conceal = { enabled = false },
+          file_types = { 'markdown', 'opencode_output' },
         },
+        ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
       },
+      "folke/snacks.nvim",
     },
-    config = function()
-      require("codecompanion").setup({
-        strategies = {
-          chat = {
-            adapter = "ollama_coder",
-            roles = {
-              llm = "CodeCompanion",
-              user = "You",
-            },
-          },
-          inline = {
-            adapter = "ollama_coder",
-          },
-          agent = {
-            adapter = "ollama_coder",
-          },
-        },
-        adapters = {
-          http = {
-            claude = function()
-              return require("codecompanion.adapters").extend("anthropic", {
-                name = "claude",
-                env = {
-                  api_key = "AVANTE_ANTHROPIC_API_KEY",
-                },
-                schema = {
-                  model = {
-                    default = "claude-sonnet-4-20250514",
-                  },
-                },
-              })
-            end,
-            opus = function()
-              return require("codecompanion.adapters").extend("anthropic", {
-                name = "opus",
-                env = {
-                  api_key = "AVANTE_ANTHROPIC_API_KEY",
-                },
-                schema = {
-                  model = {
-                    default = "claude-opus-4-20250514",
-                  },
-                },
-              })
-            end,
-            kimi = function()
-              return require("codecompanion.adapters").extend("openai", {
-                name = "kimi",
-                url = "https://api.moonshot.ai/v1",
-                env = {
-                  api_key = "AVANTE_MOONSHOT_API_KEY",
-                },
-                schema = {
-                  model = {
-                    default = "kimi-k2-0711-preview",
-                  },
-                },
-              })
-            end,
-            ollama_coder = function()
-              return require("codecompanion.adapters").extend("ollama", {
-                name = "ollama_coder",
-                schema = {
-                  model = {
-                    -- default = "qwen3:30b-a3b-instruct-2507-fp16"
-                    default = "hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL"
-                  },
-                },
-              })
-            end,
-          },
-        },
-        display = {
-          chat = {
-            window = {
-              layout = "vertical",
-              width = 0.3,
-              height = 0.85,
-              relative = "editor",
-              border = "rounded",
-            },
-            show_settings = true,
-            show_token_count = true,
-          },
-        },
-        extensions = {
-          mcphub = {
-            callback = "mcphub.extensions.codecompanion",
-            opts = {
-              -- MCP Tools
-              make_tools = true,                    -- Make individual tools (@server__tool) and server groups (@server) from MCP servers
-              show_server_tools_in_chat = true,     -- Show individual tools in chat completion (when make_tools=true)
-              add_mcp_prefix_to_tool_names = false, -- Add mcp__ prefix (e.g `@mcp__github`, `@mcp__neovim__list_issues`)
-              show_result_in_chat = true,           -- Show tool results directly in chat buffer
-              format_tool = nil,                    -- function(tool_name:string, tool: CodeCompanion.Agent.Tool) : string Function to format tool names to show in the chat buffer
-              -- MCP Resources
-              make_vars = true,                     -- Convert MCP resources to #variables for prompts
-              -- MCP Prompts
-              make_slash_commands = true,           -- Add MCP prompts as /slash commands
-            }
-          }
-        },
-      })
-    end,
   },
 })
 
@@ -329,7 +215,7 @@ vim.api.nvim_create_autocmd("FileType", {
     "tsplayground",
     "PlenaryTestPopup",
     "netrw",
-    "codecompanion",
+    "opencode",
   },
   callback = function(event)
     vim.bo[event.buf].buflisted = false
@@ -520,33 +406,15 @@ require("which-key").add({
   { "<localleader>gr",  "<cmd>!go run %<cr>",                                                                           desc = "Run current file" },
   { "<localleader>gb",  "<cmd>!go build<cr>",                                                                           desc = "Build package" },
 
-  -- CodeCompanion mappings
-  { "<localleader>ac",  "<cmd>CodeCompanionChat<cr>",                                                                  desc = "codecompanion chat",        mode = { "n", "v" } },
-  { "<localleader>ae",  "<cmd>CodeCompanion<cr>",                                                                      desc = "codecompanion inline edit", mode = { "n", "v" } },
-  { "<localleader>aa",  "<cmd>CodeCompanionActions<cr>",                                                               desc = "codecompanion actions",     mode = { "n", "v" } },
-  { "<localleader>ad",  "<cmd>CodeCompanionChat Add<cr>",                                                              desc = "codecompanion add to chat", mode = { "n", "v" } },
+  -- Opencode mappings
+  { "<localleader>og",  "<cmd>Opencode<cr>",                                                                           desc = "opencode toggle",          mode = { "n", "v" } },
+  { "<localleader>oi",  "<cmd>Opencode open input<cr>",                                                               desc = "opencode open input",      mode = { "n", "v" } },
+  { "<localleader>oo",  "<cmd>Opencode open output<cr>",                                                              desc = "opencode open output",     mode = { "n", "v" } },
+  { "<localleader>ot",  "<cmd>Opencode toggle focus<cr>",                                                             desc = "opencode toggle focus",    mode = { "n", "v" } },
+  { "<localleader>oq",  "<cmd>Opencode close<cr>",                                                                    desc = "opencode close",           mode = { "n", "v" } },
 
   -- MCPHub mappings
   { "<localleader>mc",  "<cmd>MCPHub<cr>",                                                                             desc = "mcphub",                    mode = { "n", "v" } },
-
-  -- Quick model selection (without switching default)
-  { "<localleader>am",  group = "codecompanion models" },
-  { "<localleader>amc", function() vim.cmd("CodeCompanionChat claude") end,                                            desc = "chat with claude sonnet 4" },
-  { "<localleader>amo", function() vim.cmd("CodeCompanionChat opus") end,                                              desc = "chat with claude opus 4" },
-  { "<localleader>amk", function() vim.cmd("CodeCompanionChat kimi") end,                                              desc = "chat with kimi k2" },
-  { "<localleader>aml", function() vim.cmd("CodeCompanionChat ollama_coder") end,                                      desc = "chat with local ollama" },
-
-  -- Inline editing with specific models
-  { "<localleader>aic", function() vim.cmd("CodeCompanion claude") end,                                                desc = "inline edit with claude",   mode = { "n", "v" } },
-  { "<localleader>aio", function() vim.cmd("CodeCompanion opus") end,                                                  desc = "inline edit with opus",     mode = { "n", "v" } },
-  { "<localleader>aik", function() vim.cmd("CodeCompanion kimi") end,                                                  desc = "inline edit with kimi",     mode = { "n", "v" } },
-  { "<localleader>ail", function() vim.cmd("CodeCompanion ollama_coder") end,                                          desc = "inline edit with ollama",   mode = { "n", "v" } },
-
-  -- Buffer management
-  { "<localleader>ab",  group = "codecompanion buffers" },
-  { "<localleader>abs", "<cmd>CodeCompanionChat Save<cr>",                                                             desc = "save current chat" },
-  { "<localleader>abl", "<cmd>CodeCompanionChat Load<cr>",                                                             desc = "load saved chat" },
-  { "<localleader>abd", "<cmd>CodeCompanionChat Delete<cr>",                                                           desc = "delete current chat" },
 
   -- Navigation mappings
   { "]t",               function() require("todo-comments").jump_next() end,                                           desc = "Next todo comment" },
