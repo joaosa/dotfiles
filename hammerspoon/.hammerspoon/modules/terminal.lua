@@ -9,7 +9,6 @@ local windowLib = require("lib.window")
 local windowMgmt = require("modules.window-management")
 
 local altCmd = keys.altCmd
-local hyper = keys.hyper
 local TIMING = config.TIMING
 local pluralize = utils.pluralize
 local debounce = utils.debounce
@@ -238,9 +237,6 @@ local function setup()
     local debouncedResizeTerminals = debounce(resizeTerminals, 0.5)
     local screenWatcher = hs.screen.watcher.new(debouncedResizeTerminals)
     screenWatcher:start()
-
-    -- Manual trigger for testing: hyper+z
-    hs.hotkey.bind(hyper, "z", resizeTerminals)
 end
 
 return {
