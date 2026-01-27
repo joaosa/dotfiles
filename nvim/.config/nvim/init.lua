@@ -875,7 +875,8 @@ null_ls.setup({
         buffer = bufnr,
         callback = function()
           vim.lsp.buf.format({
-            timeout_ms = 20000,
+            async = false,
+            timeout_ms = 1000,
             filter = function(cli)
               return cli.name == "null-ls"
             end,
@@ -890,20 +891,29 @@ null_ls.setup({
     null_ls.builtins.formatting.sqlfluff.with(sqlfluff),
     null_ls.builtins.diagnostics.sqlfluff.with(sqlfluff),
     null_ls.builtins.formatting.goimports,
-    null_ls.builtins.completion.spell,
     null_ls.builtins.formatting.prettierd,
   },
 })
 
--- Auto-fix Ansible files after save
+-- Auto-fix Ansible files after save (async)
 vim.api.nvim_create_autocmd("BufWritePost", {
   pattern = { "*.yml", "*.yaml" },
   callback = function()
     if vim.bo.filetype == "yaml.ansible" then
       local bufnr = vim.api.nvim_get_current_buf()
-      vim.cmd("silent !ansible-lint --fix %")
-      -- Use checktime instead of edit to avoid LSP issues
-      vim.cmd("checktime")
+      local filepath = vim.fn.expand("%:p")
+      vim.fn.jobstart({ "ansible-lint", "--fix", filepath }, {
+        on_exit = function()
+          -- Reload buffer after async lint completes
+          vim.schedule(function()
+            if vim.api.nvim_buf_is_valid(bufnr) then
+              vim.api.nvim_buf_call(bufnr, function()
+                vim.cmd("checktime")
+              end)
+            end
+          end)
+        end,
+      })
     end
   end,
 })

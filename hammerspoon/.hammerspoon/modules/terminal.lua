@@ -13,8 +13,8 @@ local hyper = keys.hyper
 local TIMING = config.TIMING
 local pluralize = utils.pluralize
 local debounce = utils.debounce
-local focusAndSleep = windowLib.focusAndSleep
 local frames = windowMgmt.frames
+local focusAndSleep = windowLib.focusAndSleep
 
 
 -- Logger for debugging
@@ -48,64 +48,103 @@ local function getAllTerminalWindows()
     return allWindows
 end
 
--- Find window by frame
-local function getWindowByFrame(targetFrame)
-    local screenFrame = hs.screen.mainScreen():frame()
-
+-- Find window by frame, optionally restricted to a specific screen
+local function getWindowByFrame(targetFrame, screen)
     for _, window in ipairs(getAllTerminalWindows()) do
-        local unit = window:frame():toUnitRect(screenFrame)
-        if unit:equals(hs.geometry(targetFrame)) then
-            return window
+        local winScreen = window:screen()
+        if winScreen and (not screen or winScreen:id() == screen:id()) then
+            local unit = window:frame():toUnitRect(winScreen:frame())
+            if unit:equals(hs.geometry(targetFrame)) then
+                return window
+            end
         end
     end
     return nil
 end
 
--- Activate window with optional raise
-local function activateWindow(window, raise)
-    window:application():activate()
+-- Focus window with optional raise (without activating the app which can switch screens)
+local function focusWindow(window, raise)
     if raise then window:raise() end
     window:focus()
 end
 
+-- Move window to screen and resize
+local function moveWindowToScreen(window, targetScreen, frame, raise)
+    local targetSpaceID = hs.spaces.activeSpaceOnScreen(targetScreen)
+    hs.spaces.moveWindowToSpace(window, targetSpaceID)
+    local screenFrame = targetScreen:frame()
+    local targetGeom = hs.geometry(frame)
+    window:setFrame({
+        x = screenFrame.x + (targetGeom.x * screenFrame.w),
+        y = screenFrame.y + (targetGeom.y * screenFrame.h),
+        w = targetGeom.w * screenFrame.w,
+        h = targetGeom.h * screenFrame.h,
+    })
+    hs.timer.doAfter(0.1, function()
+        focusWindow(window, raise)
+    end)
+end
+
 -- Toggle terminal window
 local function toggleTerminal(type)
-    local config = terminalConfigs[type]
-    local window = getWindowByFrame(config.frame)
+    local cfg = terminalConfigs[type]
+    local focusedWin = hs.window.focusedWindow()
+    local currentScreen = focusedWin and focusedWin:screen() or hs.screen.mainScreen()
 
-    -- Create window if it doesn't exist
+    -- First check if window exists on current screen
+    local window = getWindowByFrame(cfg.frame, currentScreen)
+
+    -- If not on current screen, check other screens
     if not window then
-        log.i("Creating", type, "window")
+        local existingWindow = getWindowByFrame(cfg.frame)
+        if existingWindow then
+            -- Move existing window to current screen
+            log.i("Moving", type, "window to screen", currentScreen:name())
+            moveWindowToScreen(existingWindow, currentScreen, cfg.frame, cfg.raise)
+            return
+        end
+    end
+
+    -- Create window if it doesn't exist anywhere
+    if not window then
+        log.i("Creating", type, "window on screen", currentScreen:name())
+        local windowCountBefore = #getAllTerminalWindows()
+
         os.execute("open -n /Applications/Alacritty.app")
-        hs.timer.doAfter(0.3, function()
-            local wins = getAllTerminalWindows()
-            local newest = wins[#wins]
-            if newest then
-                newest:moveToUnit(config.frame)
-                activateWindow(newest, config.raise)
-            end
-        end)
+
+        -- Wait for new window to appear
+        hs.timer.waitUntil(
+            function()
+                return #getAllTerminalWindows() > windowCountBefore
+            end,
+            function()
+                local wins = getAllTerminalWindows()
+                local newest = wins[#wins]
+                if newest then
+                    moveWindowToScreen(newest, currentScreen, cfg.frame, cfg.raise)
+                end
+            end,
+            0.05
+        )
         return
     end
 
-    local app = window:application()
-    local focused = hs.window.focusedWindow()
-
     -- Hide if already focused (toggle off)
-    if focused and focused:id() == window:id() then
+    if focusedWin and focusedWin:id() == window:id() then
+        local app = window:application()
         app:hide()
         return
     end
 
     -- Hide other window if exclusive mode
-    if config.hideOther then
-        local other = getWindowByFrame(terminalConfigs[config.hideOther].frame)
+    if cfg.hideOther then
+        local other = getWindowByFrame(terminalConfigs[cfg.hideOther].frame, currentScreen)
         if other and other:isVisible() then
             other:application():hide()
         end
     end
 
-    activateWindow(window, config.raise)
+    focusWindow(window, cfg.raise)
 end
 
 -- Find matching terminal config for a window
