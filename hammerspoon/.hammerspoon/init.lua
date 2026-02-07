@@ -27,6 +27,7 @@ local modules = {
     "date-paste",
     "utilities",
     "whisper",
+    "app-chooser",
     "shutdown",
 }
 
