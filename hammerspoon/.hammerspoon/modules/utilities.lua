@@ -15,8 +15,8 @@ local function setup()
             hs.alert.show(wifi and ("WiFi: " .. wifi) or "No WiFi connected", {},
                 wifi and TIMING.ALERT_LONG or TIMING.ALERT_MEDIUM)
         end,
-        l = hs.caffeinate.lockScreen,  -- Lock screen
-        s = hs.caffeinate.systemSleep,  -- Sleep
+        l = hs.caffeinate.lockScreen,
+        z = hs.caffeinate.systemSleep,
     })
 end
 
