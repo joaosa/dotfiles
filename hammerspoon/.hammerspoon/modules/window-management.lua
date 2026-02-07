@@ -63,9 +63,9 @@ local function setup()
     end
 
     -- Move to display: altCmd + 1/2/3/...
-    local displays = hs.screen.allScreens()
-    for i = 1, #displays do
+    for i = 1, 9 do
         bindWindowOp(altCmd, tostring(i), function(window)
+            local displays = hs.screen.allScreens()
             if displays[i] then
                 window:moveToScreen(displays[i], false, true)
                 return true
