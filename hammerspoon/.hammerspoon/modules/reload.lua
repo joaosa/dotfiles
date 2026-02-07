@@ -49,41 +49,32 @@ local function reloadConfig(files)
 end
 
 local function resolveRealPath(path)
-    -- Use Python to resolve symlinks to absolute real paths
-    local cmd = string.format("python3 -c \"import os; print(os.path.realpath('%s'))\" 2>&1", path)
-    local output, status = hs.execute(cmd)
-
+    local output, status = hs.execute(string.format("readlink '%s' 2>/dev/null", path))
     if status and output and output ~= "" then
-        local resolved = output:gsub("\n", "")
-        -- Verify it's not an error message
-        if not resolved:match("^Traceback") and not resolved:match("Error") then
-            return resolved
-        end
+        return output:gsub("\n", "")
     end
-
+    local attr = hs.fs.symlinkAttributes(path)
+    if attr then return path end
     log.w("Failed to resolve path:", path, "- using original")
     return nil
 end
 
 local function isDirectory(path)
-    local output = hs.execute(string.format("test -d '%s' && echo 'yes' || echo 'no'", path))
-    return output and output:match("yes") ~= nil
+    return hs.fs.attributes(path, "mode") == "directory"
 end
 
 local function discoverSubdirectories(baseDir)
-    -- Find all immediate subdirectories (non-recursive)
-    local cmd = string.format("find '%s' -maxdepth 1 -type d -not -path '%s'", baseDir, baseDir)
-    local output = hs.execute(cmd)
-
-    if not output or output == "" then
-        return {}
-    end
-
     local subdirs = {}
-    for dir in output:gmatch("[^\n]+") do
-        table.insert(subdirs, dir)
+    local iter, dir_obj = hs.fs.dir(baseDir)
+    if not iter then return subdirs end
+    for entry in iter, dir_obj do
+        if entry ~= "." and entry ~= ".." then
+            local fullPath = baseDir .. "/" .. entry
+            if isDirectory(fullPath) then
+                table.insert(subdirs, fullPath)
+            end
+        end
     end
-
     return subdirs
 end
 
