@@ -28,6 +28,7 @@ local modules = {
     "utilities",
     "whisper",
     "app-chooser",
+    "caffeine",
     "shutdown",
 }
 
