@@ -15,9 +15,12 @@ local function isSleepFocusActive()
     if not home then return false end
 
     local dbPath = home .. "/Library/DoNotDisturb/DB/Assertions.json"
-    local output, status = hs.execute(string.format("cat '%s' 2>&1", dbPath))
+    local file = io.open(dbPath, "r")
+    if not file then return false end
+    local output = file:read("*a")
+    file:close()
 
-    if not status or not output then return false end
+    if not output or output == "" then return false end
 
     local ok, data = pcall(hs.json.decode, output)
     if not ok or not data or not data.data or not data.data[1] then return false end
