@@ -20,7 +20,10 @@ local frames = {
     leftHalf = "[50,100,0,0]",
     topHalf = "[100,50,0,0]",
     bottomHalf = "[0,50,100,100]",
-    pulldown = "[100,40,0,0]"
+    pulldown = "[100,40,0,0]",
+    leftThird = "[33,100,0,0]",
+    centerThird = "[67,100,33,0]",
+    rightThird = "[100,100,67,0]",
 }
 
 local function setup()
@@ -34,7 +37,10 @@ local function setup()
         c = frames.leftBottomQuarter,
         v = frames.rightBottomQuarter,
         s = frames.topHalf,
-        x = frames.bottomHalf
+        x = frames.bottomHalf,
+        e = frames.leftThird,
+        a = frames.centerThird,
+        q = frames.rightThird,
     }
 
     for key, pos in pairs(windowPositionBindings) do
