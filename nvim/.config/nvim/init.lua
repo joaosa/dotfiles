@@ -139,8 +139,6 @@ vim.g.netrw_winsize = 25
 -- show trailing whitespace
 vim.opt.list = true
 vim.opt.listchars = { tab = '▸ ', trail = '▫' }
--- do not redraw while running macros
-vim.opt.lazyredraw = true
 -- show line numbers
 vim.opt.number = true
 -- show where you are
