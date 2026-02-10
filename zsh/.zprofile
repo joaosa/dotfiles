@@ -63,8 +63,6 @@ if (( $#commands[(i)lesspipe(|.sh)] )); then
   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
 fi
 
-# tmux true colors - https://github.com/gruvbox-community/gruvbox/wiki/Terminal-specific#3-colors-look-off-in-tmux
-export TERM=xterm-256color
 # Golang
 export GOPATH="$HOME/.go"
 export PATH="$PATH:${GOPATH//://bin:}/bin"
