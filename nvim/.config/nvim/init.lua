@@ -464,22 +464,10 @@ require("which-key").add({
   { "[s", desc = "Previous misspelled word" },
 
   -- Diagnostic navigation
-  { "]e", vim.diagnostic.goto_next,         desc = "Next diagnostic" },
-  { "[e", vim.diagnostic.goto_prev,         desc = "Previous diagnostic" },
-  {
-    "]E",
-    function()
-      vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
-    end,
-    desc = "Next error"
-  },
-  {
-    "[E",
-    function()
-      vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR })
-    end,
-    desc = "Previous error"
-  },
+  { "]e", function() vim.diagnostic.jump({ count = 1 }) end,                                              desc = "Next diagnostic" },
+  { "[e", function() vim.diagnostic.jump({ count = -1 }) end,                                             desc = "Previous diagnostic" },
+  { "]E", function() vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR }) end,    desc = "Next error" },
+  { "[E", function() vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR }) end,   desc = "Previous error" },
 
   -- Quick typo fixes
   { "<leader>f", "1z=",                                                                                           desc = "Fix typo with first suggestion" },
