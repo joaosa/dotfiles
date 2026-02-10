@@ -344,7 +344,7 @@ require("which-key").add({
   { "<leader>a",        ":Telescope live_grep<cr>",                                                                    desc = "search word" },
   { "<leader>tt",       ":Telescope git_files<cr>",                                                                    desc = "search versioned files" },
   { "<leader>t",        ":Telescope find_files<cr>",                                                                   desc = "search files" },
-  { "<leader>s",        ":Telescope grep_string<cr>",                                                                  desc = "search cursor" },
+  { "<leader>*",        ":Telescope grep_string<cr>",                                                                  desc = "search cursor" },
   { "<leader>c",        ":Telescope command_history<cr>",                                                              desc = "command history" },
   { "<leader>q",        ":Telescope quickfix<cr>",                                                                     desc = "telescope quickfix" },
   { "<leader>w",        ":Telescope loclist<cr>",                                                                      desc = "telescope loclist" },
