@@ -646,7 +646,7 @@ require 'nvim-treesitter.configs'.setup {
       set_jumps = true,
       goto_next_start = {
         ["]f"] = "@function.outer",
-        ["]c"] = "@class.outer",
+        ["]k"] = "@class.outer",
         ["]a"] = "@parameter.inner",
         ["]i"] = "@conditional.outer",
         ["]l"] = "@loop.outer",
@@ -654,7 +654,7 @@ require 'nvim-treesitter.configs'.setup {
       },
       goto_next_end = {
         ["]F"] = "@function.outer",
-        ["]C"] = "@class.outer",
+        ["]K"] = "@class.outer",
         ["]A"] = "@parameter.inner",
         ["]I"] = "@conditional.outer",
         ["]L"] = "@loop.outer",
@@ -662,7 +662,7 @@ require 'nvim-treesitter.configs'.setup {
       },
       goto_previous_start = {
         ["[f"] = "@function.outer",
-        ["[c"] = "@class.outer",
+        ["[k"] = "@class.outer",
         ["[a"] = "@parameter.inner",
         ["[i"] = "@conditional.outer",
         ["[l"] = "@loop.outer",
@@ -670,7 +670,7 @@ require 'nvim-treesitter.configs'.setup {
       },
       goto_previous_end = {
         ["[F"] = "@function.outer",
-        ["[C"] = "@class.outer",
+        ["[K"] = "@class.outer",
         ["[A"] = "@parameter.inner",
         ["[I"] = "@conditional.outer",
         ["[L"] = "@loop.outer",
