@@ -49,7 +49,7 @@ local function reloadConfig(files)
 end
 
 local function resolveRealPath(path)
-    local output, status = hs.execute(string.format("readlink '%s' 2>/dev/null", path))
+    local output, status = hs.execute(string.format("readlink %s 2>/dev/null", string.format("%q", path)))
     if status and output and output ~= "" then
         return output:gsub("\n", "")
     end
