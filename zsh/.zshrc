@@ -63,8 +63,8 @@ alias gtx='git tag -l | xargs git tag -d && git fetch -t'
 # docker AWS login
 docker-aws-login() {
   vault_user="$1"
-  ecr_repo="$(aws-vault exec $vault_user -- aws ecr get-authorization-token --output text --query 'authorizationData[].proxyEndpoint')"
-  login="$(aws-vault exec $vault_user -- aws ecr get-login-password)"
+  ecr_repo="$(aws-vault exec "$vault_user" -- aws ecr get-authorization-token --output text --query 'authorizationData[].proxyEndpoint')"
+  login="$(aws-vault exec "$vault_user" -- aws ecr get-login-password)"
   echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
 }
 
