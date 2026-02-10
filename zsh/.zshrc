@@ -96,7 +96,7 @@ eval "$(starship init zsh)"
 
 # kubectl aliases
 [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
-function kubectl() { echo "+ kubectl $@">&2; command kubectl $@; }
+function kubectl() { echo "+ kubectl $@">&2; command kubectl "$@"; }
 
 # Auto-attach to tmux: reuse unattached sessions or create new one
 [[ -n "$TMUX" ]] && return
