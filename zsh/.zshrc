@@ -52,11 +52,6 @@ function nvim() {
 # prezto history
 export HISTSIZE=1000000 SAVEHIST=1000000 HISTFILE=~/.zsh_history
 
-# xkcd
-# ref - https://www.commandlinefu.com/commands/view/4167/view-the-newest-xkcd-comic
-xkcd() {
-  wget -qO- http://xkcd.com/ | gtee >(feh $(rg -o 'https://imgs[^/]+/comics/[^"]+\.\w{3}' | cut -f1,2 -d:) &) >(rg -Po '(?<=(\w{3})" title=").*(?=" alt)' | cut -f1,2 -d:) 1>/dev/null
-}
 
 # git
 alias gcod="git branch | grep dev | xargs git checkout"
