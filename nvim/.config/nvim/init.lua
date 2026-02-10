@@ -158,9 +158,7 @@ local config_dir = vim.fn.expand('~/.config/nvim')
 if vim.fn.has('persistent_undo') == 1 then
   local undo_dir_path = config_dir .. '/undo'
 
-  -- create dirs
-  vim.fn.system('mkdir -p ' .. config_dir)
-  vim.fn.system('mkdir -p ' .. undo_dir_path)
+  vim.fn.mkdir(undo_dir_path, "p")
 
   -- maintain undo history between sessions
   vim.opt.undodir = undo_dir_path
