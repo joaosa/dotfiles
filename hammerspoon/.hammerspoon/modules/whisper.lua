@@ -22,7 +22,7 @@ local log = hs.logger.new('whisper', 'info')
 local whisper = {
     recording = nil,
     task = nil,
-    tempFile = os.getenv("HOME") .. "/.hammerspoon_whisper.wav",
+    tempFile = nil,
     model = os.getenv("HOME") .. "/.local/share/whisper/ggml-base.en.bin",
     binary = nil,
     sox = nil,
@@ -34,7 +34,7 @@ local function startRecording()
         return
     end
 
-    pcall(os.remove, whisper.tempFile)
+    whisper.tempFile = os.tmpname() .. ".wav"
     hs.alert.show("🎤 Recording...")
 
     whisper.recording = hs.task.new(whisper.sox, function(code)
@@ -58,6 +58,7 @@ local function stopRecordingAndTranscribe()
         if whisper.task then
             whisper.task:terminate()
             whisper.task = nil
+            pcall(os.remove, whisper.tempFile)
             hs.alert.show("❌ Timeout")
         end
     end)
