@@ -15,5 +15,13 @@
 	file-style = bold yellow ul
 	file-decoration-style = none
 	hunk-header-decoration-style = yellow box
+[pull]
+	rebase = true
+[merge]
+	conflictstyle = zdiff3
+[push]
+	autoSetupRemote = true
+[rerere]
+	enabled = true
 [init]
 	defaultBranch = main
