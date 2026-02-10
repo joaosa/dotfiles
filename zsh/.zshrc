@@ -13,6 +13,9 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+# PATH
+export PATH="$HOME/.local/bin:$PATH"
+
 # Customize to your needs...
 # vim
 # fix the delay switching modes
@@ -73,9 +76,6 @@ docker-aws-login() {
 # wasm
 export BINARYEN=/usr/local/opt/binaryen
 export LLVM=/usr/local/opt/llvm/bin
-
-# go
-export PATH="$GOPATH/bin:$PATH"
 
 # fuzzy matching
 # setting ag as the default source for fzf
