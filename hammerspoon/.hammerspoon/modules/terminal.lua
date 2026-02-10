@@ -109,7 +109,7 @@ local function toggleTerminal(type)
         log.i("Creating", type, "window on screen", currentScreen:name())
         local windowCountBefore = #getAllTerminalWindows()
 
-        os.execute("open -n /Applications/Alacritty.app")
+        hs.task.new("/usr/bin/open", nil, {"-n", "/Applications/Alacritty.app"}):start()
 
         -- Wait for new window to appear
         hs.timer.waitUntil(
