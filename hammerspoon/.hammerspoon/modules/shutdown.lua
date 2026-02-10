@@ -5,7 +5,7 @@
 local keys = require("config.keybindings")
 local hyper = keys.hyper
 
-local POLL_INTERVAL = 60
+local POLL_INTERVAL = 10
 local SLEEP_DELAY = 3
 
 local sleepTimer = nil
