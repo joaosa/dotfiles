@@ -19,6 +19,8 @@ local focusAndSleep = windowLib.focusAndSleep
 -- Logger for debugging
 local log = hs.logger.new('terminal', 'info')
 
+local launching = false
+
 -- Terminal window configurations
 local terminalConfigs = {
     pulldown = {
@@ -106,10 +108,16 @@ local function toggleTerminal(type)
 
     -- Create window if it doesn't exist anywhere
     if not window then
+        if launching then return end
+        launching = true
         log.i("Creating", type, "window on screen", currentScreen:name())
         local windowCountBefore = #getAllTerminalWindows()
 
         hs.task.new("/usr/bin/open", nil, {"-n", "/Applications/Alacritty.app"}):start()
+
+        local launchTimeout = hs.timer.doAfter(5, function()
+            launching = false
+        end)
 
         -- Wait for new window to appear
         hs.timer.waitUntil(
@@ -117,6 +125,8 @@ local function toggleTerminal(type)
                 return #getAllTerminalWindows() > windowCountBefore
             end,
             function()
+                launchTimeout:stop()
+                launching = false
                 local wins = getAllTerminalWindows()
                 local newest = wins[#wins]
                 if newest then
