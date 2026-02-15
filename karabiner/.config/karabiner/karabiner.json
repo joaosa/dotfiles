@@ -12,7 +12,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -47,7 +47,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -87,7 +87,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_if"
                                     },
@@ -192,7 +192,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -238,7 +238,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -279,7 +279,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -320,7 +320,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -349,7 +349,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -378,7 +378,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -407,7 +407,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -436,7 +436,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -466,7 +466,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -496,7 +496,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -533,7 +533,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -568,7 +568,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -603,7 +603,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -650,7 +650,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -691,7 +691,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -726,7 +726,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -761,7 +761,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -796,7 +796,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -843,7 +843,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -890,7 +890,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -943,7 +943,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -987,7 +987,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1018,7 +1018,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1049,7 +1049,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1085,7 +1085,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1132,7 +1132,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1191,7 +1191,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1238,7 +1238,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1285,7 +1285,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1339,7 +1339,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1391,7 +1391,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1443,7 +1443,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1501,7 +1501,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1548,7 +1548,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1600,7 +1600,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1652,7 +1652,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1702,7 +1702,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1749,7 +1749,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1808,7 +1808,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1855,7 +1855,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1902,7 +1902,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -1956,7 +1956,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2008,7 +2008,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2060,7 +2060,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2118,7 +2118,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2165,7 +2165,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2217,7 +2217,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2269,7 +2269,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2326,7 +2326,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2373,7 +2373,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2444,7 +2444,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2503,7 +2503,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2562,7 +2562,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2628,7 +2628,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2692,7 +2692,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2756,7 +2756,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2814,7 +2814,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2873,7 +2873,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -2937,7 +2937,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3001,7 +3001,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3070,7 +3070,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3096,7 +3096,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3127,7 +3127,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3156,7 +3156,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3190,7 +3190,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3219,7 +3219,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3259,7 +3259,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3293,7 +3293,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3327,7 +3327,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3361,7 +3361,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3395,7 +3395,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3424,7 +3424,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3453,7 +3453,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3488,7 +3488,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3522,7 +3522,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3556,7 +3556,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3603,7 +3603,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3643,7 +3643,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3677,7 +3677,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3711,7 +3711,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3750,7 +3750,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3785,7 +3785,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3831,7 +3831,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3866,7 +3866,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3912,7 +3912,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -3956,7 +3956,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4013,7 +4013,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4051,7 +4051,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4089,7 +4089,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4132,7 +4132,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4163,7 +4163,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4194,7 +4194,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4225,7 +4225,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4256,7 +4256,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4287,7 +4287,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4318,7 +4318,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4349,7 +4349,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4380,7 +4380,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     },
@@ -4478,7 +4478,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_unless"
                                     }
@@ -4558,7 +4558,7 @@
                                         "bundle_identifiers": [
                                             "^org\\.alacritty$",
                                             "^md\\.obsidian$",
-                                            "^org\\.mozilla\\.firefox$"
+                                            "^org\\.mozilla\\.firefox(developeredition)?$"
                                         ],
                                         "type": "frontmost_application_if"
                                     }
