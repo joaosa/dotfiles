@@ -336,7 +336,7 @@ require("flash").setup()
 
 require("which-key").add({
   -- LSP mappings
-  { "gh",               "<cmd>Trouble lsp_references<cr>",                                                             desc = "LSP references" },
+  { "gh",               "<cmd>Trouble lsp_references toggle<cr>",                                                      desc = "LSP references" },
   { "gr",               vim.lsp.buf.rename,                                                                            desc = "LSP rename" },
   { "gd",               vim.lsp.buf.definition,                                                                        desc = "LSP definition" },
   { "K",                vim.lsp.buf.hover,                                                                             desc = "LSP hover" },
@@ -378,13 +378,12 @@ require("which-key").add({
   { "<leader>gc",       "<cmd>GitConflictListQf<cr>",                                                                  desc = "git conflicts" },
 
   -- Trouble mappings
-  { "<leader>xx",       "<cmd>Trouble<cr>",                                                                            desc = "trouble" },
-  { "<leader>xw",       "<cmd>Trouble workspace_diagnostics<cr>",                                                      desc = "workspace diagnostics" },
-  { "<leader>xd",       "<cmd>Trouble document_diagnostics<cr>",                                                       desc = "document diagnostics" },
-  { "<leader>xq",       "<cmd>Trouble quickfix<cr>",                                                                   desc = "trouble quickfix" },
-  { "<leader>xl",       "<cmd>Trouble loclist<cr>",                                                                    desc = "trouble loclist" },
-  { "<leader>xR",       "<cmd>Trouble lsp_references<cr>",                                                             desc = "trouble lsp refs" },
-  { "<leader>xt",       "<cmd>TodoTrouble<cr>",                                                                        desc = "todos" },
+  { "<leader>xx",       "<cmd>Trouble diagnostics toggle<cr>",                                                         desc = "diagnostics" },
+  { "<leader>xd",       "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",                                            desc = "buffer diagnostics" },
+  { "<leader>xq",       "<cmd>Trouble qflist toggle<cr>",                                                              desc = "quickfix" },
+  { "<leader>xl",       "<cmd>Trouble loclist toggle<cr>",                                                             desc = "loclist" },
+  { "<leader>xR",       "<cmd>Trouble lsp_references toggle<cr>",                                                      desc = "lsp refs" },
+  { "<leader>xt",       "<cmd>Trouble todo toggle<cr>",                                                                desc = "todos" },
 
   -- Treesitter text object swap mappings
   { "<leader>s",        group = "swap" },
@@ -526,11 +525,11 @@ telescope.setup {
   defaults = {
     mappings = {
       i = {
-        ["<c-t>"] = trouble.open_with_trouble,
+        ["<c-t>"] = require("trouble.sources.telescope").open,
         ["<esc>"] = actions.close,
       },
       n = {
-        ["<c-t>"] = trouble.open_with_trouble,
+        ["<c-t>"] = require("trouble.sources.telescope").open,
         ["q"] = actions.close,
       },
     },
