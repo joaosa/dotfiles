@@ -29,7 +29,14 @@ require("lazy").setup({
   "nvim-lualine/lualine.nvim",
   "edkolev/tmuxline.vim",
   "folke/zen-mode.nvim",
-  "goolord/alpha-nvim",
+  {
+    "folke/snacks.nvim",
+    priority = 1000,
+    lazy = false,
+    opts = {
+      dashboard = { enabled = true },
+    },
+  },
 
   -- behaviour
   "m4xshen/hardtime.nvim",
@@ -294,8 +301,6 @@ vim.g.tmuxline_theme = {
 -- Setup colorscheme and plugins
 vim.cmd("colorscheme gruvbox")
 require('guess-indent').setup {}
-require 'alpha'.setup(require 'alpha.themes.startify'.config)
-
 local navic = require("nvim-navic")
 require('lualine').setup {
   options = { theme = 'gruvbox' },
