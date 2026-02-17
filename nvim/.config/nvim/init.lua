@@ -70,7 +70,7 @@ require("lazy").setup({
   -- discoverability
   "nvim-lua/plenary.nvim",
   "folke/which-key.nvim",
-  "unblevable/quick-scope",
+  "folke/flash.nvim",
   "nvim-telescope/telescope.nvim",
   {
     'nvim-telescope/telescope-fzf-native.nvim',
@@ -316,6 +316,7 @@ require('Navigator').setup()
 require("hardtime").setup()
 require("nvim-surround").setup()
 require("persistence").setup()
+require("flash").setup()
 
 
 require("which-key").add({
