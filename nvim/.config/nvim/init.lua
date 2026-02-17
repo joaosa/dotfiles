@@ -34,10 +34,9 @@ require("lazy").setup({
   -- behaviour
   "m4xshen/hardtime.nvim",
   "tpope/vim-obsession",
-  "tpope/vim-surround",
+  "kylechui/nvim-surround",
   "tpope/vim-unimpaired",
   "tpope/vim-speeddating",
-  "tpope/vim-repeat",
   "numToStr/Navigator.nvim",
   "szw/vim-g",
   "windwp/nvim-autopairs",
@@ -316,6 +315,7 @@ require('lualine').setup {
 
 require('Navigator').setup()
 require("hardtime").setup()
+require("nvim-surround").setup()
 
 
 require("which-key").add({
