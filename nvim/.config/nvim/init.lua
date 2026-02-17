@@ -37,7 +37,6 @@ require("lazy").setup({
   "kylechui/nvim-surround",
   "tpope/vim-speeddating",
   "numToStr/Navigator.nvim",
-  "szw/vim-g",
   "windwp/nvim-autopairs",
 
   -- language syntax
@@ -173,11 +172,6 @@ vim.api.nvim_create_autocmd("User", {
   pattern = "TelescopePreviewerLoaded",
   command = "setlocal wrap"
 })
-
--- search for stuff on the internet
-vim.g.vim_g_command = 'Go'
-vim.g.vim_g_f_command = 'Gf'
-vim.g.vim_g_query_url = 'https://duckduckgo.com/?q='
 
 -- case-insensitive search
 vim.opt.ignorecase = true
