@@ -57,9 +57,10 @@ require("lazy").setup({
   -- lsp
   "williamboman/mason.nvim",
   "williamboman/mason-lspconfig.nvim",
-  "jay-babu/mason-null-ls.nvim",
+  "WhoIsSethDaniel/mason-tool-installer.nvim",
   "neovim/nvim-lspconfig",
-  "nvimtools/none-ls.nvim",
+  "stevearc/conform.nvim",
+  "mfussenegger/nvim-lint",
   "Wansmer/treesj",
 
   -- autocomplete
@@ -831,7 +832,7 @@ end
 -- Enable all configured LSP servers
 vim.lsp.enable(vim.tbl_keys(lsp_servers))
 
-require("mason-null-ls").setup({
+require("mason-tool-installer").setup({
   ensure_installed = {
     "goimports",
     "prettierd",
@@ -839,44 +840,45 @@ require("mason-null-ls").setup({
     "yamllint",  -- Used by ansible-lint
     "ruff",      -- Python linting and formatting
   },
-  automatic_installation = true,
 })
 
-local sqlfluff = {
-  args = { "fix", "--disable-progress-bar", "-f", "-n", "-" },
-  extra_args = { "--dialect", "postgres" },
+require("conform").setup({
+  formatters_by_ft = {
+    go = { "goimports" },
+    javascript = { "prettierd" },
+    typescript = { "prettierd" },
+    javascriptreact = { "prettierd" },
+    typescriptreact = { "prettierd" },
+    css = { "prettierd" },
+    json = { "prettierd" },
+    html = { "prettierd" },
+    markdown = { "prettierd" },
+    sql = { "sqlfluff" },
+    python = { "ruff_format" },
+  },
+  default_format_opts = {
+    lsp_format = "fallback",
+  },
+  format_on_save = {
+    timeout_ms = 1000,
+  },
+  formatters = {
+    sqlfluff = {
+      prepend_args = { "--dialect", "postgres" },
+    },
+  },
+})
+
+require("lint").linters_by_ft = {
+  sql = { "sqlfluff" },
+  yaml = { "yamllint" },
+  python = { "ruff" },
 }
 
-local null_ls = require("null-ls")
-local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
-
-null_ls.setup({
-  on_attach = function(client, bufnr)
-    if client.supports_method("textDocument/formatting") then
-      vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
-      vim.api.nvim_create_autocmd("BufWritePre", {
-        group = augroup,
-        buffer = bufnr,
-        callback = function()
-          vim.lsp.buf.format({
-            async = false,
-            timeout_ms = 1000,
-            filter = function(cli)
-              return cli.name == "null-ls"
-            end,
-            bufnr = bufnr,
-          })
-        end,
-      })
-    end
+vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+  callback = function()
+    require("lint").try_lint()
   end,
-  sources = {
-    null_ls.builtins.code_actions.gitsigns,
-    null_ls.builtins.formatting.sqlfluff.with(sqlfluff),
-    null_ls.builtins.diagnostics.sqlfluff.with(sqlfluff),
-    null_ls.builtins.formatting.goimports,
-    null_ls.builtins.formatting.prettierd,
-  },
 })
 
 -- Auto-fix Ansible files after save (async)
