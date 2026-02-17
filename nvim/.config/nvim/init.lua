@@ -188,7 +188,6 @@ vim.opt.spell = true
 vim.opt.spelllang = 'en_us'
 vim.opt.spellsuggest = 'best,9'
 
-vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
 vim.opt.winbar = '%f'
 
 -- Search settings
@@ -346,7 +345,6 @@ require("which-key").add({
   { "<leader>ca",       vim.lsp.buf.code_action,                                                                       desc = "code action" },
   { "<leader>ld",       vim.diagnostic.open_float,                                                                     desc = "show line diagnostics" },
   { "<leader>cd",       vim.diagnostic.open_float,                                                                     desc = "show cursor diagnostics" },
-  { "<leader>o",        "<cmd>LSoutlineToggle<cr>",                                                                    desc = "outline" },
 
   -- Telescope mappings
   { "<leader>a",        ":Telescope live_grep<cr>",                                                                    desc = "search word" },
