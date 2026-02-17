@@ -45,6 +45,7 @@ require("lazy").setup({
   "tpope/vim-speeddating",
   "numToStr/Navigator.nvim",
   "windwp/nvim-autopairs",
+  "folke/flash.nvim",
 
   -- language syntax
   {
@@ -91,9 +92,7 @@ require("lazy").setup({
   },
 
   -- discoverability
-  "nvim-lua/plenary.nvim",
   "folke/which-key.nvim",
-  "folke/flash.nvim",
   "nvim-telescope/telescope.nvim",
   {
     'nvim-telescope/telescope-fzf-native.nvim',
@@ -106,7 +105,6 @@ require("lazy").setup({
 
   -- external tools
   "lervag/vimtex",
-  "MeanderingProgrammer/render-markdown.nvim",
   "pwntester/octo.nvim",
   "tpope/vim-dadbod",
   "greggh/claude-code.nvim",
@@ -118,7 +116,6 @@ require("lazy").setup({
       "nvim-telescope/telescope.nvim",
     },
   },
-  "sindrets/diffview.nvim",
   "akinsho/git-conflict.nvim",
   {
     "sudo-tee/opencode.nvim",
