@@ -32,7 +32,7 @@ require("lazy").setup({
   "goolord/alpha-nvim",
 
   -- behaviour
-  "takac/vim-hardtime",
+  "m4xshen/hardtime.nvim",
   "tpope/vim-obsession",
   "tpope/vim-surround",
   "tpope/vim-unimpaired",
@@ -261,11 +261,6 @@ vim.api.nvim_create_autocmd(
   }
 )
 
--- Navigation settings
--- enable hard mode on all buffers
-vim.g.hardtime_default_on = 1
-vim.g.hardtime_showmsg = 1
-
 -- tmuxline configuration
 vim.g.tmuxline_preset = {
   a = '#(whoami)',
@@ -320,6 +315,7 @@ require('lualine').setup {
 }
 
 require('Navigator').setup()
+require("hardtime").setup()
 
 
 require("which-key").add({
