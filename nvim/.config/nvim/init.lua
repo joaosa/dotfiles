@@ -49,7 +49,6 @@ require("lazy").setup({
   },
   "nvim-treesitter/nvim-treesitter-textobjects",
   "nvim-treesitter/nvim-treesitter-context",
-  "numToStr/Comment.nvim",
 
   -- lsp
   "williamboman/mason.nvim",
@@ -932,7 +931,6 @@ cmp.setup({
 
 require('gitsigns').setup()
 require("nvim-autopairs").setup {}
-require('Comment').setup()
 require("todo-comments").setup {}
 require("cmp_git").setup()
 require "octo".setup()
