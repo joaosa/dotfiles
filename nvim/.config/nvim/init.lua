@@ -33,7 +33,7 @@ require("lazy").setup({
 
   -- behaviour
   "m4xshen/hardtime.nvim",
-  "tpope/vim-obsession",
+  "folke/persistence.nvim",
   "kylechui/nvim-surround",
   "tpope/vim-speeddating",
   "numToStr/Navigator.nvim",
@@ -315,6 +315,7 @@ require('lualine').setup {
 require('Navigator').setup()
 require("hardtime").setup()
 require("nvim-surround").setup()
+require("persistence").setup()
 
 
 require("which-key").add({
@@ -501,6 +502,11 @@ require("which-key").add({
   },
   { "<S-Tab>",    function() require('luasnip').jump(-1) end, desc = "Jump to previous snippet",                mode = { "i", "s" } },
   { "<Tab>",      function() require('luasnip').jump(1) end,  desc = "Jump to next snippet",                    mode = "s" },
+
+  -- Session mappings (persistence.nvim)
+  { "<leader>qs", function() require("persistence").load() end,                desc = "restore session" },
+  { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "restore last session" },
+  { "<leader>qd", function() require("persistence").stop() end,               desc = "stop session recording" },
 
   -- Utility mappings
   { "<esc><esc>", ":noh<cr><esc>",                            desc = "clear the highlight from the last search" },
