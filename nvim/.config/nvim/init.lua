@@ -23,7 +23,6 @@ require("lazy").setup({
   -- aesthetics
   "ellisonleao/gruvbox.nvim",
   "nvim-tree/nvim-web-devicons",
-  "lukas-reineke/indent-blankline.nvim",
   "nmac427/guess-indent.nvim",
   "lewis6991/gitsigns.nvim",
   "nvim-lualine/lualine.nvim",
@@ -35,6 +34,7 @@ require("lazy").setup({
     lazy = false,
     opts = {
       dashboard = { enabled = true },
+      indent = { enabled = true },
     },
   },
 
