@@ -64,15 +64,31 @@ require("lazy").setup({
   "Wansmer/treesj",
 
   -- autocomplete
-  "hrsh7th/cmp-nvim-lsp",
-  "hrsh7th/nvim-cmp",
-  "hrsh7th/cmp-nvim-lsp-signature-help",
-  "petertriho/cmp-git",
-
-  -- snippets
-  "L3MON4D3/LuaSnip",
-  "saadparwaiz1/cmp_luasnip",
-  "rafamadriz/friendly-snippets",
+  {
+    "saghen/blink.cmp",
+    version = "1.*",
+    dependencies = {
+      "rafamadriz/friendly-snippets",
+      "Kaiser-Yang/blink-cmp-git",
+    },
+    opts = {
+      keymap = { preset = "default" },
+      appearance = { nerd_font_variant = "mono" },
+      sources = {
+        default = { "lsp", "path", "snippets", "buffer" },
+        per_filetype = {
+          gitcommit = { "git", "lsp", "path", "snippets", "buffer" },
+        },
+        providers = {
+          git = {
+            module = "blink-cmp-git",
+            name = "Git",
+          },
+        },
+      },
+      signature = { enabled = true },
+    },
+  },
 
   -- discoverability
   "nvim-lua/plenary.nvim",
@@ -486,24 +502,6 @@ require("which-key").add({
   { "<left>",    "<nop>",                                                                                         desc = "disabled",                               mode = { "n", "i" } },
   { "<right>",   "<nop>",                                                                                         desc = "disabled",                               mode = { "n", "i" } },
 
-  -- LuaSnip mappings
-  {
-    "<Tab>",
-    function()
-      local luasnip = require('luasnip')
-      if luasnip.expand_or_jumpable() then
-        return '<Plug>luasnip-expand-or-jump'
-      else
-        return '<Tab>'
-      end
-    end,
-    desc = "Expand or jump snippet",
-    mode = "i",
-    expr = true
-  },
-  { "<S-Tab>",    function() require('luasnip').jump(-1) end, desc = "Jump to previous snippet",                mode = { "i", "s" } },
-  { "<Tab>",      function() require('luasnip').jump(1) end,  desc = "Jump to next snippet",                    mode = "s" },
-
   -- Session mappings (persistence.nvim)
   { "<leader>qs", function() require("persistence").load() end,                desc = "restore session" },
   { "<leader>ql", function() require("persistence").load({ last = true }) end, desc = "restore last session" },
@@ -797,7 +795,7 @@ local lsp_servers = {
 require "mason".setup()
 
 -- Setup capabilities for all servers
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
+local capabilities = require('blink.cmp').get_lsp_capabilities()
 
 -- Common on_attach function
 local function on_attach(client, bufnr)
@@ -904,38 +902,9 @@ vim.api.nvim_create_autocmd("BufWritePost", {
   end,
 })
 
-require("luasnip.loaders.from_vscode").lazy_load()
-require("luasnip.loaders.from_snipmate").lazy_load({ path = { "./snippets" } })
-
-local cmp = require 'cmp'
-cmp.setup({
-  snippet = {
-    expand = function(args)
-      require('luasnip').lsp_expand(args.body)
-    end,
-  },
-  mapping = cmp.mapping.preset.insert({
-    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete(),
-    ['<C-e>'] = cmp.mapping.abort(),
-    -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-    ['<cr>'] = cmp.mapping.confirm({ select = true }),
-  }),
-  sources = cmp.config.sources({
-    { name = 'nvim_lsp',                priority = 1000 },
-    { name = 'nvim_lsp_signature_help', priority = 900 },
-    { name = 'luasnip',                 priority = 800 },
-    { name = 'git',                     priority = 700 },
-  }, {
-    { name = 'buffer', keyword_length = 3, priority = 500 },
-  })
-})
-
 require('gitsigns').setup()
 require("nvim-autopairs").setup {}
 require("todo-comments").setup {}
-require("cmp_git").setup()
 require "octo".setup()
 require('claude-code').setup()
 
