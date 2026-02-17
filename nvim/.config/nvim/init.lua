@@ -35,7 +35,6 @@ require("lazy").setup({
   "m4xshen/hardtime.nvim",
   "tpope/vim-obsession",
   "kylechui/nvim-surround",
-  "tpope/vim-unimpaired",
   "tpope/vim-speeddating",
   "numToStr/Navigator.nvim",
   "szw/vim-g",
