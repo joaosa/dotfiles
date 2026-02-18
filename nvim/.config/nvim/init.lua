@@ -839,6 +839,7 @@ vim.lsp.enable(vim.tbl_keys(lsp_servers))
 
 require("mason-tool-installer").setup({
   ensure_installed = {
+    "stylua",
     "goimports",
     "prettierd",
     "sqlfluff",
@@ -849,6 +850,7 @@ require("mason-tool-installer").setup({
 
 require("conform").setup({
   formatters_by_ft = {
+    lua = { "stylua" },
     go = { "goimports" },
     javascript = { "prettierd" },
     typescript = { "prettierd" },
@@ -858,6 +860,7 @@ require("conform").setup({
     json = { "prettierd" },
     html = { "prettierd" },
     markdown = { "prettierd" },
+    yaml = { "prettierd" },
     sql = { "sqlfluff" },
     python = { "ruff_format" },
   },
