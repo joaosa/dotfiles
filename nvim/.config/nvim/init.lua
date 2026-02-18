@@ -533,6 +533,7 @@ telescope.setup {
   },
 }
 telescope.load_extension('fzf')
+telescope.load_extension('tmux')
 
 require 'nvim-treesitter.configs'.setup {
   highlight = {
