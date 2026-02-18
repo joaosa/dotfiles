@@ -141,7 +141,7 @@ require("lazy").setup({
           anti_conceal = { enabled = false },
           file_types = { 'markdown', 'opencode_output' },
         },
-        ft = { 'markdown', 'Avante', 'copilot-chat', 'opencode_output' },
+        ft = { 'markdown', 'opencode_output' },
       },
       "folke/snacks.nvim",
     },
@@ -352,7 +352,6 @@ require("which-key").add({
 
   -- Leader mappings
   { "<leader>ca",       vim.lsp.buf.code_action,                                                                       desc = "code action" },
-  { "<leader>ld",       vim.diagnostic.open_float,                                                                     desc = "show line diagnostics" },
   { "<leader>cd",       vim.diagnostic.open_float,                                                                     desc = "show cursor diagnostics" },
 
   -- Telescope mappings
@@ -426,9 +425,6 @@ require("which-key").add({
   { "<localleader>oo",  "<cmd>Opencode open output<cr>",                                                              desc = "opencode open output",     mode = { "n", "v" } },
   { "<localleader>ot",  "<cmd>Opencode toggle focus<cr>",                                                             desc = "opencode toggle focus",    mode = { "n", "v" } },
   { "<localleader>oq",  "<cmd>Opencode close<cr>",                                                                    desc = "opencode close",           mode = { "n", "v" } },
-
-  -- MCPHub mappings
-  { "<localleader>mc",  "<cmd>MCPHub<cr>",                                                                             desc = "mcphub",                    mode = { "n", "v" } },
 
   -- Navigation mappings
   { "]t",               function() require("todo-comments").jump_next() end,                                           desc = "Next todo comment" },
