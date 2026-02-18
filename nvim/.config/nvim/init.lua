@@ -87,6 +87,64 @@ require("lazy").setup({
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
   { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
+  {
+    "mrcjkb/rustaceanvim",
+    version = "^5",
+    lazy = false,
+    init = function()
+      vim.g.rustaceanvim = function()
+        return {
+          server = {
+            on_attach = function(client, bufnr)
+              if client.server_capabilities.documentSymbolProvider then
+                require("nvim-navic").attach(client, bufnr)
+              end
+              local opts = { silent = true, buffer = bufnr }
+              vim.keymap.set("n", "K", function() vim.cmd.RustLsp({ "hover", "actions" }) end,
+                vim.tbl_extend("force", opts, { desc = "Rust hover actions" }))
+              vim.keymap.set("n", "<leader>ca", function() vim.cmd.RustLsp("codeAction") end,
+                vim.tbl_extend("force", opts, { desc = "Rust code action" }))
+              vim.keymap.set("n", "<localleader>rr", function() vim.cmd.RustLsp("runnables") end,
+                vim.tbl_extend("force", opts, { desc = "Rust runnables" }))
+              vim.keymap.set("n", "<localleader>rt", function() vim.cmd.RustLsp("testables") end,
+                vim.tbl_extend("force", opts, { desc = "Rust testables" }))
+              vim.keymap.set("n", "<localleader>re", function() vim.cmd.RustLsp("expandMacro") end,
+                vim.tbl_extend("force", opts, { desc = "Rust expand macro" }))
+              vim.keymap.set("n", "<localleader>ro", function() vim.cmd.RustLsp("openDocs") end,
+                vim.tbl_extend("force", opts, { desc = "Rust open docs" }))
+              vim.keymap.set("n", "<localleader>rc", function() vim.cmd.RustLsp("openCargo") end,
+                vim.tbl_extend("force", opts, { desc = "Rust open Cargo.toml" }))
+              vim.keymap.set("n", "<localleader>rp", function() vim.cmd.RustLsp("parentModule") end,
+                vim.tbl_extend("force", opts, { desc = "Rust parent module" }))
+              vim.keymap.set("n", "<localleader>rx", function() vim.cmd.RustLsp({ "explainError", "current" }) end,
+                vim.tbl_extend("force", opts, { desc = "Rust explain error" }))
+            end,
+            capabilities = require('blink.cmp').get_lsp_capabilities(),
+            default_settings = {
+              ["rust-analyzer"] = {
+                check = {
+                  command = "clippy",
+                  extraArgs = { "--all-features", "--", "-D", "warnings" },
+                },
+              },
+            },
+          },
+        }
+      end
+    end,
+  },
+  {
+    "saecki/crates.nvim",
+    event = { "BufRead Cargo.toml" },
+    opts = {
+      lsp = {
+        enabled = true,
+        actions = true,
+        completion = true,
+        hover = true,
+      },
+    },
+  },
 
   -- autocomplete
   {
@@ -617,6 +675,7 @@ require 'nvim-treesitter.configs'.setup {
     "terraform",
     "yaml",
     "json",
+    "toml",
     "markdown",
     "markdown_inline",
   },
@@ -812,14 +871,6 @@ local lsp_servers = {
       },
       staticcheck = true,
       gofumpt = true,
-    },
-  },
-  rust_analyzer = {
-    ["rust-analyzer"] = {
-      check = {
-        command = "clippy",
-        extraArgs = { "--all-features", "--", "-D", "warnings" },
-      },
     },
   },
   terraformls = {},
