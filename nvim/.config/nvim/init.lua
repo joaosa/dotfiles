@@ -304,10 +304,11 @@ vim.opt.smartcase = true
 -- show context above/below cursorline
 vim.opt.scrolloff = 5
 
--- Automatic whitespace cleanup
+-- Automatic whitespace cleanup (skip filetypes handled by conform)
 vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*",
   callback = function()
+    if #require("conform").list_formatters() > 0 then return end
     local save_cursor = vim.fn.getpos(".")
     vim.cmd([[%s/\s\+$//e]])
     vim.fn.setpos(".", save_cursor)
