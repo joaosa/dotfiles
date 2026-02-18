@@ -23,9 +23,23 @@ require("lazy").setup({
   -- aesthetics
   "ellisonleao/gruvbox.nvim",
   "nvim-tree/nvim-web-devicons",
-  "nmac427/guess-indent.nvim",
-  "lewis6991/gitsigns.nvim",
-  "nvim-lualine/lualine.nvim",
+  { "nmac427/guess-indent.nvim", event = "BufRead", opts = {} },
+  { "lewis6991/gitsigns.nvim", event = "BufRead", opts = {} },
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "SmiteshP/nvim-navic" },
+    config = function()
+      local navic = require("nvim-navic")
+      require('lualine').setup {
+        options = { theme = 'gruvbox' },
+        winbar = {
+          lualine_c = {
+            { navic.get_location, cond = navic.is_available },
+          },
+        },
+      }
+    end,
+  },
   "edkolev/tmuxline.vim",
   {
     "folke/snacks.nvim",
@@ -42,13 +56,20 @@ require("lazy").setup({
   },
 
   -- behaviour
-  "m4xshen/hardtime.nvim",
-  "folke/persistence.nvim",
-  "kylechui/nvim-surround",
-  "tpope/vim-speeddating",
-  "numToStr/Navigator.nvim",
-  "windwp/nvim-autopairs",
-  "folke/flash.nvim",
+  { "m4xshen/hardtime.nvim", event = "VeryLazy", opts = {} },
+  { "folke/persistence.nvim", event = "BufReadPre", opts = {} },
+  { "kylechui/nvim-surround", event = "VeryLazy", opts = {} },
+  { "tpope/vim-speeddating", event = "BufRead" },
+  { "numToStr/Navigator.nvim", event = "VeryLazy", config = function() require('Navigator').setup() end },
+  { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
+  {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    opts = {
+      jump = { autojump = true },
+      modes = { char = { jump_labels = true } },
+    },
+  },
 
   -- language syntax
   {
@@ -65,7 +86,7 @@ require("lazy").setup({
   "neovim/nvim-lspconfig",
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
-  "Wansmer/treesj",
+  { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
 
   -- autocomplete
   {
@@ -102,32 +123,106 @@ require("lazy").setup({
 
   -- discoverability
   "folke/which-key.nvim",
-  "nvim-telescope/telescope.nvim",
   {
-    'nvim-telescope/telescope-fzf-native.nvim',
-    build = 'make'
+    "nvim-telescope/telescope.nvim",
+    cmd = "Telescope",
+    dependencies = {
+      { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+      "camgraff/telescope-tmux.nvim",
+    },
+    config = function()
+      local telescope = require('telescope')
+      local actions = require('telescope.actions')
+      telescope.setup {
+        defaults = {
+          mappings = {
+            i = {
+              ["<c-t>"] = require("trouble.sources.telescope").open,
+              ["<esc>"] = actions.close,
+            },
+            n = {
+              ["<c-t>"] = require("trouble.sources.telescope").open,
+              ["q"] = actions.close,
+            },
+          },
+        },
+      }
+      telescope.load_extension('fzf')
+      telescope.load_extension('tmux')
+    end,
   },
-  "camgraff/telescope-tmux.nvim",
-  "folke/todo-comments.nvim",
-  "folke/trouble.nvim",
-  "SmiteshP/nvim-navic",
+  { "folke/todo-comments.nvim", event = "BufRead", opts = {} },
+  {
+    "folke/trouble.nvim",
+    cmd = "Trouble",
+    opts = {
+      keys = {
+        ["q"] = "close",
+        ["<esc>"] = "close",
+      },
+    },
+  },
 
   -- external tools
-  "lervag/vimtex",
-  "pwntester/octo.nvim",
-  "tpope/vim-dadbod",
-  "greggh/claude-code.nvim",
+  { "lervag/vimtex", ft = "tex" },
+  { "pwntester/octo.nvim", cmd = "Octo", opts = {} },
+  { "tpope/vim-dadbod", cmd = "DB" },
+  { "greggh/claude-code.nvim", cmd = "ClaudeCode", opts = {} },
   {
     "NeogitOrg/neogit",
+    cmd = "Neogit",
     dependencies = {
       "nvim-lua/plenary.nvim",
       "sindrets/diffview.nvim",
       "nvim-telescope/telescope.nvim",
     },
+    opts = {
+      integrations = {
+        diffview = true,
+        telescope = true,
+      },
+      mappings = {
+        status = {
+          ["q"] = "Close",
+          ["<esc>"] = "Close",
+        },
+      },
+    },
   },
-  "akinsho/git-conflict.nvim",
+  {
+    "sindrets/diffview.nvim",
+    cmd = { "DiffviewOpen", "DiffviewFileHistory", "DiffviewClose" },
+    opts = {
+      enhanced_diff_hl = true,
+      use_icons = true,
+      keymaps = {
+        view = {
+          ["q"] = "<Cmd>DiffviewClose<CR>",
+          ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+        },
+        file_panel = {
+          ["q"] = "<Cmd>DiffviewClose<CR>",
+          ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+        },
+        file_history_panel = {
+          ["q"] = "<Cmd>DiffviewClose<CR>",
+          ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+        },
+      },
+    },
+  },
+  {
+    "akinsho/git-conflict.nvim",
+    event = "BufRead",
+    opts = {
+      default_mappings = true,
+      disable_diagnostics = false,
+      list_opener = 'copen',
+    },
+  },
   {
     "sudo-tee/opencode.nvim",
+    cmd = "Opencode",
     config = function()
       require("opencode").setup({
         keymap_prefix = '<localleader>',
@@ -320,27 +415,8 @@ vim.g.tmuxline_theme = {
   bg = { '#534d4a', '#534d4a' },
 }
 
--- Setup colorscheme and plugins
+-- Setup colorscheme
 vim.cmd("colorscheme gruvbox")
-require('guess-indent').setup {}
-local navic = require("nvim-navic")
-require('lualine').setup {
-  options = { theme = 'gruvbox' },
-  winbar = {
-    lualine_c = {
-      { navic.get_location, cond = navic.is_available },
-    },
-  },
-}
-
-require('Navigator').setup()
-require("hardtime").setup()
-require("nvim-surround").setup()
-require("persistence").setup()
-require("flash").setup({
-  jump = { autojump = true },
-  modes = { char = { jump_labels = true } },
-})
 
 
 require("which-key").add({
@@ -515,33 +591,6 @@ require("which-key").add({
   -- netrw mapping
   { "<leader>d",  ":Lexplore<cr>",                            desc = "file explorer" },
 })
-
-local trouble = require("trouble")
-trouble.setup {
-  keys = {
-    ["q"] = "close",
-    ["<esc>"] = "close",
-  },
-}
-
-local telescope = require('telescope')
-local actions = require('telescope.actions')
-telescope.setup {
-  defaults = {
-    mappings = {
-      i = {
-        ["<c-t>"] = require("trouble.sources.telescope").open,
-        ["<esc>"] = actions.close,
-      },
-      n = {
-        ["<c-t>"] = require("trouble.sources.telescope").open,
-        ["q"] = actions.close,
-      },
-    },
-  },
-}
-telescope.load_extension('fzf')
-telescope.load_extension('tmux')
 
 require 'nvim-treesitter.configs'.setup {
   highlight = {
@@ -723,8 +772,6 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 
 vim.treesitter.language.register('diff', 'git')
 
-require('treesj').setup {}
-
 require('treesitter-context').setup({
   enable = true,
   max_lines = 0,
@@ -803,7 +850,7 @@ local capabilities = require('blink.cmp').get_lsp_capabilities()
 -- Common on_attach function
 local function on_attach(client, bufnr)
   if client.server_capabilities.documentSymbolProvider then
-    navic.attach(client, bufnr)
+    require("nvim-navic").attach(client, bufnr)
   end
 end
 
@@ -908,47 +955,3 @@ vim.api.nvim_create_autocmd("BufWritePost", {
   end,
 })
 
-require('gitsigns').setup()
-require("nvim-autopairs").setup {}
-require("todo-comments").setup {}
-require "octo".setup()
-require('claude-code').setup()
-
--- Git plugins configuration
-require('neogit').setup({
-  integrations = {
-    diffview = true,
-    telescope = true,
-  },
-  mappings = {
-    status = {
-      ["q"] = "Close",
-      ["<esc>"] = "Close",
-    },
-  },
-})
-
-require('diffview').setup({
-  enhanced_diff_hl = true,
-  use_icons = true,
-  keymaps = {
-    view = {
-      ["q"] = "<Cmd>DiffviewClose<CR>",
-      ["<esc>"] = "<Cmd>DiffviewClose<CR>",
-    },
-    file_panel = {
-      ["q"] = "<Cmd>DiffviewClose<CR>",
-      ["<esc>"] = "<Cmd>DiffviewClose<CR>",
-    },
-    file_history_panel = {
-      ["q"] = "<Cmd>DiffviewClose<CR>",
-      ["<esc>"] = "<Cmd>DiffviewClose<CR>",
-    },
-  },
-})
-
-require('git-conflict').setup({
-  default_mappings = true,
-  disable_diagnostics = false,
-  list_opener = 'copen',
-})
