@@ -883,7 +883,8 @@ require("mason-tool-installer").setup({
     "goimports",
     "prettierd",
     "sqlfluff",
-    "yamllint",  -- Used by ansible-lint
+    "yamllint",
+    "ansible-lint",
     "ruff",      -- Python linting and formatting
   },
 })
@@ -920,6 +921,7 @@ require("conform").setup({
 require("lint").linters_by_ft = {
   sql = { "sqlfluff" },
   yaml = { "yamllint" },
+  ["yaml.ansible"] = { "ansible_lint" },
   python = { "ruff" },
 }
 
