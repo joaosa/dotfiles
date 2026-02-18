@@ -416,6 +416,11 @@ vim.g.tmuxline_theme = {
   bg = { '#534d4a', '#534d4a' },
 }
 
+-- Diagnostics
+vim.diagnostic.config({
+  virtual_lines = { current_line = true },
+})
+
 -- Setup colorscheme
 vim.cmd("colorscheme gruvbox")
 
