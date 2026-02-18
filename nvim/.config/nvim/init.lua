@@ -334,7 +334,10 @@ require('Navigator').setup()
 require("hardtime").setup()
 require("nvim-surround").setup()
 require("persistence").setup()
-require("flash").setup()
+require("flash").setup({
+  jump = { autojump = true },
+  modes = { char = { jump_labels = true } },
+})
 
 
 require("which-key").add({
