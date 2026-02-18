@@ -27,7 +27,6 @@ require("lazy").setup({
   "lewis6991/gitsigns.nvim",
   "nvim-lualine/lualine.nvim",
   "edkolev/tmuxline.vim",
-  "folke/zen-mode.nvim",
   {
     "folke/snacks.nvim",
     priority = 1000,
@@ -35,6 +34,10 @@ require("lazy").setup({
     opts = {
       dashboard = { enabled = true },
       indent = { enabled = true },
+      notifier = { enabled = true },
+      quickfile = { enabled = true },
+      words = { enabled = true },
+      zen = { enabled = true },
     },
   },
 
