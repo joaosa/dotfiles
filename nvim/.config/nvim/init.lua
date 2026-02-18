@@ -608,6 +608,7 @@ require 'nvim-treesitter.configs'.setup {
     "typescript",
     "sql",
     "hcl",
+    "terraform",
     "yaml",
     "json",
     "markdown",
@@ -736,11 +737,6 @@ require 'nvim-treesitter.configs'.setup {
     },
   },
 }
-
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = { "*.tfvars", "*.tf" },
-  command = "set filetype=hcl"
-})
 
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = "*.tftpl",
