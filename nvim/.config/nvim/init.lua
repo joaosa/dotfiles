@@ -602,8 +602,9 @@ require("which-key").add({
 		":Telescope git_files<cr>",
 		desc = "search versioned files",
 	},
+	{ "<leader>t", group = "telescope" },
 	{
-		"<leader>t",
+		"<leader><space>",
 		":Telescope find_files<cr>",
 		desc = "search files",
 	},
@@ -612,8 +613,9 @@ require("which-key").add({
 		":Telescope grep_string<cr>",
 		desc = "search cursor",
 	},
+	{ "<leader>c", group = "code" },
 	{
-		"<leader>c",
+		"<leader>:",
 		":Telescope command_history<cr>",
 		desc = "command history",
 	},
@@ -658,14 +660,15 @@ require("which-key").add({
 		desc = "manpages",
 	},
 	{
-		"<leader>p",
+		"<leader>r",
 		":Telescope resume<cr>",
 		desc = "telescope resume",
 	},
 
 	-- Git mappings
+	{ "<leader>g", group = "git" },
 	{
-		"<leader>g",
+		"<leader>gg",
 		"<cmd>Neogit<cr>",
 		desc = "Neogit",
 	},
@@ -752,11 +755,6 @@ require("which-key").add({
 		desc = "loclist",
 	},
 	{
-		"<leader>xR",
-		"<cmd>Trouble lsp_references toggle<cr>",
-		desc = "lsp refs",
-	},
-	{
 		"<leader>xt",
 		"<cmd>Trouble todo toggle<cr>",
 		desc = "todos",
@@ -770,7 +768,7 @@ require("which-key").add({
 	{ "<leader>sF", desc = "swap previous function" },
 
 	-- Treesitter peek definition mappings
-	{ "<leader>pd", group = "peek definition" },
+	{ "<leader>p", group = "peek" },
 	{ "<leader>pf", desc = "peek function definition" },
 	{ "<leader>pc", desc = "peek class definition" },
 
