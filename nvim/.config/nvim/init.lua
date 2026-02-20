@@ -521,6 +521,21 @@ require("which-key").add({
 		desc = "LSP definition",
 	},
 	{
+		"gD",
+		vim.lsp.buf.declaration,
+		desc = "LSP declaration",
+	},
+	{
+		"gy",
+		vim.lsp.buf.type_definition,
+		desc = "LSP type definition",
+	},
+	{
+		"gi",
+		vim.lsp.buf.implementation,
+		desc = "LSP implementation",
+	},
+	{
 		"K",
 		vim.lsp.buf.hover,
 		desc = "LSP hover",
