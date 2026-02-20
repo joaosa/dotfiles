@@ -1060,6 +1060,16 @@ require("nvim-treesitter.configs").setup({
 	-- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
 	auto_install = true,
 
+	incremental_selection = {
+		enable = true,
+		keymaps = {
+			init_selection = "<CR>",
+			node_incremental = "<CR>",
+			scope_incremental = false,
+			node_decremental = "<BS>",
+		},
+	},
+
 	textobjects = {
 		select = {
 			enable = true,
