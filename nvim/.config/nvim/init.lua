@@ -92,6 +92,18 @@ require("lazy").setup({
 			},
 		},
 	},
+	{
+		"kevinhwang91/nvim-ufo",
+		dependencies = { "kevinhwang91/promise-async" },
+		event = "BufRead",
+		config = function()
+			require("ufo").setup({
+				provider_selector = function()
+					return { "treesitter", "indent" }
+				end,
+			})
+		end,
+	},
 
 	-- language syntax
 	{
@@ -392,6 +404,12 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 -- show context above/below cursorline
 vim.opt.scrolloff = 5
+
+-- Folding (nvim-ufo)
+vim.opt.foldcolumn = "1"
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
+vim.opt.foldenable = true
 
 -- Automatic whitespace cleanup (skip filetypes handled by conform)
 vim.api.nvim_create_autocmd("BufWritePre", {
@@ -1032,6 +1050,36 @@ require("which-key").add({
 			require("persistence").stop()
 		end,
 		desc = "stop session recording",
+	},
+
+	-- Fold mappings (nvim-ufo)
+	{
+		"zR",
+		function()
+			require("ufo").openAllFolds()
+		end,
+		desc = "open all folds",
+	},
+	{
+		"zM",
+		function()
+			require("ufo").closeAllFolds()
+		end,
+		desc = "close all folds",
+	},
+	{
+		"zr",
+		function()
+			require("ufo").openFoldsExceptKinds()
+		end,
+		desc = "open folds by level",
+	},
+	{
+		"zm",
+		function()
+			require("ufo").closeFoldsWith()
+		end,
+		desc = "close folds by level",
 	},
 
 	-- Utility mappings
