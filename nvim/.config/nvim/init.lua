@@ -205,6 +205,7 @@ require("lazy").setup({
 		dependencies = {
 			{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 			"camgraff/telescope-tmux.nvim",
+			"nvim-telescope/telescope-ui-select.nvim",
 		},
 		config = function()
 			local telescope = require("telescope")
@@ -225,6 +226,7 @@ require("lazy").setup({
 			})
 			telescope.load_extension("fzf")
 			telescope.load_extension("tmux")
+			telescope.load_extension("ui-select")
 		end,
 	},
 	{ "folke/todo-comments.nvim", event = "BufRead", opts = {} },
