@@ -619,8 +619,9 @@ require("which-key").add({
 		":Telescope command_history<cr>",
 		desc = "command history",
 	},
+	{ "<leader>q", group = "quickfix/session" },
 	{
-		"<leader>q",
+		"<leader>qf",
 		":Telescope quickfix<cr>",
 		desc = "telescope quickfix",
 	},
@@ -1277,18 +1278,7 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 
 vim.treesitter.language.register("diff", "git")
 
-require("treesitter-context").setup({
-	enable = true,
-	max_lines = 0,
-	min_window_height = 0,
-	line_numbers = true,
-	multiline_threshold = 20,
-	trim_scope = "outer",
-	mode = "cursor",
-	separator = nil,
-	zindex = 20,
-	on_attach = nil,
-})
+require("treesitter-context").setup()
 
 local lsp_servers = {
 	lua_ls = {
