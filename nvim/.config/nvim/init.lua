@@ -369,6 +369,9 @@ vim.opt.ruler = true
 vim.opt.showcmd = true
 
 -- Indenting
+vim.opt.expandtab = true
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
 vim.opt.tabstop = 2
 
 -- Undo configuration
