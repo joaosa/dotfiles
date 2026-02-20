@@ -76,6 +76,22 @@ require("lazy").setup({
 			modes = { char = { jump_labels = true } },
 		},
 	},
+	{
+		"stevearc/oil.nvim",
+		cmd = "Oil",
+		opts = {
+			default_file_explorer = true,
+			columns = { "icon" },
+			view_options = {
+				show_hidden = false,
+			},
+			keymaps = {
+				["q"] = "actions.close",
+				["<esc>"] = "actions.close",
+				["g."] = "actions.toggle_hidden",
+			},
+		},
+	},
 
 	-- language syntax
 	{
@@ -329,11 +345,6 @@ vim.opt.backupcopy = "yes"
 -- do not store swap files on the current dir (remove .)
 vim.opt.directory:remove(".")
 
--- Netrw settings
--- ref - https://shapeshed.com/vim-netrw/
-vim.g.netrw_banner = 0
-vim.g.netrw_winsize = 25
-
 -- Display settings
 -- show trailing whitespace
 vim.opt.list = true
@@ -406,7 +417,6 @@ vim.api.nvim_create_autocmd("FileType", {
 		"startuptime",
 		"tsplayground",
 		"PlenaryTestPopup",
-		"netrw",
 		"opencode",
 	},
 	callback = function(event)
@@ -1027,8 +1037,8 @@ require("which-key").add({
 	-- Utility mappings
 	{ "<esc><esc>", ":noh<cr><esc>", desc = "clear the highlight from the last search" },
 
-	-- netrw mapping
-	{ "<leader>d", ":Lexplore<cr>", desc = "file explorer" },
+	-- file explorer
+	{ "<leader>e", "<cmd>Oil<cr>", desc = "file explorer" },
 })
 
 require("nvim-treesitter.configs").setup({
