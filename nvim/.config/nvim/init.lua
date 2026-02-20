@@ -105,6 +105,9 @@ require("lazy").setup({
 							if client.server_capabilities.documentSymbolProvider then
 								require("nvim-navic").attach(client, bufnr)
 							end
+							if client.server_capabilities.inlayHintProvider then
+								vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+							end
 							local opts = { silent = true, buffer = bufnr }
 							vim.keymap.set("n", "K", function()
 								vim.cmd.RustLsp({ "hover", "actions" })
@@ -531,6 +534,13 @@ require("which-key").add({
 		"<leader>cd",
 		vim.diagnostic.open_float,
 		desc = "show cursor diagnostics",
+	},
+	{
+		"<leader>ih",
+		function()
+			vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+		end,
+		desc = "toggle inlay hints",
 	},
 
 	-- Telescope mappings
@@ -1252,6 +1262,9 @@ local capabilities = require("blink.cmp").get_lsp_capabilities()
 local function on_attach(client, bufnr)
 	if client.server_capabilities.documentSymbolProvider then
 		require("nvim-navic").attach(client, bufnr)
+	end
+	if client.server_capabilities.inlayHintProvider then
+		vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 	end
 end
 
