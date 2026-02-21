@@ -80,7 +80,7 @@ require("lazy").setup({
     event = "VeryLazy",
     opts = {
       jump = { autojump = true },
-      modes = { char = { jump_labels = true } },
+      modes = { char = { enabled = false } },
     },
   },
   {
