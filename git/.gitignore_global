@@ -56,3 +56,22 @@ Session.vim
 
 # tern
 .tern-port
+
+# Environment/secrets
+.env
+.env.*
+
+# Vim swap files
+*.swp
+*.swo
+*~
+
+# macOS metadata
+._*
+
+# Python
+__pycache__/
+*.pyc
+
+# Rust
+target/
