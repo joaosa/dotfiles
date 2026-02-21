@@ -21,7 +21,13 @@ vim.opt.rtp:prepend(lazypath)
 -- Setup lazy.nvim
 require("lazy").setup({
 	-- aesthetics
-	"ellisonleao/gruvbox.nvim",
+	{
+		"ellisonleao/gruvbox.nvim",
+		priority = 1000,
+		config = function()
+			vim.cmd.colorscheme("gruvbox")
+		end,
+	},
 	"nvim-tree/nvim-web-devicons",
 	{ "nmac427/guess-indent.nvim", event = "BufRead", opts = {} },
 	{ "lewis6991/gitsigns.nvim", event = "BufRead", opts = {} },
@@ -40,7 +46,7 @@ require("lazy").setup({
 			})
 		end,
 	},
-	"edkolev/tmuxline.vim",
+	{ "edkolev/tmuxline.vim", cmd = { "Tmuxline", "TmuxlineSnapshot" } },
 	{
 		"folke/snacks.nvim",
 		priority = 1000,
@@ -363,10 +369,8 @@ vim.opt.list = true
 vim.opt.listchars = { tab = "▸ ", trail = "▫" }
 -- show line numbers
 vim.opt.number = true
--- show where you are
-vim.opt.ruler = true
--- show typed commands
-vim.opt.showcmd = true
+-- stable sign column
+vim.opt.signcolumn = "yes"
 
 -- Indenting
 vim.opt.expandtab = true
@@ -377,7 +381,7 @@ vim.opt.tabstop = 2
 -- Undo configuration
 -- keep undo history across sessions by storing it in a file
 -- ref - https://stackoverflow.com/questions/5700389/using-vims-persistent-undo
-local config_dir = vim.fn.expand("~/.config/nvim")
+local config_dir = vim.fn.stdpath("config")
 if vim.fn.has("persistent_undo") == 1 then
 	local undo_dir_path = config_dir .. "/undo"
 
@@ -530,9 +534,6 @@ vim.g.tmuxline_theme = {
 vim.diagnostic.config({
 	virtual_lines = { current_line = true },
 })
-
--- Setup colorscheme
-vim.cmd("colorscheme gruvbox")
 
 require("which-key").add({
 	-- LSP mappings
@@ -1115,9 +1116,6 @@ require("nvim-treesitter.configs").setup({
 		"markdown_inline",
 	},
 
-	sync_install = false,
-	-- Automatically install missing parsers when entering buffer
-	-- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
 	auto_install = true,
 
 	incremental_selection = {
