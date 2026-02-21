@@ -1094,6 +1094,8 @@ require("nvim-treesitter.configs").setup({
 		"toml",
 		"markdown",
 		"markdown_inline",
+		"diff",
+		"bash",
 	},
 
 	auto_install = true,
@@ -1116,8 +1118,6 @@ require("nvim-treesitter.configs").setup({
 				-- Function/method text objects
 				["af"] = "@function.outer",
 				["if"] = "@function.inner",
-				["am"] = "@function.outer",
-				["im"] = "@function.inner",
 
 				-- Class text objects
 				["ac"] = "@class.outer",
