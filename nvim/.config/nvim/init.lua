@@ -58,6 +58,7 @@ require("lazy").setup({
 			quickfile = { enabled = true },
 			words = { enabled = true },
 			zen = { enabled = true },
+			bigfile = { enabled = true },
 		},
 	},
 
@@ -377,6 +378,7 @@ vim.opt.splitbelow = true
 vim.opt.breakindent = true
 vim.opt.confirm = true
 vim.opt.updatetime = 250
+vim.opt.inccommand = "split"
 
 -- Indenting
 vim.opt.expandtab = true
@@ -1356,6 +1358,8 @@ require("mason-tool-installer").setup({
 		"yamllint",
 		"ansible-lint",
 		"ruff", -- Python linting and formatting
+		"shfmt",
+		"shellcheck",
 	},
 })
 
@@ -1374,6 +1378,8 @@ require("conform").setup({
 		yaml = { "prettierd" },
 		sql = { "sqlfluff" },
 		python = { "ruff_format" },
+		sh = { "shfmt" },
+		bash = { "shfmt" },
 	},
 	default_format_opts = {
 		lsp_format = "fallback",
@@ -1393,6 +1399,8 @@ require("lint").linters_by_ft = {
 	yaml = { "yamllint" },
 	["yaml.ansible"] = { "ansible_lint" },
 	python = { "ruff" },
+	sh = { "shellcheck" },
+	bash = { "shellcheck" },
 }
 
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
