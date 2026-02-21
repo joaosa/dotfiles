@@ -512,9 +512,6 @@ vim.g.tmuxline_preset = {
     "#{?pane_synchronized,#[bold],#[dim]}SYNC",
     "#{online_status}",
   },
-  z = {
-    "#(rainbarf --tmux --battery --remaining --width 20)",
-  },
   options = { ["status-justify"] = "left" },
 }
 
