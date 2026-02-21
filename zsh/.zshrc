@@ -39,15 +39,6 @@ bindkey -M viins "$terminfo[kcuf1]" noop
 # alias
 alias vi=nvim
 alias vim=nvim
-function nvim() {
-  if test $# -gt 0; then
-    env nvim "$@"
-  elif test -f Session.vim; then
-    env nvim -S
-  else
-    env nvim -c Obsession -c Alpha
-  fi
-}
 
 # prezto history
 export HISTSIZE=1000000 SAVEHIST=1000000 HISTFILE=~/.zsh_history
@@ -67,10 +58,6 @@ docker-aws-login() {
   login="$(aws-vault exec "$vault_user" -- aws ecr get-login-password)"
   echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
 }
-
-# wasm
-export BINARYEN=/usr/local/opt/binaryen
-export LLVM=/usr/local/opt/llvm/bin
 
 # fuzzy matching
 # setting rg as the default source for fzf
