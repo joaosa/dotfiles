@@ -52,7 +52,7 @@ vi_mode_style = { shape = "Block" }
 shape = "Block"
 blinking = "On"
 
-# ref - https://github.com/alacritty/alacritty/blob/master/alacritty.yml
+# ref - https://github.com/alacritty/alacritty/blob/master/alacritty.toml
 [window]
 decorations = "none"
 opacity = 0.95
