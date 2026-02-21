@@ -10,6 +10,7 @@
 [delta]
 	features = side-by-side line-numbers decorations
 	whitespace-error-style = 22 reverse
+	syntax-theme = gruvbox-dark
 [delta "decorations"]
 	commit-decoration-style = bold yellow box ul
 	file-style = bold yellow ul
@@ -23,5 +24,12 @@
 	autoSetupRemote = true
 [rerere]
 	enabled = true
+[fetch]
+	prune = true
+[rebase]
+	autostash = true
+	updateRefs = true
+[branch]
+	sort = -committerdate
 [init]
 	defaultBranch = main
