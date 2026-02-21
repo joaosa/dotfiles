@@ -1324,7 +1324,6 @@ local lsp_servers = {
 	ansiblels = {},
 	bashls = {},
 	sqlls = {},
-	marksman = {},
 }
 
 require("mason").setup()
