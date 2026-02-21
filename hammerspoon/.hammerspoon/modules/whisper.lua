@@ -108,6 +108,7 @@ local function setup()
     })
     if missing then
         log.e("Whisper setup failed - missing: " .. missing)
+        return
     end
 
     -- altCmd+d: Toggle recording/transcribe
