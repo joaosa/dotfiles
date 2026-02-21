@@ -786,6 +786,19 @@ require("which-key").add({
     desc = "toggle markdown rendering",
   },
   {
+    "<localleader>lt",
+    function()
+      local line = vim.api.nvim_get_current_line()
+      if line:match("%- %[ %]") then
+        vim.api.nvim_set_current_line((line:gsub("%- %[ %]", "- [x]", 1)))
+      elseif line:match("%- %[x%]") then
+        vim.api.nvim_set_current_line((line:gsub("%- %[x%]", "- [ ]", 1)))
+      end
+    end,
+    desc = "toggle checkbox",
+    ft = "markdown",
+  },
+  {
     "<localleader>cc",
     "<cmd>ClaudeCode<cr>",
     desc = "toggle claude code",
