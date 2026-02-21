@@ -371,6 +371,12 @@ vim.opt.listchars = { tab = "▸ ", trail = "▫" }
 vim.opt.number = true
 -- stable sign column
 vim.opt.signcolumn = "yes"
+vim.opt.cursorline = true
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+vim.opt.breakindent = true
+vim.opt.confirm = true
+vim.opt.updatetime = 250
 
 -- Indenting
 vim.opt.expandtab = true
@@ -392,12 +398,9 @@ if vim.fn.has("persistent_undo") == 1 then
 	vim.opt.undofile = true
 end
 
--- Spelling
-vim.opt.spell = true
+-- Spelling (prose filetypes only)
 vim.opt.spelllang = "en_us"
 vim.opt.spellsuggest = "best,9"
-
-vim.opt.winbar = "%f"
 
 -- Search settings
 vim.api.nvim_create_autocmd("User", {
@@ -428,6 +431,14 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 		local save_cursor = vim.fn.getpos(".")
 		vim.cmd([[%s/\s\+$//e]])
 		vim.fn.setpos(".", save_cursor)
+	end,
+})
+
+-- Enable spell checking for prose filetypes
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "markdown", "text", "gitcommit", "tex" },
+	callback = function()
+		vim.opt_local.spell = true
 	end,
 })
 
@@ -999,37 +1010,6 @@ require("which-key").add({
 		[[<C-\><C-n>]],
 		desc = "Exit terminal insert mode",
 		mode = "t",
-	},
-
-	-- Vim legacy mappings
-	{
-		"<leader>V",
-		":source ~/.config/nvim/init.lua<cr>:filetype detect<cr>:exe \":echo 'init.lua reloaded'\"<cr>",
-		desc = "reload init.lua",
-	},
-	{
-		"<up>",
-		"<nop>",
-		desc = "disabled",
-		mode = { "n", "i" },
-	},
-	{
-		"<down>",
-		"<nop>",
-		desc = "disabled",
-		mode = { "n", "i" },
-	},
-	{
-		"<left>",
-		"<nop>",
-		desc = "disabled",
-		mode = { "n", "i" },
-	},
-	{
-		"<right>",
-		"<nop>",
-		desc = "disabled",
-		mode = { "n", "i" },
 	},
 
 	-- Session mappings (persistence.nvim)
