@@ -38,12 +38,23 @@ style = "Bold Italic"
 [font.italic]
 style = "Light Italic"
 
+[font]
+size = 12.0
+
 [font.normal]
 family = "SauceCodePro Nerd Font"
 style = "ExtraLight"
+
+[cursor]
+vi_mode_style = { shape = "Block" }
+
+[cursor.style]
+shape = "Block"
+blinking = "On"
 
 # ref - https://github.com/alacritty/alacritty/blob/master/alacritty.yml
 [window]
 decorations = "none"
 opacity = 0.95
+padding = { x = 4, y = 4 }
 startup_mode = "Maximized"
