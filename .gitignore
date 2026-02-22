@@ -1,2 +1,12 @@
+# macOS
+.DS_Store
+
+# Vim
+Session.vim
+
+# Logs
+*.log
+
+# Stow package artifacts
 karabiner/.config/karabiner/automatic_backups/
 hammerspoon/.hammerspoon/Spoons/
