@@ -60,8 +60,21 @@ docker-aws-login() {
 }
 
 # fuzzy matching
-# setting rg as the default source for fzf
-export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='
+  --reverse
+  --border
+  --preview "bat --color=always --style=numbers --line-range=:200 {} 2>/dev/null || ls -1 {}"
+  --preview-window right:50%:hidden
+  --bind "?:toggle-preview"
+  --color=bg+:#3c3836,bg:#282828,spinner:#fb4934,hl:#928374
+  --color=fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fb4934
+  --color=marker:#fb4934,fg+:#ebdbb2,prompt:#fb4934,hl+:#fb4934
+'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_CTRL_T_OPTS='--preview-window right:50%'
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_ALT_C_OPTS='--preview "ls -1 {}"'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # sesh: fuzzy tmux session picker (ctrl+f)
