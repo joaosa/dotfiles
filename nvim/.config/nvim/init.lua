@@ -280,7 +280,6 @@ require("lazy").setup({
   { "lervag/vimtex", ft = "tex" },
   { "pwntester/octo.nvim", cmd = "Octo", opts = {} },
   { "tpope/vim-dadbod", cmd = "DB" },
-  { "greggh/claude-code.nvim", cmd = "ClaudeCode", opts = {} },
   {
     "NeogitOrg/neogit",
     cmd = "Neogit",
@@ -789,11 +788,6 @@ require("which-key").add({
     "<localleader>ll",
     "<cmd>RenderMarkdown toggle<cr>",
     desc = "toggle markdown rendering",
-  },
-  {
-    "<localleader>cc",
-    "<cmd>ClaudeCode<cr>",
-    desc = "toggle claude code",
   },
 
   -- Python-specific mappings
