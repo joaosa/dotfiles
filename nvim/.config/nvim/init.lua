@@ -444,6 +444,21 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- Markdown-specific keymaps
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function()
+    vim.keymap.set("n", "<localleader>lt", function()
+      local line = vim.api.nvim_get_current_line()
+      if line:match("%- %[ %]") then
+        vim.api.nvim_set_current_line((line:gsub("%- %[ %]", "- [x]", 1)))
+      elseif line:match("%- %[x%]") then
+        vim.api.nvim_set_current_line((line:gsub("%- %[x%]", "- [ ]", 1)))
+      end
+    end, { buffer = true, desc = "toggle checkbox" })
+  end,
+})
+
 -- Easy close for special buffers
 vim.api.nvim_create_autocmd("FileType", {
   pattern = {
@@ -546,11 +561,6 @@ require("which-key").add({
     "gh",
     "<cmd>Trouble lsp_references toggle<cr>",
     desc = "LSP references",
-  },
-  {
-    "gr",
-    vim.lsp.buf.rename,
-    desc = "LSP rename",
   },
   {
     "gd",
@@ -784,19 +794,6 @@ require("which-key").add({
     "<localleader>ll",
     "<cmd>RenderMarkdown toggle<cr>",
     desc = "toggle markdown rendering",
-  },
-  {
-    "<localleader>lt",
-    function()
-      local line = vim.api.nvim_get_current_line()
-      if line:match("%- %[ %]") then
-        vim.api.nvim_set_current_line((line:gsub("%- %[ %]", "- [x]", 1)))
-      elseif line:match("%- %[x%]") then
-        vim.api.nvim_set_current_line((line:gsub("%- %[x%]", "- [ ]", 1)))
-      end
-    end,
-    desc = "toggle checkbox",
-    ft = "markdown",
   },
   {
     "<localleader>cc",
