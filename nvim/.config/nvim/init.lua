@@ -667,11 +667,6 @@ require("which-key").add({
     desc = "spelling",
   },
   {
-    "z=",
-    ":Telescope spell_suggest<cr>",
-    desc = "spell suggest (telescope)",
-  },
-  {
     "<leader>m",
     ":Telescope man_pages<cr>",
     desc = "manpages",
