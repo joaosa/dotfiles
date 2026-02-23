@@ -1,0 +1,24 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$rust\
+$golang\
+$python\
+$nodejs\
+$terraform\
+$docker_context\
+$cmd_duration\
+$line_break\
+$character"""
+
+[directory]
+truncate_to_repo = true
+
+[nodejs]
+detect_files = ["package.json"]
+
+[character]
+vimcmd_symbol = "[❮](bold green)"
