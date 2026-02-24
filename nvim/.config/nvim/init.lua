@@ -153,15 +153,12 @@ require("lazy").setup({
         space = " ",
       }
 
+      local accent = { "#282828", "#a89b89" }
+      local muted = { "#847c72", "#534d4a" }
       vim.g.tmuxline_theme = {
-        a = { "#282828", "#a89b89" },
-        b = { "#847c72", "#534d4a" },
-        c = { "#847c72", "#534d4a" },
-        x = { "#847c72", "#534d4a" },
-        y = { "#847c72", "#534d4a" },
-        z = { "#282828", "#a89b89" },
-        win = { "#847c72", "#534d4a" },
-        cwin = { "#282828", "#a89b89" },
+        a = accent, b = muted, c = muted,
+        x = muted, y = muted, z = accent,
+        win = muted, cwin = accent,
         bg = { "#534d4a", "#534d4a" },
       }
     end,
