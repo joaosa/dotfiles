@@ -1,4 +1,4 @@
--- Plugin configuration
+-- Plugins
 vim.g.mapleader = ","
 
 -- Bootstrap lazy.nvim
@@ -355,7 +355,7 @@ require("lazy").setup({
   },
 })
 
--- General settings
+-- Options
 -- yank and paste with the system clipboard
 vim.opt.clipboard = "unnamedplus"
 -- do not confuse crontab. see :help crontab
@@ -415,7 +415,7 @@ vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
 vim.opt.foldenable = true
 
--- Automatic whitespace cleanup (skip filetypes handled by conform)
+-- Autocommands
 vim.api.nvim_create_autocmd("BufWritePre", {
   callback = function()
     if #require("conform").list_formatters() > 0 then
@@ -567,6 +567,7 @@ vim.diagnostic.config({
   virtual_lines = { current_line = true },
 })
 
+-- Keymaps
 require("which-key").add({
   -- LSP mappings
   {
@@ -1034,6 +1035,7 @@ require("which-key").add({
   { "<leader>e", "<cmd>Oil<cr>", desc = "file explorer" },
 })
 
+-- Treesitter
 require("nvim-treesitter.configs").setup({
   highlight = {
     enable = true,
@@ -1220,6 +1222,7 @@ vim.treesitter.language.register("diff", "git")
 
 require("treesitter-context").setup()
 
+-- LSP / Formatters / Linters
 local lsp_servers = {
   lua_ls = {
     Lua = {
