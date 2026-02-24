@@ -1,4 +1,4 @@
--- Plugins
+-- Leaders
 vim.g.mapleader = ","
 vim.g.maplocalleader = "\\"
 
@@ -11,6 +11,61 @@ local function lsp_on_attach(client, bufnr)
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end
 end
+
+-- Options
+-- yank and paste with the system clipboard
+vim.opt.clipboard = "unnamedplus"
+-- do not confuse crontab. see :help crontab
+vim.opt.backupcopy = "yes"
+-- do not store swap files on the current dir (remove .)
+vim.opt.directory:remove(".")
+
+-- Display settings
+-- show trailing whitespace
+vim.opt.list = true
+vim.opt.listchars = { tab = "▸ ", trail = "▫" }
+-- show line numbers
+vim.opt.number = true
+-- stable sign column
+vim.opt.signcolumn = "yes"
+vim.opt.cursorline = true
+vim.opt.splitright = true
+vim.opt.splitbelow = true
+vim.opt.breakindent = true
+vim.opt.confirm = true
+vim.opt.updatetime = 250
+vim.opt.inccommand = "split"
+
+-- Indenting
+vim.opt.expandtab = true
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
+vim.opt.tabstop = 2
+
+-- Undo configuration
+-- keep undo history across sessions by storing it in a file
+local undo_dir_path = vim.fn.stdpath("state") .. "/undo"
+vim.fn.mkdir(undo_dir_path, "p")
+vim.opt.undodir = undo_dir_path
+vim.opt.undofile = true
+
+-- Spelling (prose filetypes only)
+vim.opt.spelllang = "en_us"
+vim.opt.spellsuggest = "best,9"
+
+-- Search settings
+-- case-insensitive search
+vim.opt.ignorecase = true
+-- case-sensitive search if any caps
+vim.opt.smartcase = true
+-- show context above/below cursorline
+vim.opt.scrolloff = 5
+
+-- Folding (nvim-ufo)
+vim.opt.foldcolumn = "1"
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
+vim.opt.foldenable = true
 
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -499,61 +554,6 @@ require("lazy").setup({
     },
   },
 })
-
--- Options
--- yank and paste with the system clipboard
-vim.opt.clipboard = "unnamedplus"
--- do not confuse crontab. see :help crontab
-vim.opt.backupcopy = "yes"
--- do not store swap files on the current dir (remove .)
-vim.opt.directory:remove(".")
-
--- Display settings
--- show trailing whitespace
-vim.opt.list = true
-vim.opt.listchars = { tab = "▸ ", trail = "▫" }
--- show line numbers
-vim.opt.number = true
--- stable sign column
-vim.opt.signcolumn = "yes"
-vim.opt.cursorline = true
-vim.opt.splitright = true
-vim.opt.splitbelow = true
-vim.opt.breakindent = true
-vim.opt.confirm = true
-vim.opt.updatetime = 250
-vim.opt.inccommand = "split"
-
--- Indenting
-vim.opt.expandtab = true
-vim.opt.shiftwidth = 2
-vim.opt.softtabstop = 2
-vim.opt.tabstop = 2
-
--- Undo configuration
--- keep undo history across sessions by storing it in a file
-local undo_dir_path = vim.fn.stdpath("state") .. "/undo"
-vim.fn.mkdir(undo_dir_path, "p")
-vim.opt.undodir = undo_dir_path
-vim.opt.undofile = true
-
--- Spelling (prose filetypes only)
-vim.opt.spelllang = "en_us"
-vim.opt.spellsuggest = "best,9"
-
--- Search settings
--- case-insensitive search
-vim.opt.ignorecase = true
--- case-sensitive search if any caps
-vim.opt.smartcase = true
--- show context above/below cursorline
-vim.opt.scrolloff = 5
-
--- Folding (nvim-ufo)
-vim.opt.foldcolumn = "1"
-vim.opt.foldlevel = 99
-vim.opt.foldlevelstart = 99
-vim.opt.foldenable = true
 
 -- Autocommands
 vim.api.nvim_create_autocmd("BufWritePre", {
