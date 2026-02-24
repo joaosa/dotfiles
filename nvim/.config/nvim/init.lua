@@ -496,7 +496,6 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Easy close for LSP floating windows
 vim.api.nvim_create_autocmd("BufEnter", {
-  pattern = "*",
   callback = function()
     local win = vim.api.nvim_get_current_win()
     local config = vim.api.nvim_win_get_config(win)
@@ -511,7 +510,6 @@ vim.api.nvim_create_autocmd("BufEnter", {
 local numbertoggle_group = vim.api.nvim_create_augroup("NumberToggle", {})
 
 vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }, {
-  pattern = "*",
   group = numbertoggle_group,
   callback = function()
     if vim.o.nu and vim.api.nvim_get_mode().mode ~= "i" then
@@ -521,7 +519,6 @@ vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave", "Cmdline
 })
 
 vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEnter", "WinLeave" }, {
-  pattern = "*",
   group = numbertoggle_group,
   callback = function()
     if vim.o.nu then
