@@ -617,6 +617,12 @@ require("which-key").add({
     vim.lsp.buf.hover,
     desc = "LSP hover",
   },
+  {
+    "K",
+    function() vim.cmd.RustLsp({ "hover", "actions" }) end,
+    desc = "Rust hover actions",
+    ft = "rust",
+  },
 
   -- Leader mappings
   {
@@ -804,15 +810,12 @@ require("which-key").add({
 
   -- Treesitter text object swap mappings
   { "<leader>s", group = "swap" },
-  { "<leader>sn", desc = "swap next parameter" },
-  { "<leader>sp", desc = "swap previous parameter" },
-  { "<leader>sf", desc = "swap next function" },
-  { "<leader>sF", desc = "swap previous function" },
 
   -- Treesitter peek definition mappings
   { "<leader>p", group = "peek" },
-  { "<leader>pf", desc = "peek function definition" },
-  { "<leader>pc", desc = "peek class definition" },
+
+  -- Rust mappings
+  { "<localleader>r", group = "rust", ft = "rust" },
 
   -- Local leader mappings
   {
@@ -868,20 +871,6 @@ require("which-key").add({
     end,
     desc = "Previous todo comment",
   },
-
-  -- Treesitter navigation (with descriptive labels)
-  { "]f", desc = "Next function start" },
-  { "[f", desc = "Previous function start" },
-  { "]F", desc = "Next function end" },
-  { "[F", desc = "Previous function end" },
-  { "]a", desc = "Next parameter" },
-  { "[a", desc = "Previous parameter" },
-  { "]i", desc = "Next conditional" },
-  { "[i", desc = "Previous conditional" },
-  { "]l", desc = "Next loop" },
-  { "[l", desc = "Previous loop" },
-  { "]z", desc = "Next statement" },
-  { "[z", desc = "Previous statement" },
 
   {
     "]c",
@@ -1150,48 +1139,48 @@ require("nvim-treesitter.configs").setup({
       enable = true,
       set_jumps = true,
       goto_next_start = {
-        ["]f"] = "@function.outer",
-        ["]k"] = "@class.outer",
-        ["]a"] = "@parameter.inner",
-        ["]i"] = "@conditional.outer",
-        ["]l"] = "@loop.outer",
-        ["]z"] = "@statement.outer",
+        ["]f"] = { query = "@function.outer", desc = "Next function start" },
+        ["]k"] = { query = "@class.outer", desc = "Next class start" },
+        ["]a"] = { query = "@parameter.inner", desc = "Next parameter" },
+        ["]i"] = { query = "@conditional.outer", desc = "Next conditional" },
+        ["]l"] = { query = "@loop.outer", desc = "Next loop" },
+        ["]z"] = { query = "@statement.outer", desc = "Next statement" },
       },
       goto_next_end = {
-        ["]F"] = "@function.outer",
-        ["]K"] = "@class.outer",
-        ["]A"] = "@parameter.inner",
-        ["]I"] = "@conditional.outer",
-        ["]L"] = "@loop.outer",
-        ["]Z"] = "@statement.outer",
+        ["]F"] = { query = "@function.outer", desc = "Next function end" },
+        ["]K"] = { query = "@class.outer", desc = "Next class end" },
+        ["]A"] = { query = "@parameter.inner", desc = "Next parameter end" },
+        ["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
+        ["]L"] = { query = "@loop.outer", desc = "Next loop end" },
+        ["]Z"] = { query = "@statement.outer", desc = "Next statement end" },
       },
       goto_previous_start = {
-        ["[f"] = "@function.outer",
-        ["[k"] = "@class.outer",
-        ["[a"] = "@parameter.inner",
-        ["[i"] = "@conditional.outer",
-        ["[l"] = "@loop.outer",
-        ["[z"] = "@statement.outer",
+        ["[f"] = { query = "@function.outer", desc = "Previous function start" },
+        ["[k"] = { query = "@class.outer", desc = "Previous class start" },
+        ["[a"] = { query = "@parameter.inner", desc = "Previous parameter" },
+        ["[i"] = { query = "@conditional.outer", desc = "Previous conditional" },
+        ["[l"] = { query = "@loop.outer", desc = "Previous loop" },
+        ["[z"] = { query = "@statement.outer", desc = "Previous statement" },
       },
       goto_previous_end = {
-        ["[F"] = "@function.outer",
-        ["[K"] = "@class.outer",
-        ["[A"] = "@parameter.inner",
-        ["[I"] = "@conditional.outer",
-        ["[L"] = "@loop.outer",
-        ["[Z"] = "@statement.outer",
+        ["[F"] = { query = "@function.outer", desc = "Previous function end" },
+        ["[K"] = { query = "@class.outer", desc = "Previous class end" },
+        ["[A"] = { query = "@parameter.inner", desc = "Previous parameter end" },
+        ["[I"] = { query = "@conditional.outer", desc = "Previous conditional end" },
+        ["[L"] = { query = "@loop.outer", desc = "Previous loop end" },
+        ["[Z"] = { query = "@statement.outer", desc = "Previous statement end" },
       },
     },
 
     swap = {
       enable = true,
       swap_next = {
-        ["<leader>sn"] = "@parameter.inner",
-        ["<leader>sf"] = "@function.outer",
+        ["<leader>sn"] = { query = "@parameter.inner", desc = "Swap next parameter" },
+        ["<leader>sf"] = { query = "@function.outer", desc = "Swap next function" },
       },
       swap_previous = {
-        ["<leader>sp"] = "@parameter.inner",
-        ["<leader>sF"] = "@function.outer",
+        ["<leader>sp"] = { query = "@parameter.inner", desc = "Swap previous parameter" },
+        ["<leader>sF"] = { query = "@function.outer", desc = "Swap previous function" },
       },
     },
 
@@ -1200,8 +1189,8 @@ require("nvim-treesitter.configs").setup({
       border = "none",
       floating_preview_opts = {},
       peek_definition_code = {
-        ["<leader>pf"] = "@function.outer",
-        ["<leader>pc"] = "@class.outer",
+        ["<leader>pf"] = { query = "@function.outer", desc = "Peek function definition" },
+        ["<leader>pc"] = { query = "@class.outer", desc = "Peek class definition" },
       },
     },
   },
