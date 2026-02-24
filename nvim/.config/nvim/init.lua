@@ -450,6 +450,30 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- Python-specific keymaps
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "python",
+  callback = function()
+    vim.keymap.set("n", "<localleader>pv", function()
+      vim.cmd("!python3 -c 'import sys; print(sys.executable)'")
+    end, { buffer = true, desc = "Show Python path" })
+    vim.keymap.set("n", "<localleader>pi", function()
+      vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } } })
+    end, { buffer = true, desc = "Organize imports" })
+  end,
+})
+
+-- Go-specific keymaps
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "go",
+  callback = function()
+    vim.keymap.set("n", "<localleader>gt", "<cmd>!go test %<cr>", { buffer = true, desc = "Run tests in current file" })
+    vim.keymap.set("n", "<localleader>gT", "<cmd>!go test ./...<cr>", { buffer = true, desc = "Run all tests" })
+    vim.keymap.set("n", "<localleader>gr", "<cmd>!go run %<cr>", { buffer = true, desc = "Run current file" })
+    vim.keymap.set("n", "<localleader>gb", "<cmd>!go build<cr>", { buffer = true, desc = "Build package" })
+  end,
+})
+
 -- Easy close for special buffers
 vim.api.nvim_create_autocmd("FileType", {
   pattern = {
@@ -780,44 +804,6 @@ require("which-key").add({
     "<localleader>ll",
     "<cmd>RenderMarkdown toggle<cr>",
     desc = "toggle markdown rendering",
-  },
-
-  -- Python-specific mappings
-  {
-    "<localleader>pv",
-    function()
-      vim.cmd("!python3 -c 'import sys; print(sys.executable)'")
-    end,
-    desc = "Show Python path",
-  },
-  {
-    "<localleader>pi",
-    function()
-      vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } } })
-    end,
-    desc = "Organize imports",
-  },
-
-  -- Go-specific mappings
-  {
-    "<localleader>gt",
-    "<cmd>!go test %<cr>",
-    desc = "Run tests in current file",
-  },
-  {
-    "<localleader>gT",
-    "<cmd>!go test ./...<cr>",
-    desc = "Run all tests",
-  },
-  {
-    "<localleader>gr",
-    "<cmd>!go run %<cr>",
-    desc = "Run current file",
-  },
-  {
-    "<localleader>gb",
-    "<cmd>!go build<cr>",
-    desc = "Build package",
   },
 
   -- Opencode mappings
