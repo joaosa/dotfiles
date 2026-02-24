@@ -133,9 +133,169 @@ require("lazy").setup({
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter-textobjects",
+      "nvim-treesitter/nvim-treesitter-context",
+    },
+    config = function()
+      require("nvim-treesitter.configs").setup({
+        highlight = {
+          enable = true,
+          -- handle links for Obsidian
+          additional_vim_regex_highlighting = { "markdown" },
+        },
+
+        ensure_installed = {
+          "rust",
+          "go",
+          "lua",
+          "python",
+          "javascript",
+          "typescript",
+          "sql",
+          "hcl",
+          "terraform",
+          "yaml",
+          "json",
+          "toml",
+          "markdown",
+          "markdown_inline",
+          "diff",
+          "bash",
+        },
+
+        auto_install = true,
+
+        incremental_selection = {
+          enable = true,
+          keymaps = {
+            init_selection = "<CR>",
+            node_incremental = "<CR>",
+            scope_incremental = false,
+            node_decremental = "<BS>",
+          },
+        },
+
+        textobjects = {
+          select = {
+            enable = true,
+            lookahead = true,
+            keymaps = {
+              -- Function/method text objects
+              ["af"] = "@function.outer",
+              ["if"] = "@function.inner",
+
+              -- Class text objects
+              ["ac"] = "@class.outer",
+              ["ic"] = "@class.inner",
+
+              -- Parameter/argument text objects
+              ["aa"] = "@parameter.outer",
+              ["ia"] = "@parameter.inner",
+
+              -- Conditional text objects
+              ["ai"] = "@conditional.outer",
+              ["ii"] = "@conditional.inner",
+
+              -- Loop text objects
+              ["al"] = "@loop.outer",
+              ["il"] = "@loop.inner",
+
+              -- Comment text objects
+              ["a/"] = "@comment.outer",
+              ["i/"] = "@comment.inner",
+
+              -- Block text objects
+              ["ab"] = "@block.outer",
+              ["ib"] = "@block.inner",
+
+              -- Statement text objects
+              ["as"] = "@statement.outer",
+              ["is"] = "@statement.inner",
+
+              -- Assignment text objects
+              ["a="] = "@assignment.outer",
+              ["i="] = "@assignment.inner",
+
+              -- Call text objects
+              ["aF"] = "@call.outer",
+              ["iF"] = "@call.inner",
+            },
+            selection_modes = {
+              ["@parameter.outer"] = "v",
+              ["@function.outer"] = "V",
+              ["@class.outer"] = "V",
+              ["@conditional.outer"] = "V",
+              ["@loop.outer"] = "V",
+              ["@block.outer"] = "V",
+            },
+          },
+
+          move = {
+            enable = true,
+            set_jumps = true,
+            goto_next_start = {
+              ["]f"] = { query = "@function.outer", desc = "Next function start" },
+              ["]k"] = { query = "@class.outer", desc = "Next class start" },
+              ["]a"] = { query = "@parameter.inner", desc = "Next parameter" },
+              ["]i"] = { query = "@conditional.outer", desc = "Next conditional" },
+              ["]l"] = { query = "@loop.outer", desc = "Next loop" },
+              ["]z"] = { query = "@statement.outer", desc = "Next statement" },
+            },
+            goto_next_end = {
+              ["]F"] = { query = "@function.outer", desc = "Next function end" },
+              ["]K"] = { query = "@class.outer", desc = "Next class end" },
+              ["]A"] = { query = "@parameter.inner", desc = "Next parameter end" },
+              ["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
+              ["]L"] = { query = "@loop.outer", desc = "Next loop end" },
+              ["]Z"] = { query = "@statement.outer", desc = "Next statement end" },
+            },
+            goto_previous_start = {
+              ["[f"] = { query = "@function.outer", desc = "Previous function start" },
+              ["[k"] = { query = "@class.outer", desc = "Previous class start" },
+              ["[a"] = { query = "@parameter.inner", desc = "Previous parameter" },
+              ["[i"] = { query = "@conditional.outer", desc = "Previous conditional" },
+              ["[l"] = { query = "@loop.outer", desc = "Previous loop" },
+              ["[z"] = { query = "@statement.outer", desc = "Previous statement" },
+            },
+            goto_previous_end = {
+              ["[F"] = { query = "@function.outer", desc = "Previous function end" },
+              ["[K"] = { query = "@class.outer", desc = "Previous class end" },
+              ["[A"] = { query = "@parameter.inner", desc = "Previous parameter end" },
+              ["[I"] = { query = "@conditional.outer", desc = "Previous conditional end" },
+              ["[L"] = { query = "@loop.outer", desc = "Previous loop end" },
+              ["[Z"] = { query = "@statement.outer", desc = "Previous statement end" },
+            },
+          },
+
+          swap = {
+            enable = true,
+            swap_next = {
+              ["<leader>sn"] = { query = "@parameter.inner", desc = "Swap next parameter" },
+              ["<leader>sf"] = { query = "@function.outer", desc = "Swap next function" },
+            },
+            swap_previous = {
+              ["<leader>sp"] = { query = "@parameter.inner", desc = "Swap previous parameter" },
+              ["<leader>sF"] = { query = "@function.outer", desc = "Swap previous function" },
+            },
+          },
+
+          lsp_interop = {
+            enable = true,
+            border = "none",
+            floating_preview_opts = {},
+            peek_definition_code = {
+              ["<leader>pf"] = { query = "@function.outer", desc = "Peek function definition" },
+              ["<leader>pc"] = { query = "@class.outer", desc = "Peek class definition" },
+            },
+          },
+        },
+      })
+
+      vim.treesitter.language.register("diff", "git")
+      require("treesitter-context").setup()
+    end,
   },
-  "nvim-treesitter/nvim-treesitter-textobjects",
-  "nvim-treesitter/nvim-treesitter-context",
 
   -- lsp
   "williamboman/mason.nvim",
@@ -1064,161 +1224,6 @@ require("which-key").add({
   { "<leader>e", "<cmd>Oil<cr>", desc = "file explorer" },
 })
 
--- Treesitter
-require("nvim-treesitter.configs").setup({
-  highlight = {
-    enable = true,
-    -- handle links for Obsidian
-    additional_vim_regex_highlighting = { "markdown" },
-  },
-
-  ensure_installed = {
-    "rust",
-    "go",
-    "lua",
-    "python",
-    "javascript",
-    "typescript",
-    "sql",
-    "hcl",
-    "terraform",
-    "yaml",
-    "json",
-    "toml",
-    "markdown",
-    "markdown_inline",
-    "diff",
-    "bash",
-  },
-
-  auto_install = true,
-
-  incremental_selection = {
-    enable = true,
-    keymaps = {
-      init_selection = "<CR>",
-      node_incremental = "<CR>",
-      scope_incremental = false,
-      node_decremental = "<BS>",
-    },
-  },
-
-  textobjects = {
-    select = {
-      enable = true,
-      lookahead = true,
-      keymaps = {
-        -- Function/method text objects
-        ["af"] = "@function.outer",
-        ["if"] = "@function.inner",
-
-        -- Class text objects
-        ["ac"] = "@class.outer",
-        ["ic"] = "@class.inner",
-
-        -- Parameter/argument text objects
-        ["aa"] = "@parameter.outer",
-        ["ia"] = "@parameter.inner",
-
-        -- Conditional text objects
-        ["ai"] = "@conditional.outer",
-        ["ii"] = "@conditional.inner",
-
-        -- Loop text objects
-        ["al"] = "@loop.outer",
-        ["il"] = "@loop.inner",
-
-        -- Comment text objects
-        ["a/"] = "@comment.outer",
-        ["i/"] = "@comment.inner",
-
-        -- Block text objects
-        ["ab"] = "@block.outer",
-        ["ib"] = "@block.inner",
-
-        -- Statement text objects
-        ["as"] = "@statement.outer",
-        ["is"] = "@statement.inner",
-
-        -- Assignment text objects
-        ["a="] = "@assignment.outer",
-        ["i="] = "@assignment.inner",
-
-        -- Call text objects
-        ["aF"] = "@call.outer",
-        ["iF"] = "@call.inner",
-      },
-      selection_modes = {
-        ["@parameter.outer"] = "v",
-        ["@function.outer"] = "V",
-        ["@class.outer"] = "V",
-        ["@conditional.outer"] = "V",
-        ["@loop.outer"] = "V",
-        ["@block.outer"] = "V",
-      },
-    },
-
-    move = {
-      enable = true,
-      set_jumps = true,
-      goto_next_start = {
-        ["]f"] = { query = "@function.outer", desc = "Next function start" },
-        ["]k"] = { query = "@class.outer", desc = "Next class start" },
-        ["]a"] = { query = "@parameter.inner", desc = "Next parameter" },
-        ["]i"] = { query = "@conditional.outer", desc = "Next conditional" },
-        ["]l"] = { query = "@loop.outer", desc = "Next loop" },
-        ["]z"] = { query = "@statement.outer", desc = "Next statement" },
-      },
-      goto_next_end = {
-        ["]F"] = { query = "@function.outer", desc = "Next function end" },
-        ["]K"] = { query = "@class.outer", desc = "Next class end" },
-        ["]A"] = { query = "@parameter.inner", desc = "Next parameter end" },
-        ["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
-        ["]L"] = { query = "@loop.outer", desc = "Next loop end" },
-        ["]Z"] = { query = "@statement.outer", desc = "Next statement end" },
-      },
-      goto_previous_start = {
-        ["[f"] = { query = "@function.outer", desc = "Previous function start" },
-        ["[k"] = { query = "@class.outer", desc = "Previous class start" },
-        ["[a"] = { query = "@parameter.inner", desc = "Previous parameter" },
-        ["[i"] = { query = "@conditional.outer", desc = "Previous conditional" },
-        ["[l"] = { query = "@loop.outer", desc = "Previous loop" },
-        ["[z"] = { query = "@statement.outer", desc = "Previous statement" },
-      },
-      goto_previous_end = {
-        ["[F"] = { query = "@function.outer", desc = "Previous function end" },
-        ["[K"] = { query = "@class.outer", desc = "Previous class end" },
-        ["[A"] = { query = "@parameter.inner", desc = "Previous parameter end" },
-        ["[I"] = { query = "@conditional.outer", desc = "Previous conditional end" },
-        ["[L"] = { query = "@loop.outer", desc = "Previous loop end" },
-        ["[Z"] = { query = "@statement.outer", desc = "Previous statement end" },
-      },
-    },
-
-    swap = {
-      enable = true,
-      swap_next = {
-        ["<leader>sn"] = { query = "@parameter.inner", desc = "Swap next parameter" },
-        ["<leader>sf"] = { query = "@function.outer", desc = "Swap next function" },
-      },
-      swap_previous = {
-        ["<leader>sp"] = { query = "@parameter.inner", desc = "Swap previous parameter" },
-        ["<leader>sF"] = { query = "@function.outer", desc = "Swap previous function" },
-      },
-    },
-
-    lsp_interop = {
-      enable = true,
-      border = "none",
-      floating_preview_opts = {},
-      peek_definition_code = {
-        ["<leader>pf"] = { query = "@function.outer", desc = "Peek function definition" },
-        ["<leader>pc"] = { query = "@class.outer", desc = "Peek class definition" },
-      },
-    },
-  },
-})
-
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = "*.tftpl",
   command = "set filetype=yaml",
@@ -1246,10 +1251,6 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
     vim.bo.filetype = "yaml.ansible"
   end,
 })
-
-vim.treesitter.language.register("diff", "git")
-
-require("treesitter-context").setup()
 
 -- LSP / Formatters / Linters
 local lsp_servers = {
