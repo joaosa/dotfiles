@@ -138,6 +138,58 @@ require("lazy").setup({
       "nvim-treesitter/nvim-treesitter-context",
     },
     config = function()
+      -- Textobject definitions: single source of truth for select, move, swap, and peek keymaps
+      -- sel: a/i select key, mode: selection mode, mov: ]/[ move key
+      -- mov_suf: "inner" overrides default "outer" for move/swap queries
+      -- swap: { next_key, prev_key }, peek: peek definition key
+      local ts_objects = {
+        { name = "function",    sel = "f", mode = "V", mov = "f",                    swap = { "f", "F" }, peek = "f" },
+        { name = "class",       sel = "c", mode = "V", mov = "k",                                         peek = "c" },
+        { name = "parameter",   sel = "a", mode = "v", mov = "a", mov_suf = "inner", swap = { "n", "p" } },
+        { name = "conditional", sel = "i", mode = "V", mov = "i" },
+        { name = "loop",        sel = "l", mode = "V", mov = "l" },
+        { name = "comment",     sel = "/" },
+        { name = "block",       sel = "b", mode = "V" },
+        { name = "statement",   sel = "s",             mov = "z" },
+        { name = "assignment",  sel = "=" },
+        { name = "call",        sel = "F" },
+      }
+
+      local select_keymaps, select_modes = {}, {}
+      local move = {
+        enable = true, set_jumps = true,
+        goto_next_start = {}, goto_next_end = {},
+        goto_previous_start = {}, goto_previous_end = {},
+      }
+      local swap_next, swap_prev = {}, {}
+      local peek_defs = {}
+
+      for _, obj in ipairs(ts_objects) do
+        local outer = "@" .. obj.name .. ".outer"
+        local inner = "@" .. obj.name .. ".inner"
+        local query = obj.mov_suf == "inner" and inner or outer
+
+        select_keymaps["a" .. obj.sel] = outer
+        select_keymaps["i" .. obj.sel] = inner
+        if obj.mode then select_modes[outer] = obj.mode end
+
+        if obj.mov then
+          move.goto_next_start["]" .. obj.mov] = { query = query, desc = "Next " .. obj.name }
+          move.goto_next_end["]" .. obj.mov:upper()] = { query = query, desc = "Next " .. obj.name .. " end" }
+          move.goto_previous_start["[" .. obj.mov] = { query = query, desc = "Previous " .. obj.name }
+          move.goto_previous_end["[" .. obj.mov:upper()] = { query = query, desc = "Previous " .. obj.name .. " end" }
+        end
+
+        if obj.swap then
+          swap_next["<leader>s" .. obj.swap[1]] = { query = query, desc = "Swap next " .. obj.name }
+          swap_prev["<leader>s" .. obj.swap[2]] = { query = query, desc = "Swap previous " .. obj.name }
+        end
+
+        if obj.peek then
+          peek_defs["<leader>p" .. obj.peek] = { query = outer, desc = "Peek " .. obj.name .. " definition" }
+        end
+      end
+
       require("nvim-treesitter.configs").setup({
         highlight = {
           enable = true,
@@ -180,114 +232,20 @@ require("lazy").setup({
           select = {
             enable = true,
             lookahead = true,
-            keymaps = {
-              -- Function/method text objects
-              ["af"] = "@function.outer",
-              ["if"] = "@function.inner",
-
-              -- Class text objects
-              ["ac"] = "@class.outer",
-              ["ic"] = "@class.inner",
-
-              -- Parameter/argument text objects
-              ["aa"] = "@parameter.outer",
-              ["ia"] = "@parameter.inner",
-
-              -- Conditional text objects
-              ["ai"] = "@conditional.outer",
-              ["ii"] = "@conditional.inner",
-
-              -- Loop text objects
-              ["al"] = "@loop.outer",
-              ["il"] = "@loop.inner",
-
-              -- Comment text objects
-              ["a/"] = "@comment.outer",
-              ["i/"] = "@comment.inner",
-
-              -- Block text objects
-              ["ab"] = "@block.outer",
-              ["ib"] = "@block.inner",
-
-              -- Statement text objects
-              ["as"] = "@statement.outer",
-              ["is"] = "@statement.inner",
-
-              -- Assignment text objects
-              ["a="] = "@assignment.outer",
-              ["i="] = "@assignment.inner",
-
-              -- Call text objects
-              ["aF"] = "@call.outer",
-              ["iF"] = "@call.inner",
-            },
-            selection_modes = {
-              ["@parameter.outer"] = "v",
-              ["@function.outer"] = "V",
-              ["@class.outer"] = "V",
-              ["@conditional.outer"] = "V",
-              ["@loop.outer"] = "V",
-              ["@block.outer"] = "V",
-            },
+            keymaps = select_keymaps,
+            selection_modes = select_modes,
           },
-
-          move = {
-            enable = true,
-            set_jumps = true,
-            goto_next_start = {
-              ["]f"] = { query = "@function.outer", desc = "Next function start" },
-              ["]k"] = { query = "@class.outer", desc = "Next class start" },
-              ["]a"] = { query = "@parameter.inner", desc = "Next parameter" },
-              ["]i"] = { query = "@conditional.outer", desc = "Next conditional" },
-              ["]l"] = { query = "@loop.outer", desc = "Next loop" },
-              ["]z"] = { query = "@statement.outer", desc = "Next statement" },
-            },
-            goto_next_end = {
-              ["]F"] = { query = "@function.outer", desc = "Next function end" },
-              ["]K"] = { query = "@class.outer", desc = "Next class end" },
-              ["]A"] = { query = "@parameter.inner", desc = "Next parameter end" },
-              ["]I"] = { query = "@conditional.outer", desc = "Next conditional end" },
-              ["]L"] = { query = "@loop.outer", desc = "Next loop end" },
-              ["]Z"] = { query = "@statement.outer", desc = "Next statement end" },
-            },
-            goto_previous_start = {
-              ["[f"] = { query = "@function.outer", desc = "Previous function start" },
-              ["[k"] = { query = "@class.outer", desc = "Previous class start" },
-              ["[a"] = { query = "@parameter.inner", desc = "Previous parameter" },
-              ["[i"] = { query = "@conditional.outer", desc = "Previous conditional" },
-              ["[l"] = { query = "@loop.outer", desc = "Previous loop" },
-              ["[z"] = { query = "@statement.outer", desc = "Previous statement" },
-            },
-            goto_previous_end = {
-              ["[F"] = { query = "@function.outer", desc = "Previous function end" },
-              ["[K"] = { query = "@class.outer", desc = "Previous class end" },
-              ["[A"] = { query = "@parameter.inner", desc = "Previous parameter end" },
-              ["[I"] = { query = "@conditional.outer", desc = "Previous conditional end" },
-              ["[L"] = { query = "@loop.outer", desc = "Previous loop end" },
-              ["[Z"] = { query = "@statement.outer", desc = "Previous statement end" },
-            },
-          },
-
+          move = move,
           swap = {
             enable = true,
-            swap_next = {
-              ["<leader>sn"] = { query = "@parameter.inner", desc = "Swap next parameter" },
-              ["<leader>sf"] = { query = "@function.outer", desc = "Swap next function" },
-            },
-            swap_previous = {
-              ["<leader>sp"] = { query = "@parameter.inner", desc = "Swap previous parameter" },
-              ["<leader>sF"] = { query = "@function.outer", desc = "Swap previous function" },
-            },
+            swap_next = swap_next,
+            swap_previous = swap_prev,
           },
-
           lsp_interop = {
             enable = true,
             border = "none",
             floating_preview_opts = {},
-            peek_definition_code = {
-              ["<leader>pf"] = { query = "@function.outer", desc = "Peek function definition" },
-              ["<leader>pc"] = { query = "@class.outer", desc = "Peek class definition" },
-            },
+            peek_definition_code = peek_defs,
           },
         },
       })
