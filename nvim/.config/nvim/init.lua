@@ -160,34 +160,6 @@ require("lazy").setup({
               if client.server_capabilities.inlayHintProvider then
                 vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
               end
-              local opts = { silent = true, buffer = bufnr }
-              vim.keymap.set("n", "K", function()
-                vim.cmd.RustLsp({ "hover", "actions" })
-              end, vim.tbl_extend("force", opts, { desc = "Rust hover actions" }))
-              vim.keymap.set("n", "<leader>ca", function()
-                vim.cmd.RustLsp("codeAction")
-              end, vim.tbl_extend("force", opts, { desc = "Rust code action" }))
-              vim.keymap.set("n", "<localleader>rr", function()
-                vim.cmd.RustLsp("runnables")
-              end, vim.tbl_extend("force", opts, { desc = "Rust runnables" }))
-              vim.keymap.set("n", "<localleader>rt", function()
-                vim.cmd.RustLsp("testables")
-              end, vim.tbl_extend("force", opts, { desc = "Rust testables" }))
-              vim.keymap.set("n", "<localleader>re", function()
-                vim.cmd.RustLsp("expandMacro")
-              end, vim.tbl_extend("force", opts, { desc = "Rust expand macro" }))
-              vim.keymap.set("n", "<localleader>ro", function()
-                vim.cmd.RustLsp("openDocs")
-              end, vim.tbl_extend("force", opts, { desc = "Rust open docs" }))
-              vim.keymap.set("n", "<localleader>rc", function()
-                vim.cmd.RustLsp("openCargo")
-              end, vim.tbl_extend("force", opts, { desc = "Rust open Cargo.toml" }))
-              vim.keymap.set("n", "<localleader>rp", function()
-                vim.cmd.RustLsp("parentModule")
-              end, vim.tbl_extend("force", opts, { desc = "Rust parent module" }))
-              vim.keymap.set("n", "<localleader>rx", function()
-                vim.cmd.RustLsp({ "explainError", "current" })
-              end, vim.tbl_extend("force", opts, { desc = "Rust explain error" }))
             end,
             capabilities = require("blink.cmp").get_lsp_capabilities(),
             default_settings = {
@@ -631,6 +603,12 @@ require("which-key").add({
     desc = "code action",
   },
   {
+    "<leader>ca",
+    function() vim.cmd.RustLsp("codeAction") end,
+    desc = "Rust code action",
+    ft = "rust",
+  },
+  {
     "<leader>cd",
     vim.diagnostic.open_float,
     desc = "show cursor diagnostics",
@@ -816,6 +794,48 @@ require("which-key").add({
 
   -- Rust mappings
   { "<localleader>r", group = "rust", ft = "rust" },
+  {
+    "<localleader>rr",
+    function() vim.cmd.RustLsp("runnables") end,
+    desc = "Rust runnables",
+    ft = "rust",
+  },
+  {
+    "<localleader>rt",
+    function() vim.cmd.RustLsp("testables") end,
+    desc = "Rust testables",
+    ft = "rust",
+  },
+  {
+    "<localleader>re",
+    function() vim.cmd.RustLsp("expandMacro") end,
+    desc = "Rust expand macro",
+    ft = "rust",
+  },
+  {
+    "<localleader>ro",
+    function() vim.cmd.RustLsp("openDocs") end,
+    desc = "Rust open docs",
+    ft = "rust",
+  },
+  {
+    "<localleader>rc",
+    function() vim.cmd.RustLsp("openCargo") end,
+    desc = "Rust open Cargo.toml",
+    ft = "rust",
+  },
+  {
+    "<localleader>rp",
+    function() vim.cmd.RustLsp("parentModule") end,
+    desc = "Rust parent module",
+    ft = "rust",
+  },
+  {
+    "<localleader>rx",
+    function() vim.cmd.RustLsp({ "explainError", "current" }) end,
+    desc = "Rust explain error",
+    ft = "rust",
+  },
 
   -- Local leader mappings
   {
