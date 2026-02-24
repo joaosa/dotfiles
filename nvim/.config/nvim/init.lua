@@ -417,14 +417,13 @@ vim.opt.foldenable = true
 
 -- Automatic whitespace cleanup (skip filetypes handled by conform)
 vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = "*",
   callback = function()
     if #require("conform").list_formatters() > 0 then
       return
     end
-    local save_cursor = vim.fn.getpos(".")
-    vim.cmd([[%s/\s\+$//e]])
-    vim.fn.setpos(".", save_cursor)
+    local view = vim.fn.winsaveview()
+    vim.cmd.keeppatterns([[%s/\s\+$//e]])
+    vim.fn.winrestview(view)
   end,
 })
 
