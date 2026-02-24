@@ -387,17 +387,10 @@ vim.opt.tabstop = 2
 
 -- Undo configuration
 -- keep undo history across sessions by storing it in a file
--- ref - https://stackoverflow.com/questions/5700389/using-vims-persistent-undo
-local config_dir = vim.fn.stdpath("config")
-if vim.fn.has("persistent_undo") == 1 then
-  local undo_dir_path = config_dir .. "/undo"
-
-  vim.fn.mkdir(undo_dir_path, "p")
-
-  -- maintain undo history between sessions
-  vim.opt.undodir = undo_dir_path
-  vim.opt.undofile = true
-end
+local undo_dir_path = vim.fn.stdpath("state") .. "/undo"
+vim.fn.mkdir(undo_dir_path, "p")
+vim.opt.undodir = undo_dir_path
+vim.opt.undofile = true
 
 -- Spelling (prose filetypes only)
 vim.opt.spelllang = "en_us"
