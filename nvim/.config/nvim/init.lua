@@ -1390,7 +1390,6 @@ require("conform").setup({
 require("lint").linters_by_ft = {
   sql = { "sqlfluff" },
   yaml = { "yamllint" },
-  ["yaml.ansible"] = { "ansible_lint" },
   python = { "ruff" },
   sh = { "shellcheck" },
   bash = { "shellcheck" },
@@ -1411,11 +1410,12 @@ vim.api.nvim_create_autocmd("BufWritePost", {
       local filepath = vim.fn.expand("%:p")
       vim.fn.jobstart({ "ansible-lint", "--fix", filepath }, {
         on_exit = function()
-          -- Reload buffer after async lint completes
+          -- Reload buffer after async lint completes, then refresh diagnostics
           vim.schedule(function()
             if vim.api.nvim_buf_is_valid(bufnr) and not vim.bo[bufnr].modified then
               vim.api.nvim_buf_call(bufnr, function()
                 vim.cmd("checktime")
+                require("lint").try_lint()
               end)
             end
           end)
