@@ -542,11 +542,6 @@ vim.opt.spelllang = "en_us"
 vim.opt.spellsuggest = "best,9"
 
 -- Search settings
-vim.api.nvim_create_autocmd("User", {
-  pattern = "TelescopePreviewerLoaded",
-  command = "setlocal wrap",
-})
-
 -- case-insensitive search
 vim.opt.ignorecase = true
 -- case-sensitive search if any caps
@@ -669,6 +664,40 @@ vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEn
     if vim.o.nu then
       vim.opt.relativenumber = false
     end
+  end,
+})
+
+-- Telescope previewer wrap
+vim.api.nvim_create_autocmd("User", {
+  pattern = "TelescopePreviewerLoaded",
+  command = "setlocal wrap",
+})
+
+-- Filetype detection
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = "*.tftpl",
+  command = "set filetype=yaml",
+})
+
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = {
+    "*/playbooks/*.yml",
+    "*/playbooks/*.yaml",
+    "*playbook*.yml",
+    "*playbook*.yaml",
+    "*/roles/*/tasks/*.yml",
+    "*/roles/*/tasks/*.yaml",
+    "*/roles/*/handlers/*.yml",
+    "*/roles/*/handlers/*.yaml",
+    "*/group_vars/*",
+    "*/host_vars/*",
+    "*/inventory",
+    "*/ansible.cfg",
+    "site.yml",
+    "site.yaml",
+  },
+  callback = function()
+    vim.bo.filetype = "yaml.ansible"
   end,
 })
 
@@ -1184,34 +1213,6 @@ require("which-key").add({
 
   -- file explorer
   { "<leader>e", "<cmd>Oil<cr>", desc = "file explorer" },
-})
-
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = "*.tftpl",
-  command = "set filetype=yaml",
-})
-
--- Ansible filetype detection
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = {
-    "*/playbooks/*.yml",
-    "*/playbooks/*.yaml",
-    "*playbook*.yml",
-    "*playbook*.yaml",
-    "*/roles/*/tasks/*.yml",
-    "*/roles/*/tasks/*.yaml",
-    "*/roles/*/handlers/*.yml",
-    "*/roles/*/handlers/*.yaml",
-    "*/group_vars/*",
-    "*/host_vars/*",
-    "*/inventory",
-    "*/ansible.cfg",
-    "site.yml",
-    "site.yaml",
-  },
-  callback = function()
-    vim.bo.filetype = "yaml.ansible"
-  end,
 })
 
 -- LSP / Formatters / Linters
