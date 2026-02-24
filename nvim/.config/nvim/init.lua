@@ -616,7 +616,10 @@ require("which-key").add({
   {
     "<leader>ih",
     function()
-      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+      vim.lsp.inlay_hint.enable(
+        not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }),
+        { bufnr = 0 }
+      )
     end,
     desc = "toggle inlay hints",
   },
