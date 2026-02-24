@@ -972,13 +972,6 @@ require("which-key").add({
     mode = { "n", "t" },
   },
 
-  -- Terminal mode mappings
-  {
-    "<esc><esc>",
-    [[<C-\><C-n>]],
-    desc = "Exit terminal insert mode",
-    mode = "t",
-  },
 
   -- Session mappings (persistence.nvim)
   {
@@ -1033,8 +1026,9 @@ require("which-key").add({
     desc = "close folds by level",
   },
 
-  -- Utility mappings
+  -- <esc><esc> mappings
   { "<esc><esc>", ":noh<cr><esc>", desc = "clear the highlight from the last search" },
+  { "<esc><esc>", [[<C-\><C-n>]], desc = "Exit terminal insert mode", mode = "t" },
 
   -- file explorer
   { "<leader>e", "<cmd>Oil<cr>", desc = "file explorer" },
