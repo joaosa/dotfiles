@@ -842,6 +842,7 @@ require("which-key").add({
     "<localleader>ll",
     "<cmd>RenderMarkdown toggle<cr>",
     desc = "toggle markdown rendering",
+    ft = "markdown",
   },
 
   -- Opencode mappings
