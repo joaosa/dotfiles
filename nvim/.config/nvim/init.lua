@@ -55,12 +55,11 @@ require("lazy").setup({
       vim.cmd.colorscheme("gruvbox")
     end,
   },
-  "nvim-tree/nvim-web-devicons",
   { "nmac427/guess-indent.nvim", event = "BufRead", opts = {} },
   { "lewis6991/gitsigns.nvim", event = "BufRead", opts = {} },
   {
     "nvim-lualine/lualine.nvim",
-    dependencies = { "SmiteshP/nvim-navic" },
+    dependencies = { "SmiteshP/nvim-navic", "nvim-tree/nvim-web-devicons" },
     config = function()
       local navic = require("nvim-navic")
       require("lualine").setup({
@@ -73,7 +72,45 @@ require("lazy").setup({
       })
     end,
   },
-  { "edkolev/tmuxline.vim", cmd = { "Tmuxline", "TmuxlineSnapshot" } },
+  {
+    "edkolev/tmuxline.vim",
+    cmd = { "Tmuxline", "TmuxlineSnapshot" },
+    init = function()
+      vim.g.tmuxline_preset = {
+        a = "#(whoami)",
+        b = '#(gitmux "#{pane_current_path}")',
+        win = { "#I", "#W" },
+        cwin = { "#I", "#W" },
+        y = {
+          "%Y-%m-%d",
+          "%R",
+          "#{?pane_synchronized,#[bold],#[dim]}SYNC",
+          "#{online_status}",
+        },
+        options = { ["status-justify"] = "left" },
+      }
+
+      vim.g.tmuxline_separators = {
+        left = "",
+        left_alt = "",
+        right = "",
+        right_alt = "",
+        space = " ",
+      }
+
+      vim.g.tmuxline_theme = {
+        a = { "#282828", "#a89b89" },
+        b = { "#847c72", "#534d4a" },
+        c = { "#847c72", "#534d4a" },
+        x = { "#847c72", "#534d4a" },
+        y = { "#847c72", "#534d4a" },
+        z = { "#282828", "#a89b89" },
+        win = { "#847c72", "#534d4a" },
+        cwin = { "#282828", "#a89b89" },
+        bg = { "#534d4a", "#534d4a" },
+      }
+    end,
+  },
   {
     "folke/snacks.nvim",
     priority = 1000,
@@ -203,7 +240,6 @@ require("lazy").setup({
       require("nvim-treesitter.configs").setup({
         highlight = {
           enable = true,
-          -- handle links for Obsidian
           additional_vim_regex_highlighting = { "markdown" },
         },
 
@@ -635,41 +671,6 @@ vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEn
     end
   end,
 })
-
--- tmuxline configuration
-vim.g.tmuxline_preset = {
-  a = "#(whoami)",
-  b = '#(gitmux "#{pane_current_path}")',
-  win = { "#I", "#W" },
-  cwin = { "#I", "#W" },
-  y = {
-    "%Y-%m-%d",
-    "%R",
-    "#{?pane_synchronized,#[bold],#[dim]}SYNC",
-    "#{online_status}",
-  },
-  options = { ["status-justify"] = "left" },
-}
-
-vim.g.tmuxline_separators = {
-  left = "",
-  left_alt = "",
-  right = "",
-  right_alt = "",
-  space = " ",
-}
-
-vim.g.tmuxline_theme = {
-  a = { "#282828", "#a89b89" },
-  b = { "#847c72", "#534d4a" },
-  c = { "#847c72", "#534d4a" },
-  x = { "#847c72", "#534d4a" },
-  y = { "#847c72", "#534d4a" },
-  z = { "#282828", "#a89b89" },
-  win = { "#847c72", "#534d4a" },
-  cwin = { "#282828", "#a89b89" },
-  bg = { "#534d4a", "#534d4a" },
-}
 
 -- Diagnostics
 vim.diagnostic.config({
