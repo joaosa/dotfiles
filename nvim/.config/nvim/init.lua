@@ -1,5 +1,6 @@
 -- Plugins
 vim.g.mapleader = ","
+vim.g.maplocalleader = "\\"
 
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -20,6 +21,22 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Setup lazy.nvim
 require("lazy").setup({
+  -- my work
+  {
+    dir = "~/ghq/github.com/joaosa/second-brain-tools/nvim",
+    name = "second-brain",
+    cond = function()
+      return vim.uv.fs_stat(vim.fn.expand("~/ghq/github.com/joaosa/second-brain-tools/nvim")) ~= nil
+    end,
+    build = "cargo build -p second-brain-nvim",
+    init = function()
+      vim.g.second_brain_vault_path = vim.fn.expand("~/second-brain")
+    end,
+    config = function()
+      require("second_brain")
+    end,
+  },
+
   -- aesthetics
   {
     "ellisonleao/gruvbox.nvim",
@@ -623,70 +640,70 @@ require("which-key").add({
   -- Telescope mappings
   {
     "<leader>a",
-    ":Telescope live_grep<cr>",
+    "<cmd>Telescope live_grep<cr>",
     desc = "search word",
   },
   {
     "<leader>tt",
-    ":Telescope git_files<cr>",
+    "<cmd>Telescope git_files<cr>",
     desc = "search versioned files",
   },
   { "<leader>t", group = "telescope" },
   {
     "<leader><space>",
-    ":Telescope find_files<cr>",
+    "<cmd>Telescope find_files<cr>",
     desc = "search files",
   },
   {
     "<leader>*",
-    ":Telescope grep_string<cr>",
+    "<cmd>Telescope grep_string<cr>",
     desc = "search cursor",
   },
   { "<leader>c", group = "code" },
   {
     "<leader>:",
-    ":Telescope command_history<cr>",
+    "<cmd>Telescope command_history<cr>",
     desc = "command history",
   },
   { "<leader>q", group = "quickfix/session" },
   {
     "<leader>qf",
-    ":Telescope quickfix<cr>",
+    "<cmd>Telescope quickfix<cr>",
     desc = "telescope quickfix",
   },
   {
     "<leader>w",
-    ":Telescope loclist<cr>",
+    "<cmd>Telescope loclist<cr>",
     desc = "telescope loclist",
   },
   {
     "<leader>tms",
-    ":Telescope tmux sessions<cr>",
+    "<cmd>Telescope tmux sessions<cr>",
     desc = "tmux sessions",
   },
   {
     "<leader>tmw",
-    ":Telescope tmux windows<cr>",
+    "<cmd>Telescope tmux windows<cr>",
     desc = "tmux windows",
   },
   {
     "<leader>ts",
-    ":Telescope treesitter<cr>",
+    "<cmd>Telescope treesitter<cr>",
     desc = "treesitter",
   },
   {
     "<leader>ss",
-    ":Telescope spell_suggest<cr>",
+    "<cmd>Telescope spell_suggest<cr>",
     desc = "spelling",
   },
   {
     "<leader>m",
-    ":Telescope man_pages<cr>",
+    "<cmd>Telescope man_pages<cr>",
     desc = "manpages",
   },
   {
     "<leader>r",
-    ":Telescope resume<cr>",
+    "<cmd>Telescope resume<cr>",
     desc = "telescope resume",
   },
 
@@ -699,7 +716,7 @@ require("which-key").add({
   },
   {
     "<leader>gws",
-    ":Telescope git_status<cr>",
+    "<cmd>Telescope git_status<cr>",
     desc = "git status",
   },
   {
@@ -709,7 +726,7 @@ require("which-key").add({
   },
   {
     "<leader>gco",
-    ":Gitsigns reset_buffer<cr>",
+    "<cmd>Gitsigns reset_buffer<cr>",
     desc = "git checkout",
   },
   {
@@ -719,7 +736,7 @@ require("which-key").add({
   },
   {
     "<leader>gia",
-    ":Gitsigns stage_buffer<cr>",
+    "<cmd>Gitsigns stage_buffer<cr>",
     desc = "git add",
   },
   {
@@ -729,12 +746,12 @@ require("which-key").add({
   },
   {
     "<leader>gir",
-    ":Gitsigns reset_buffer_index<cr>",
+    "<cmd>Gitsigns reset_buffer_index<cr>",
     desc = "git reset",
   },
   {
     "<leader>gb",
-    ":Gitsigns toggle_current_line_blame<cr>",
+    "<cmd>Gitsigns toggle_current_line_blame<cr>",
     desc = "git blame",
   },
   {
@@ -749,7 +766,7 @@ require("which-key").add({
   },
   {
     "<leader>gp",
-    ":Octo pr create<cr>",
+    "<cmd>Octo pr create<cr>",
     desc = "git pr",
   },
   {
@@ -1028,7 +1045,7 @@ require("which-key").add({
   },
 
   -- <esc><esc> mappings
-  { "<esc><esc>", ":noh<cr><esc>", desc = "clear the highlight from the last search" },
+  { "<esc><esc>", "<cmd>noh<cr>", desc = "clear the highlight from the last search" },
   { "<esc><esc>", [[<C-\><C-n>]], desc = "Exit terminal insert mode", mode = "t" },
 
   -- file explorer
@@ -1383,7 +1400,7 @@ vim.api.nvim_create_autocmd("BufWritePost", {
         on_exit = function()
           -- Reload buffer after async lint completes
           vim.schedule(function()
-            if vim.api.nvim_buf_is_valid(bufnr) then
+            if vim.api.nvim_buf_is_valid(bufnr) and not vim.bo[bufnr].modified then
               vim.api.nvim_buf_call(bufnr, function()
                 vim.cmd("checktime")
               end)
