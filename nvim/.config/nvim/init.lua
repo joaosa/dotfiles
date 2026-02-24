@@ -358,9 +358,7 @@ require("lazy").setup({
 
   -- lsp
   "williamboman/mason.nvim",
-  "williamboman/mason-lspconfig.nvim",
   "WhoIsSethDaniel/mason-tool-installer.nvim",
-  "neovim/nvim-lspconfig",
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
   { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
@@ -1269,11 +1267,6 @@ require("mason").setup()
 -- Setup capabilities for all servers
 local capabilities = require("blink.cmp").get_lsp_capabilities()
 
-
-require("mason-lspconfig").setup({
-  ensure_installed = vim.tbl_keys(lsp_servers),
-})
-
 -- Configure all LSP servers with Neovim 0.11 API
 for server_name, server_settings in pairs(lsp_servers) do
   local config = {
@@ -1297,13 +1290,25 @@ vim.lsp.enable(vim.tbl_keys(lsp_servers))
 
 require("mason-tool-installer").setup({
   ensure_installed = {
+    -- LSP servers
+    "lua-language-server",
+    "gopls",
+    "terraform-ls",
+    "pyright",
+    "typescript-language-server",
+    "yaml-language-server",
+    "vim-language-server",
+    "ansible-language-server",
+    "bash-language-server",
+    "sqls",
+    -- Formatters and linters
     "stylua",
     "goimports",
     "prettierd",
     "sqlfluff",
     "yamllint",
     "ansible-lint",
-    "ruff", -- Python linting and formatting
+    "ruff",
     "shfmt",
     "shellcheck",
   },
