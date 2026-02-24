@@ -2,6 +2,16 @@
 vim.g.mapleader = ","
 vim.g.maplocalleader = "\\"
 
+-- Shared LSP on_attach (used by both rustaceanvim and the generic LSP config)
+local function lsp_on_attach(client, bufnr)
+  if client.server_capabilities.documentSymbolProvider then
+    require("nvim-navic").attach(client, bufnr)
+  end
+  if client.server_capabilities.inlayHintProvider then
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+  end
+end
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
@@ -271,14 +281,7 @@ require("lazy").setup({
       vim.g.rustaceanvim = function()
         return {
           server = {
-            on_attach = function(client, bufnr)
-              if client.server_capabilities.documentSymbolProvider then
-                require("nvim-navic").attach(client, bufnr)
-              end
-              if client.server_capabilities.inlayHintProvider then
-                vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-              end
-            end,
+            on_attach = lsp_on_attach,
             capabilities = require("blink.cmp").get_lsp_capabilities(),
             default_settings = {
               ["rust-analyzer"] = {
@@ -1264,15 +1267,6 @@ require("mason").setup()
 -- Setup capabilities for all servers
 local capabilities = require("blink.cmp").get_lsp_capabilities()
 
--- Common on_attach function
-local function on_attach(client, bufnr)
-  if client.server_capabilities.documentSymbolProvider then
-    require("nvim-navic").attach(client, bufnr)
-  end
-  if client.server_capabilities.inlayHintProvider then
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-  end
-end
 
 require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(lsp_servers),
@@ -1282,7 +1276,7 @@ require("mason-lspconfig").setup({
 for server_name, server_settings in pairs(lsp_servers) do
   local config = {
     capabilities = capabilities,
-    on_attach = on_attach,
+    on_attach = lsp_on_attach,
     settings = server_settings,
   }
 
