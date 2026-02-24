@@ -1318,7 +1318,6 @@ end
 
 require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(lsp_servers),
-  automatic_installation = true,
 })
 
 -- Configure all LSP servers with Neovim 0.11 API
