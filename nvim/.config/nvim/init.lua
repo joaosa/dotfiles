@@ -339,7 +339,6 @@ require("lazy").setup({
         },
         ft = { "markdown", "opencode_output" },
       },
-      "folke/snacks.nvim",
     },
   },
 })
