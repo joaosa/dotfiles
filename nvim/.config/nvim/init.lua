@@ -58,6 +58,10 @@ vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
 vim.opt.foldenable = true
 
+-- Constants
+local FT_ANSIBLE = "yaml.ansible"
+local COLORSCHEME = "gruvbox"
+
 -- Filetype detection
 local ansible_patterns = {}
 for _, base in ipairs({
@@ -67,15 +71,15 @@ for _, base in ipairs({
   "*/roles/*/handlers/.*",
 }) do
   for _, ext in ipairs({ "yml", "yaml" }) do
-    ansible_patterns[base .. "%." .. ext] = "yaml.ansible"
+    ansible_patterns[base .. "%." .. ext] = FT_ANSIBLE
   end
 end
-ansible_patterns["*/group_vars/.*"] = "yaml.ansible"
-ansible_patterns["*/host_vars/.*"] = "yaml.ansible"
-ansible_patterns["*/inventory"] = "yaml.ansible"
-ansible_patterns["*/ansible%.cfg"] = "yaml.ansible"
-ansible_patterns["site%.yml"] = "yaml.ansible"
-ansible_patterns["site%.yaml"] = "yaml.ansible"
+ansible_patterns["*/group_vars/.*"] = FT_ANSIBLE
+ansible_patterns["*/host_vars/.*"] = FT_ANSIBLE
+ansible_patterns["*/inventory"] = FT_ANSIBLE
+ansible_patterns["*/ansible%.cfg"] = FT_ANSIBLE
+ansible_patterns["site%.yml"] = FT_ANSIBLE
+ansible_patterns["site%.yaml"] = FT_ANSIBLE
 
 vim.filetype.add({
   extension = { tftpl = "yaml" },
@@ -202,8 +206,9 @@ require("lazy").setup({
   {
     "ellisonleao/gruvbox.nvim",
     priority = 1000,
-    config = function()
-      vim.cmd.colorscheme("gruvbox")
+    opts = {},
+    init = function()
+      vim.cmd.colorscheme(COLORSCHEME)
     end,
   },
   { "nmac427/guess-indent.nvim", event = "BufRead", opts = {} },
@@ -211,16 +216,16 @@ require("lazy").setup({
   {
     "nvim-lualine/lualine.nvim",
     dependencies = { "SmiteshP/nvim-navic", "nvim-tree/nvim-web-devicons" },
-    config = function()
+    opts = function()
       local navic = require("nvim-navic")
-      require("lualine").setup({
-        options = { theme = "gruvbox" },
+      return {
+        options = { theme = COLORSCHEME },
         winbar = {
           lualine_c = {
             { navic.get_location, cond = navic.is_available },
           },
         },
-      })
+      }
     end,
   },
   {
@@ -308,13 +313,11 @@ require("lazy").setup({
     "kevinhwang91/nvim-ufo",
     dependencies = { "kevinhwang91/promise-async" },
     event = "BufRead",
-    config = function()
-      require("ufo").setup({
-        provider_selector = function()
-          return { "treesitter", "indent" }
-        end,
-      })
-    end,
+    opts = {
+      provider_selector = function()
+        return { "treesitter", "indent" }
+      end,
+    },
   },
 
   -- language syntax
@@ -446,9 +449,7 @@ require("lazy").setup({
   {
     "williamboman/mason.nvim",
     lazy = false,
-    config = function()
-      require("mason").setup()
-    end,
+    opts = {},
   },
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -459,10 +460,15 @@ require("lazy").setup({
       for server_name, opts in pairs(lsp_servers) do
         ensure_installed[#ensure_installed + 1] = opts.mason_name or server_name
       end
-      vim.list_extend(ensure_installed, {
-        "stylua", "goimports", "prettierd", "sqlfluff",
-        "yamllint", "ansible-lint", "shfmt", "shellcheck",
-      })
+      -- Derive formatter tools from formatter_fts (skip ruff_format — already installed as ruff LSP)
+      local formatter_skip = { ruff_format = true }
+      for formatter in pairs(formatter_fts) do
+        if not formatter_skip[formatter] then
+          ensure_installed[#ensure_installed + 1] = formatter
+        end
+      end
+      -- Non-formatter linters/tools (not in formatter_fts)
+      vim.list_extend(ensure_installed, { "yamllint", "ansible-lint", "shellcheck" })
       require("mason-tool-installer").setup({
         ensure_installed = ensure_installed,
       })
@@ -470,7 +476,7 @@ require("lazy").setup({
   },
   {
     "stevearc/conform.nvim",
-    lazy = false,
+    event = "BufWritePre",
     config = function()
       require("conform").setup({
         formatters_by_ft = vim.tbl_extend("force", formatters_by_ft, {
@@ -492,7 +498,7 @@ require("lazy").setup({
   },
   {
     "mfussenegger/nvim-lint",
-    lazy = false,
+    event = "BufWritePost",
     config = function()
       require("lint").linters_by_ft = {
         sql = { "sqlfluff" },
@@ -500,7 +506,7 @@ require("lazy").setup({
         python = { "ruff" },
         sh = { "shellcheck" },
         bash = { "shellcheck" },
-        ["yaml.ansible"] = { "ansible-lint" },
+        [FT_ANSIBLE] = { "ansible-lint" },
       }
 
       local lint_group = vim.api.nvim_create_augroup("UserLint", { clear = true })
@@ -517,12 +523,12 @@ require("lazy").setup({
         group = lint_group,
         pattern = { "*.yml", "*.yaml" },
         callback = function()
-          if vim.bo.filetype == "yaml.ansible" then
+          if vim.bo.filetype == FT_ANSIBLE then
             local bufnr = vim.api.nvim_get_current_buf()
             local filepath = vim.fn.expand("%:p")
             vim.fn.jobstart({ "ansible-lint", "--fix", filepath }, {
-              on_exit = function()
-                -- Reload buffer after async lint completes, then refresh diagnostics
+              on_exit = function(_, code)
+                if code ~= 0 then return end
                 vim.schedule(function()
                   if vim.api.nvim_buf_is_valid(bufnr) and not vim.bo[bufnr].modified then
                     vim.api.nvim_buf_call(bufnr, function()
@@ -541,7 +547,7 @@ require("lazy").setup({
   {
     "mrcjkb/rustaceanvim",
     version = "^5",
-    lazy = false,
+    ft = "rust",
     init = function()
       vim.g.rustaceanvim = function()
         return {
@@ -623,7 +629,7 @@ require("lazy").setup({
   },
 
   -- discoverability
-  { "folke/which-key.nvim", lazy = false },
+  { "folke/which-key.nvim", event = "VeryLazy" },
   {
     "nvim-telescope/telescope.nvim",
     cmd = "Telescope",
@@ -778,6 +784,13 @@ vim.api.nvim_create_autocmd("FileType", {
 -- Easy close for special buffers
 local close_group = vim.api.nvim_create_augroup("UserClose", { clear = true })
 
+local function set_close_keymaps(buf, desc)
+  vim.bo[buf].buflisted = false
+  for _, key in ipairs({ "q", "<esc>" }) do
+    vim.keymap.set("n", key, "<cmd>close<cr>", { buffer = buf, silent = true, desc = desc })
+  end
+end
+
 vim.api.nvim_create_autocmd("FileType", {
   group = close_group,
   pattern = {
@@ -792,9 +805,7 @@ vim.api.nvim_create_autocmd("FileType", {
     "opencode",
   },
   callback = function(event)
-    vim.bo[event.buf].buflisted = false
-    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = event.buf, silent = true, desc = "Close buffer" })
-    vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = event.buf, silent = true, desc = "Close buffer" })
+    set_close_keymaps(event.buf, "Close buffer")
   end,
 })
 
@@ -805,8 +816,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
     local win = vim.api.nvim_get_current_win()
     local config = vim.api.nvim_win_get_config(win)
     if config.relative ~= "" then
-      vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = 0, silent = true, desc = "Close floating window" })
-      vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = 0, silent = true, desc = "Close floating window" })
+      set_close_keymaps(0, "Close floating window")
     end
   end,
 })
@@ -1112,6 +1122,10 @@ local wk_keymaps = {
     "<localleader>pv",
     function()
       local result = vim.fn.system({ "python3", "-c", "import sys; print(sys.executable)" })
+      if vim.v.shell_error ~= 0 then
+        vim.notify("python3 not found", vim.log.levels.WARN)
+        return
+      end
       vim.notify(vim.trim(result), vim.log.levels.INFO)
     end,
     desc = "Show Python path",
