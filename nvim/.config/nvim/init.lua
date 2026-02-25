@@ -441,15 +441,16 @@ require("lazy").setup({
     config = function()
       local telescope = require("telescope")
       local actions = require("telescope.actions")
+      local trouble_telescope = require("trouble.sources.telescope").open
       telescope.setup({
         defaults = {
           mappings = {
             i = {
-              ["<c-t>"] = require("trouble.sources.telescope").open,
+              ["<c-t>"] = trouble_telescope,
               ["<esc>"] = actions.close,
             },
             n = {
-              ["<c-t>"] = require("trouble.sources.telescope").open,
+              ["<c-t>"] = trouble_telescope,
               ["q"] = actions.close,
             },
           },
@@ -549,6 +550,7 @@ require("lazy").setup({
 
 -- Autocommands
 vim.api.nvim_create_autocmd("BufWritePre", {
+  group = vim.api.nvim_create_augroup("UserFormat", { clear = true }),
   callback = function()
     if #require("conform").list_formatters() > 0 then
       return
@@ -561,53 +563,18 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 -- Enable spell checking for prose filetypes
 vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("UserSpell", { clear = true }),
   pattern = { "markdown", "text", "gitcommit", "tex" },
   callback = function()
     vim.opt_local.spell = true
   end,
 })
 
--- Markdown-specific keymaps
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "markdown",
-  callback = function()
-    vim.keymap.set("n", "<localleader>lt", function()
-      local line = vim.api.nvim_get_current_line()
-      if line:match("%- %[ %]") then
-        vim.api.nvim_set_current_line((line:gsub("%- %[ %]", "- [x]", 1)))
-      elseif line:match("%- %[x%]") then
-        vim.api.nvim_set_current_line((line:gsub("%- %[x%]", "- [ ]", 1)))
-      end
-    end, { buffer = true, desc = "toggle checkbox" })
-  end,
-})
-
--- Python-specific keymaps
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "python",
-  callback = function()
-    vim.keymap.set("n", "<localleader>pv", function()
-      vim.cmd("!python3 -c 'import sys; print(sys.executable)'")
-    end, { buffer = true, desc = "Show Python path" })
-    vim.keymap.set("n", "<localleader>pi", function()
-      vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } } })
-    end, { buffer = true, desc = "Organize imports" })
-  end,
-})
-
--- Go-specific keymaps
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "go",
-  callback = function()
-    vim.keymap.set("n", "<localleader>gt", "<cmd>!go test %<cr>", { buffer = true, desc = "Run tests in current file" })
-    vim.keymap.set("n", "<localleader>gT", "<cmd>!go test ./...<cr>", { buffer = true, desc = "Run all tests" })
-    vim.keymap.set("n", "<localleader>gr", "<cmd>!go run %<cr>", { buffer = true, desc = "Run current file" })
-    vim.keymap.set("n", "<localleader>gb", "<cmd>!go build<cr>", { buffer = true, desc = "Build package" })
-  end,
-})
-
 -- Easy close for special buffers
+local close_group = vim.api.nvim_create_augroup("UserClose", { clear = true })
+
 vim.api.nvim_create_autocmd("FileType", {
+  group = close_group,
   pattern = {
     "help",
     "man",
@@ -628,6 +595,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Easy close for LSP floating windows
 vim.api.nvim_create_autocmd("BufEnter", {
+  group = close_group,
   callback = function()
     local win = vim.api.nvim_get_current_win()
     local config = vim.api.nvim_win_get_config(win)
@@ -639,7 +607,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 
 -- Native line number toggling (replaces nvim-numbertoggle)
-local numbertoggle_group = vim.api.nvim_create_augroup("NumberToggle", {})
+local numbertoggle_group = vim.api.nvim_create_augroup("UserNumberToggle", { clear = true })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }, {
   group = numbertoggle_group,
@@ -661,17 +629,22 @@ vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEn
 
 -- Telescope previewer wrap
 vim.api.nvim_create_autocmd("User", {
+  group = vim.api.nvim_create_augroup("UserTelescope", { clear = true }),
   pattern = "TelescopePreviewerLoaded",
   command = "setlocal wrap",
 })
 
 -- Filetype detection
+local filetype_group = vim.api.nvim_create_augroup("UserFiletype", { clear = true })
+
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  group = filetype_group,
   pattern = "*.tftpl",
   command = "set filetype=yaml",
 })
 
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  group = filetype_group,
   pattern = {
     "*/playbooks/*.yml",
     "*/playbooks/*.yaml",
@@ -696,6 +669,7 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 -- Diagnostics
 vim.diagnostic.config({
   virtual_lines = { current_line = true },
+  severity_sort = true,
 })
 
 -- Keymaps
@@ -940,7 +914,48 @@ local wk_keymaps = {
   -- Rust mappings
   { "<localleader>r", group = "rust", ft = "rust" },
 
-  -- Local leader mappings
+  -- Go mappings
+  { "<localleader>g", group = "go", ft = "go" },
+  { "<localleader>gt", "<cmd>!go test %<cr>", desc = "Run tests in current file", ft = "go" },
+  { "<localleader>gT", "<cmd>!go test ./...<cr>", desc = "Run all tests", ft = "go" },
+  { "<localleader>gr", "<cmd>!go run %<cr>", desc = "Run current file", ft = "go" },
+  { "<localleader>gb", "<cmd>!go build<cr>", desc = "Build package", ft = "go" },
+
+  -- Python mappings
+  { "<localleader>p", group = "python", ft = "python" },
+  {
+    "<localleader>pv",
+    function()
+      local result = vim.fn.system({ "python3", "-c", "import sys; print(sys.executable)" })
+      vim.notify(vim.trim(result), vim.log.levels.INFO)
+    end,
+    desc = "Show Python path",
+    ft = "python",
+  },
+  {
+    "<localleader>pi",
+    function()
+      vim.lsp.buf.code_action({ context = { only = { "source.organizeImports" } } })
+    end,
+    desc = "Organize imports",
+    ft = "python",
+  },
+
+  -- Markdown mappings
+  { "<localleader>l", group = "markdown", ft = "markdown" },
+  {
+    "<localleader>lt",
+    function()
+      local line = vim.api.nvim_get_current_line()
+      if line:match("%- %[ %]") then
+        vim.api.nvim_set_current_line((line:gsub("%- %[ %]", "- [x]", 1)))
+      elseif line:match("%- %[x%]") then
+        vim.api.nvim_set_current_line((line:gsub("%- %[x%]", "- [ ]", 1)))
+      end
+    end,
+    desc = "toggle checkbox",
+    ft = "markdown",
+  },
   {
     "<localleader>ll",
     "<cmd>RenderMarkdown toggle<cr>",
@@ -1278,7 +1293,10 @@ require("lint").linters_by_ft = {
   bash = { "shellcheck" },
 }
 
+local lint_group = vim.api.nvim_create_augroup("UserLint", { clear = true })
+
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+  group = lint_group,
   callback = function()
     if require("lint").linters_by_ft[vim.bo.filetype] then
       require("lint").try_lint()
@@ -1288,6 +1306,7 @@ vim.api.nvim_create_autocmd({ "BufWritePost" }, {
 
 -- Auto-fix Ansible files after save (async)
 vim.api.nvim_create_autocmd("BufWritePost", {
+  group = lint_group,
   pattern = { "*.yml", "*.yaml" },
   callback = function()
     if vim.bo.filetype == "yaml.ansible" then
@@ -1299,7 +1318,7 @@ vim.api.nvim_create_autocmd("BufWritePost", {
           vim.schedule(function()
             if vim.api.nvim_buf_is_valid(bufnr) and not vim.bo[bufnr].modified then
               vim.api.nvim_buf_call(bufnr, function()
-                vim.cmd("checktime")
+                vim.cmd.checktime()
                 require("lint").try_lint()
               end)
             end
