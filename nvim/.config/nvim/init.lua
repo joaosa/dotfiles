@@ -369,13 +369,13 @@ require("lazy").setup({
     end,
   },
   { "nvim-treesitter/nvim-treesitter-context", event = "BufRead", opts = {} },
+  { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
 
   -- lsp
   "williamboman/mason.nvim",
   "WhoIsSethDaniel/mason-tool-installer.nvim",
   "stevearc/conform.nvim",
   "mfussenegger/nvim-lint",
-  { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
   {
     "mrcjkb/rustaceanvim",
     version = "^5",
