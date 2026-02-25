@@ -1145,50 +1145,75 @@ require("which-key").add(wk_keymaps)
 -- LSP / Formatters / Linters
 local lsp_servers = {
   lua_ls = {
-    Lua = {
-      diagnostics = {
-        globals = {
-          "hs",
-          "spoon",
-          "vim",
+    mason_name = "lua-language-server",
+    settings = {
+      Lua = {
+        diagnostics = {
+          globals = {
+            "hs",
+            "spoon",
+            "vim",
+          },
         },
-      },
-      workspace = {
-        library = {
-          vim.fn.expand("~/.hammerspoon/Spoons/EmmyLua.spoon/annotations"),
+        workspace = {
+          library = {
+            vim.fn.expand("~/.hammerspoon/Spoons/EmmyLua.spoon/annotations"),
+          },
         },
       },
     },
   },
   gopls = {
-    gopls = {
-      analyses = {
-        unusedparams = true,
-        shadow = true,
+    settings = {
+      gopls = {
+        analyses = {
+          unusedparams = true,
+          shadow = true,
+        },
+        staticcheck = true,
+        gofumpt = true,
       },
-      staticcheck = true,
-      gofumpt = true,
     },
   },
-  terraformls = {},
+  terraformls = {
+    mason_name = "terraform-ls",
+  },
   pyright = {
-    python = {
-      analysis = {
-        typeCheckingMode = "strict",
-        autoSearchPaths = true,
-        useLibraryCodeForTypes = true,
-        autoImportCompletions = true,
-        diagnosticMode = "workspace",
+    settings = {
+      python = {
+        analysis = {
+          typeCheckingMode = "strict",
+          autoSearchPaths = true,
+          useLibraryCodeForTypes = true,
+          autoImportCompletions = true,
+          diagnosticMode = "workspace",
+        },
       },
     },
   },
-  ruff = {},
-  ts_ls = {},
-  yamlls = {},
-  vimls = {},
-  ansiblels = {},
-  bashls = {},
-  sqlls = {},
+  ruff = {
+    handlers = {
+      ["textDocument/hover"] = function() end,
+    },
+  },
+  ts_ls = {
+    mason_name = "typescript-language-server",
+  },
+  yamlls = {
+    mason_name = "yaml-language-server",
+  },
+  vimls = {
+    mason_name = "vim-language-server",
+  },
+  ansiblels = {
+    mason_name = "ansible-language-server",
+  },
+  bashls = {
+    mason_name = "bash-language-server",
+  },
+  sqlls = {
+    mason_name = "sqls",
+  },
 }
 
 require("mason").setup()
@@ -1196,43 +1221,19 @@ require("mason").setup()
 -- Setup capabilities for all servers
 local capabilities = require("blink.cmp").get_lsp_capabilities()
 
--- Configure all LSP servers with Neovim 0.11 API
-for server_name, server_settings in pairs(lsp_servers) do
-  local config = {
+-- Configure all LSP servers with Neovim 0.11 API and build Mason ensure_installed list
+local ensure_installed = {}
+for server_name, opts in pairs(lsp_servers) do
+  ensure_installed[#ensure_installed + 1] = opts.mason_name or server_name
+  local lsp_opts = vim.tbl_extend("force", {
     capabilities = capabilities,
     on_attach = lsp_on_attach,
-    settings = server_settings,
-  }
-
-  -- Disable hover for ruff to avoid conflicts with pyright
-  if server_name == "ruff" then
-    config.handlers = {
-      ["textDocument/hover"] = function() end,
-    }
-  end
-
-  vim.lsp.config[server_name] = config
+  }, opts)
+  lsp_opts.mason_name = nil
+  vim.lsp.config[server_name] = lsp_opts
 end
 
--- Enable all configured LSP servers
 vim.lsp.enable(vim.tbl_keys(lsp_servers))
-
--- Mason name overrides for LSP servers whose Mason package name differs from the lspconfig key
-local mason_name_map = {
-  lua_ls = "lua-language-server",
-  terraformls = "terraform-ls",
-  ts_ls = "typescript-language-server",
-  yamlls = "yaml-language-server",
-  vimls = "vim-language-server",
-  ansiblels = "ansible-language-server",
-  bashls = "bash-language-server",
-  sqlls = "sqls",
-}
-
-local ensure_installed = {}
-for server_name in pairs(lsp_servers) do
-  ensure_installed[#ensure_installed + 1] = mason_name_map[server_name] or server_name
-end
 -- Formatters and linters
 local extra_tools = { "stylua", "goimports", "prettierd", "sqlfluff", "yamllint", "ansible-lint", "shfmt", "shellcheck" }
 vim.list_extend(ensure_installed, extra_tools)
