@@ -500,24 +500,21 @@ require("lazy").setup({
   {
     "sindrets/diffview.nvim",
     cmd = { "DiffviewOpen", "DiffviewFileHistory", "DiffviewClose" },
-    opts = {
-      enhanced_diff_hl = true,
-      use_icons = true,
-      keymaps = {
-        view = {
-          ["q"] = "<Cmd>DiffviewClose<CR>",
-          ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+    opts = function()
+      local dv_close = {
+        ["q"] = "<Cmd>DiffviewClose<CR>",
+        ["<esc>"] = "<Cmd>DiffviewClose<CR>",
+      }
+      return {
+        enhanced_diff_hl = true,
+        use_icons = true,
+        keymaps = {
+          view = dv_close,
+          file_panel = dv_close,
+          file_history_panel = dv_close,
         },
-        file_panel = {
-          ["q"] = "<Cmd>DiffviewClose<CR>",
-          ["<esc>"] = "<Cmd>DiffviewClose<CR>",
-        },
-        file_history_panel = {
-          ["q"] = "<Cmd>DiffviewClose<CR>",
-          ["<esc>"] = "<Cmd>DiffviewClose<CR>",
-        },
-      },
-    },
+      }
+    end,
   },
   {
     "akinsho/git-conflict.nvim",
@@ -702,7 +699,7 @@ vim.diagnostic.config({
 })
 
 -- Keymaps
-require("which-key").add({
+local wk_keymaps = {
   -- LSP mappings
   {
     "gh",
@@ -942,48 +939,6 @@ require("which-key").add({
 
   -- Rust mappings
   { "<localleader>r", group = "rust", ft = "rust" },
-  {
-    "<localleader>rr",
-    function() vim.cmd.RustLsp("runnables") end,
-    desc = "Rust runnables",
-    ft = "rust",
-  },
-  {
-    "<localleader>rt",
-    function() vim.cmd.RustLsp("testables") end,
-    desc = "Rust testables",
-    ft = "rust",
-  },
-  {
-    "<localleader>re",
-    function() vim.cmd.RustLsp("expandMacro") end,
-    desc = "Rust expand macro",
-    ft = "rust",
-  },
-  {
-    "<localleader>ro",
-    function() vim.cmd.RustLsp("openDocs") end,
-    desc = "Rust open docs",
-    ft = "rust",
-  },
-  {
-    "<localleader>rc",
-    function() vim.cmd.RustLsp("openCargo") end,
-    desc = "Rust open Cargo.toml",
-    ft = "rust",
-  },
-  {
-    "<localleader>rp",
-    function() vim.cmd.RustLsp("parentModule") end,
-    desc = "Rust parent module",
-    ft = "rust",
-  },
-  {
-    "<localleader>rx",
-    function() vim.cmd.RustLsp({ "explainError", "current" }) end,
-    desc = "Rust explain error",
-    ft = "rust",
-  },
 
   -- Local leader mappings
   {
@@ -1074,36 +1029,6 @@ require("which-key").add({
   { "]s", desc = "Next misspelled word" },
   { "[s", desc = "Previous misspelled word" },
 
-  -- Diagnostic navigation
-  {
-    "]e",
-    function()
-      vim.diagnostic.jump({ count = 1 })
-    end,
-    desc = "Next diagnostic",
-  },
-  {
-    "[e",
-    function()
-      vim.diagnostic.jump({ count = -1 })
-    end,
-    desc = "Previous diagnostic",
-  },
-  {
-    "]E",
-    function()
-      vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
-    end,
-    desc = "Next error",
-  },
-  {
-    "[E",
-    function()
-      vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
-    end,
-    desc = "Previous error",
-  },
-
   -- Quick typo fixes
   {
     "<leader>f",
@@ -1115,39 +1040,6 @@ require("which-key").add({
     "<cmd>normal! [s1z=<cr>",
     desc = "Fix previous typo with first suggestion",
   },
-
-  -- Navigation mappings (tmux/vim pane navigation)
-  {
-    "<c-h>",
-    "<cmd>NavigatorLeft<cr>",
-    desc = "Navigate left",
-    mode = { "n", "t" },
-  },
-  {
-    "<c-l>",
-    "<cmd>NavigatorRight<cr>",
-    desc = "Navigate right",
-    mode = { "n", "t" },
-  },
-  {
-    "<c-k>",
-    "<cmd>NavigatorUp<cr>",
-    desc = "Navigate up",
-    mode = { "n", "t" },
-  },
-  {
-    "<c-j>",
-    "<cmd>NavigatorDown<cr>",
-    desc = "Navigate down",
-    mode = { "n", "t" },
-  },
-  {
-    "<c-p>",
-    "<cmd>NavigatorPrevious<cr>",
-    desc = "Navigate previous",
-    mode = { "n", "t" },
-  },
-
 
   -- Session mappings (persistence.nvim)
   {
@@ -1172,43 +1064,83 @@ require("which-key").add({
     desc = "stop session recording",
   },
 
-  -- Fold mappings (nvim-ufo)
-  {
-    "zR",
-    function()
-      require("ufo").openAllFolds()
-    end,
-    desc = "open all folds",
-  },
-  {
-    "zM",
-    function()
-      require("ufo").closeAllFolds()
-    end,
-    desc = "close all folds",
-  },
-  {
-    "zr",
-    function()
-      require("ufo").openFoldsExceptKinds()
-    end,
-    desc = "open folds by level",
-  },
-  {
-    "zm",
-    function()
-      require("ufo").closeFoldsWith()
-    end,
-    desc = "close folds by level",
-  },
-
   -- <esc><esc> mappings
   { "<esc><esc>", "<cmd>noh<cr>", desc = "clear the highlight from the last search" },
   { "<esc><esc>", [[<C-\><C-n>]], desc = "Exit terminal insert mode", mode = "t" },
 
   -- file explorer
   { "<leader>e", "<cmd>Oil<cr>", desc = "file explorer" },
-})
+}
+
+-- Rust keymaps (generated)
+local rust_keymaps = {
+  { "r", "runnables",                   "runnables" },
+  { "t", "testables",                   "testables" },
+  { "e", "expandMacro",                 "expand macro" },
+  { "o", "openDocs",                    "open docs" },
+  { "c", "openCargo",                   "open Cargo.toml" },
+  { "p", "parentModule",               "parent module" },
+  { "x", { "explainError", "current" }, "explain error" },
+}
+for _, m in ipairs(rust_keymaps) do
+  wk_keymaps[#wk_keymaps + 1] = {
+    "<localleader>r" .. m[1],
+    function() vim.cmd.RustLsp(m[2]) end,
+    desc = "Rust " .. m[3],
+    ft = "rust",
+  }
+end
+
+-- Diagnostic navigation keymaps (generated)
+local diag_keymaps = {
+  { "]e", 1,  nil,     "Next diagnostic" },
+  { "[e", -1, nil,     "Previous diagnostic" },
+  { "]E", 1,  "ERROR", "Next error" },
+  { "[E", -1, "ERROR", "Previous error" },
+}
+for _, m in ipairs(diag_keymaps) do
+  local opts = { count = m[2] }
+  if m[3] then opts.severity = vim.diagnostic.severity[m[3]] end
+  wk_keymaps[#wk_keymaps + 1] = {
+    m[1],
+    function() vim.diagnostic.jump(opts) end,
+    desc = m[4],
+  }
+end
+
+-- Navigator keymaps (generated)
+local nav_keymaps = {
+  { "h", "Left",     "left" },
+  { "l", "Right",    "right" },
+  { "k", "Up",       "up" },
+  { "j", "Down",     "down" },
+  { "p", "Previous", "previous" },
+}
+for _, m in ipairs(nav_keymaps) do
+  wk_keymaps[#wk_keymaps + 1] = {
+    "<c-" .. m[1] .. ">",
+    "<cmd>Navigator" .. m[2] .. "<cr>",
+    desc = "Navigate " .. m[3],
+    mode = { "n", "t" },
+  }
+end
+
+-- Fold keymaps (generated)
+local fold_keymaps = {
+  { "zR", "openAllFolds",         "open all folds" },
+  { "zM", "closeAllFolds",        "close all folds" },
+  { "zr", "openFoldsExceptKinds", "open folds by level" },
+  { "zm", "closeFoldsWith",       "close folds by level" },
+}
+for _, m in ipairs(fold_keymaps) do
+  wk_keymaps[#wk_keymaps + 1] = {
+    m[1],
+    function() require("ufo")[m[2]]() end,
+    desc = m[3],
+  }
+end
+
+require("which-key").add(wk_keymaps)
 
 -- LSP / Formatters / Linters
 local lsp_servers = {
@@ -1311,24 +1243,20 @@ require("mason-tool-installer").setup({
   },
 })
 
+local formatters_by_ft = {}
+for _, ft in ipairs({ "javascript", "typescript", "javascriptreact", "typescriptreact", "css", "json", "html", "markdown", "yaml" }) do
+  formatters_by_ft[ft] = { "prettierd" }
+end
+formatters_by_ft.lua = { "stylua" }
+formatters_by_ft.go = { "goimports" }
+formatters_by_ft.sql = { "sqlfluff" }
+formatters_by_ft.python = { "ruff_format" }
+for _, ft in ipairs({ "sh", "bash" }) do
+  formatters_by_ft[ft] = { "shfmt" }
+end
+
 require("conform").setup({
-  formatters_by_ft = {
-    lua = { "stylua" },
-    go = { "goimports" },
-    javascript = { "prettierd" },
-    typescript = { "prettierd" },
-    javascriptreact = { "prettierd" },
-    typescriptreact = { "prettierd" },
-    css = { "prettierd" },
-    json = { "prettierd" },
-    html = { "prettierd" },
-    markdown = { "prettierd" },
-    yaml = { "prettierd" },
-    sql = { "sqlfluff" },
-    python = { "ruff_format" },
-    sh = { "shfmt" },
-    bash = { "shfmt" },
-  },
+  formatters_by_ft = formatters_by_ft,
   default_format_opts = {
     lsp_format = "fallback",
   },
