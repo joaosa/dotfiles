@@ -412,6 +412,17 @@ require("lazy").setup({
     },
   },
 
+  -- lua development
+  {
+    "folke/lazydev.nvim",
+    ft = "lua",
+    opts = {
+      library = {
+        { path = "~/.hammerspoon/Spoons/EmmyLua.spoon/annotations", words = { "hs%.", "spoon%." } },
+      },
+    },
+  },
+
   -- autocomplete
   {
     "saghen/blink.cmp",
@@ -430,11 +441,16 @@ require("lazy").setup({
         },
       },
       sources = {
-        default = { "lsp", "path", "snippets", "buffer" },
+        default = { "lazydev", "lsp", "path", "snippets", "buffer" },
         per_filetype = {
           gitcommit = { "git", "lsp", "path", "snippets", "buffer" },
         },
         providers = {
+          lazydev = {
+            name = "LazyDev",
+            module = "lazydev.integrations.blink",
+            score_offset = 100,
+          },
           git = {
             module = "blink-cmp-git",
             name = "Git",
@@ -1152,12 +1168,6 @@ local lsp_servers = {
           globals = {
             "hs",
             "spoon",
-            "vim",
-          },
-        },
-        workspace = {
-          library = {
-            vim.fn.expand("~/.hammerspoon/Spoons/EmmyLua.spoon/annotations"),
           },
         },
       },
