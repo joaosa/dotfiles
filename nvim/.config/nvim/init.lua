@@ -59,26 +59,27 @@ vim.opt.foldlevelstart = 99
 vim.opt.foldenable = true
 
 -- Filetype detection
+local ansible_patterns = {}
+for _, base in ipairs({
+  "*/playbooks/.*",
+  ".*playbook.*",
+  "*/roles/*/tasks/.*",
+  "*/roles/*/handlers/.*",
+}) do
+  for _, ext in ipairs({ "yml", "yaml" }) do
+    ansible_patterns[base .. "%." .. ext] = "yaml.ansible"
+  end
+end
+ansible_patterns["*/group_vars/.*"] = "yaml.ansible"
+ansible_patterns["*/host_vars/.*"] = "yaml.ansible"
+ansible_patterns["*/inventory"] = "yaml.ansible"
+ansible_patterns["*/ansible%.cfg"] = "yaml.ansible"
+ansible_patterns["site%.yml"] = "yaml.ansible"
+ansible_patterns["site%.yaml"] = "yaml.ansible"
+
 vim.filetype.add({
-  extension = {
-    tftpl = "yaml",
-  },
-  pattern = {
-    ["*/playbooks/.*%.yml"] = "yaml.ansible",
-    ["*/playbooks/.*%.yaml"] = "yaml.ansible",
-    [".*playbook.*%.yml"] = "yaml.ansible",
-    [".*playbook.*%.yaml"] = "yaml.ansible",
-    ["*/roles/*/tasks/.*%.yml"] = "yaml.ansible",
-    ["*/roles/*/tasks/.*%.yaml"] = "yaml.ansible",
-    ["*/roles/*/handlers/.*%.yml"] = "yaml.ansible",
-    ["*/roles/*/handlers/.*%.yaml"] = "yaml.ansible",
-    ["*/group_vars/.*"] = "yaml.ansible",
-    ["*/host_vars/.*"] = "yaml.ansible",
-    ["*/inventory"] = "yaml.ansible",
-    ["*/ansible%.cfg"] = "yaml.ansible",
-    ["site%.yml"] = "yaml.ansible",
-    ["site%.yaml"] = "yaml.ansible",
-  },
+  extension = { tftpl = "yaml" },
+  pattern = ansible_patterns,
 })
 
 -- Bootstrap lazy.nvim
