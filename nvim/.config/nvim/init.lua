@@ -252,7 +252,6 @@ require("lazy").setup({
     build = ":TSUpdate",
     dependencies = {
       "nvim-treesitter/nvim-treesitter-textobjects",
-      "nvim-treesitter/nvim-treesitter-context",
     },
     config = function()
       -- Textobject definitions: single source of truth for select, move, swap, and peek keymaps
@@ -367,9 +366,9 @@ require("lazy").setup({
       })
 
       vim.treesitter.language.register("diff", "git")
-      require("treesitter-context").setup()
     end,
   },
+  { "nvim-treesitter/nvim-treesitter-context", event = "BufRead", opts = {} },
 
   -- lsp
   "williamboman/mason.nvim",
