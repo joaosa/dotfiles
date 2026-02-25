@@ -2,16 +2,6 @@
 vim.g.mapleader = ","
 vim.g.maplocalleader = "\\"
 
--- Shared LSP on_attach (used by both rustaceanvim and the generic LSP config)
-local function lsp_on_attach(client, bufnr)
-  if client.server_capabilities.documentSymbolProvider then
-    require("nvim-navic").attach(client, bufnr)
-  end
-  if client.server_capabilities.inlayHintProvider then
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-  end
-end
-
 -- Options
 -- yank and paste with the system clipboard
 vim.opt.clipboard = "unnamedplus"
@@ -35,6 +25,7 @@ vim.opt.breakindent = true
 vim.opt.confirm = true
 vim.opt.updatetime = 250
 vim.opt.inccommand = "split"
+vim.opt.smoothscroll = true
 
 -- Indenting
 vim.opt.expandtab = true
@@ -67,6 +58,29 @@ vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
 vim.opt.foldenable = true
 
+-- Filetype detection
+vim.filetype.add({
+  extension = {
+    tftpl = "yaml",
+  },
+  pattern = {
+    ["*/playbooks/.*%.yml"] = "yaml.ansible",
+    ["*/playbooks/.*%.yaml"] = "yaml.ansible",
+    [".*playbook.*%.yml"] = "yaml.ansible",
+    [".*playbook.*%.yaml"] = "yaml.ansible",
+    ["*/roles/*/tasks/.*%.yml"] = "yaml.ansible",
+    ["*/roles/*/tasks/.*%.yaml"] = "yaml.ansible",
+    ["*/roles/*/handlers/.*%.yml"] = "yaml.ansible",
+    ["*/roles/*/handlers/.*%.yaml"] = "yaml.ansible",
+    ["*/group_vars/.*"] = "yaml.ansible",
+    ["*/host_vars/.*"] = "yaml.ansible",
+    ["*/inventory"] = "yaml.ansible",
+    ["*/ansible%.cfg"] = "yaml.ansible",
+    ["site%.yml"] = "yaml.ansible",
+    ["site%.yaml"] = "yaml.ansible",
+  },
+})
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
@@ -83,6 +97,16 @@ if not vim.uv.fs_stat(lazypath) then
   end
 end
 vim.opt.rtp:prepend(lazypath)
+
+-- Shared LSP on_attach (used by both rustaceanvim and the generic LSP config)
+local function lsp_on_attach(client, bufnr)
+  if client.server_capabilities.documentSymbolProvider then
+    require("nvim-navic").attach(client, bufnr)
+  end
+  if client.server_capabilities.inlayHintProvider then
+    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+  end
+end
 
 -- Setup lazy.nvim
 require("lazy").setup({
@@ -165,7 +189,6 @@ require("lazy").setup({
   },
   {
     "folke/snacks.nvim",
-    priority = 1000,
     lazy = false,
     opts = {
       dashboard = { enabled = true },
@@ -183,13 +206,7 @@ require("lazy").setup({
   { "folke/persistence.nvim", event = "BufReadPre", opts = {} },
   { "kylechui/nvim-surround", event = "VeryLazy", opts = {} },
   { "tpope/vim-speeddating", event = "BufRead" },
-  {
-    "numToStr/Navigator.nvim",
-    event = "VeryLazy",
-    config = function()
-      require("Navigator").setup()
-    end,
-  },
+  { "numToStr/Navigator.nvim", event = "VeryLazy", opts = {} },
   { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
   {
     "folke/flash.nvim",
@@ -517,23 +534,13 @@ require("lazy").setup({
       }
     end,
   },
-  {
-    "akinsho/git-conflict.nvim",
-    event = "BufRead",
-    opts = {
-      default_mappings = true,
-      disable_diagnostics = false,
-      list_opener = "copen",
-    },
-  },
+  { "akinsho/git-conflict.nvim", event = "BufRead", opts = {} },
   {
     "sudo-tee/opencode.nvim",
     cmd = "Opencode",
-    config = function()
-      require("opencode").setup({
-        keymap_prefix = "<localleader>",
-      })
-    end,
+    opts = {
+      keymap_prefix = "<localleader>",
+    },
     dependencies = {
       "nvim-lua/plenary.nvim",
       {
@@ -631,39 +638,7 @@ vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEn
 vim.api.nvim_create_autocmd("User", {
   group = vim.api.nvim_create_augroup("UserTelescope", { clear = true }),
   pattern = "TelescopePreviewerLoaded",
-  command = "setlocal wrap",
-})
-
--- Filetype detection
-local filetype_group = vim.api.nvim_create_augroup("UserFiletype", { clear = true })
-
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  group = filetype_group,
-  pattern = "*.tftpl",
-  command = "set filetype=yaml",
-})
-
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  group = filetype_group,
-  pattern = {
-    "*/playbooks/*.yml",
-    "*/playbooks/*.yaml",
-    "*playbook*.yml",
-    "*playbook*.yaml",
-    "*/roles/*/tasks/*.yml",
-    "*/roles/*/tasks/*.yaml",
-    "*/roles/*/handlers/*.yml",
-    "*/roles/*/handlers/*.yaml",
-    "*/group_vars/*",
-    "*/host_vars/*",
-    "*/inventory",
-    "*/ansible.cfg",
-    "site.yml",
-    "site.yaml",
-  },
-  callback = function()
-    vim.bo.filetype = "yaml.ansible"
-  end,
+  callback = function() vim.wo.wrap = true end,
 })
 
 -- Diagnostics
@@ -738,6 +713,16 @@ local wk_keymaps = {
       )
     end,
     desc = "toggle inlay hints",
+  },
+  {
+    "<leader>cr",
+    vim.lsp.buf.rename,
+    desc = "rename symbol",
+  },
+  {
+    "<leader>cf",
+    function() require("conform").format({ lsp_format = "fallback" }) end,
+    desc = "format buffer",
   },
 
   -- Telescope mappings
@@ -916,10 +901,10 @@ local wk_keymaps = {
 
   -- Go mappings
   { "<localleader>g", group = "go", ft = "go" },
-  { "<localleader>gt", "<cmd>!go test %<cr>", desc = "Run tests in current file", ft = "go" },
-  { "<localleader>gT", "<cmd>!go test ./...<cr>", desc = "Run all tests", ft = "go" },
-  { "<localleader>gr", "<cmd>!go run %<cr>", desc = "Run current file", ft = "go" },
-  { "<localleader>gb", "<cmd>!go build<cr>", desc = "Build package", ft = "go" },
+  { "<localleader>gt", function() vim.cmd("split | term go test " .. vim.fn.expand("%")) end, desc = "Run tests in current file", ft = "go" },
+  { "<localleader>gT", function() vim.cmd("split | term go test ./...") end, desc = "Run all tests", ft = "go" },
+  { "<localleader>gr", function() vim.cmd("split | term go run " .. vim.fn.expand("%")) end, desc = "Run current file", ft = "go" },
+  { "<localleader>gb", function() vim.cmd("split | term go build") end, desc = "Build package", ft = "go" },
 
   -- Python mappings
   { "<localleader>p", group = "python", ft = "python" },
@@ -1232,30 +1217,28 @@ end
 -- Enable all configured LSP servers
 vim.lsp.enable(vim.tbl_keys(lsp_servers))
 
+-- Mason name overrides for LSP servers whose Mason package name differs from the lspconfig key
+local mason_name_map = {
+  lua_ls = "lua-language-server",
+  terraformls = "terraform-ls",
+  ts_ls = "typescript-language-server",
+  yamlls = "yaml-language-server",
+  vimls = "vim-language-server",
+  ansiblels = "ansible-language-server",
+  bashls = "bash-language-server",
+  sqlls = "sqls",
+}
+
+local ensure_installed = {}
+for server_name in pairs(lsp_servers) do
+  ensure_installed[#ensure_installed + 1] = mason_name_map[server_name] or server_name
+end
+-- Formatters and linters
+local extra_tools = { "stylua", "goimports", "prettierd", "sqlfluff", "yamllint", "ansible-lint", "shfmt", "shellcheck" }
+vim.list_extend(ensure_installed, extra_tools)
+
 require("mason-tool-installer").setup({
-  ensure_installed = {
-    -- LSP servers
-    "lua-language-server",
-    "gopls",
-    "terraform-ls",
-    "pyright",
-    "typescript-language-server",
-    "yaml-language-server",
-    "vim-language-server",
-    "ansible-language-server",
-    "bash-language-server",
-    "sqls",
-    -- Formatters and linters
-    "stylua",
-    "goimports",
-    "prettierd",
-    "sqlfluff",
-    "yamllint",
-    "ansible-lint",
-    "ruff",
-    "shfmt",
-    "shellcheck",
-  },
+  ensure_installed = ensure_installed,
 })
 
 local formatters_by_ft = {}
@@ -1291,6 +1274,7 @@ require("lint").linters_by_ft = {
   python = { "ruff" },
   sh = { "shellcheck" },
   bash = { "shellcheck" },
+  ["yaml.ansible"] = { "ansible-lint" },
 }
 
 local lint_group = vim.api.nvim_create_augroup("UserLint", { clear = true })
@@ -1298,9 +1282,7 @@ local lint_group = vim.api.nvim_create_augroup("UserLint", { clear = true })
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
   group = lint_group,
   callback = function()
-    if require("lint").linters_by_ft[vim.bo.filetype] then
-      require("lint").try_lint()
-    end
+    require("lint").try_lint()
   end,
 })
 
