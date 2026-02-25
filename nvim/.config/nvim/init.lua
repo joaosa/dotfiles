@@ -99,13 +99,84 @@ if not vim.uv.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Shared LSP on_attach (used by both rustaceanvim and the generic LSP config)
-local function lsp_on_attach(client, bufnr)
-  if client.server_capabilities.documentSymbolProvider then
-    require("nvim-navic").attach(client, bufnr)
-  end
-  if client.server_capabilities.inlayHintProvider then
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+-- LSP servers (defined before lazy.setup so plugin config functions can reference it)
+local lsp_servers = {
+  lua_ls = {
+    mason_name = "lua-language-server",
+    settings = {
+      Lua = {
+        diagnostics = {
+          globals = {
+            "hs",
+            "spoon",
+          },
+        },
+      },
+    },
+  },
+  gopls = {
+    settings = {
+      gopls = {
+        analyses = {
+          unusedparams = true,
+          shadow = true,
+        },
+        staticcheck = true,
+        gofumpt = true,
+      },
+    },
+  },
+  terraformls = {
+    mason_name = "terraform-ls",
+  },
+  pyright = {
+    settings = {
+      python = {
+        analysis = {
+          typeCheckingMode = "strict",
+          autoSearchPaths = true,
+          useLibraryCodeForTypes = true,
+          autoImportCompletions = true,
+          diagnosticMode = "workspace",
+        },
+      },
+    },
+  },
+  ruff = {},
+  ts_ls = {
+    mason_name = "typescript-language-server",
+  },
+  yamlls = {
+    mason_name = "yaml-language-server",
+  },
+  vimls = {
+    mason_name = "vim-language-server",
+  },
+  ansiblels = {
+    mason_name = "ansible-language-server",
+  },
+  bashls = {
+    mason_name = "bash-language-server",
+  },
+  sqlls = {
+    mason_name = "sqls",
+  },
+}
+
+-- Formatter config (defined before lazy.setup so plugin config functions can reference it)
+local formatter_fts = {
+  prettierd = { "javascript", "typescript", "javascriptreact", "typescriptreact", "css", "json", "html", "markdown", "yaml" },
+  stylua = { "lua" },
+  goimports = { "go" },
+  sqlfluff = { "sql" },
+  ruff_format = { "python" },
+  shfmt = { "sh", "bash" },
+}
+
+local formatters_by_ft = {}
+for formatter, fts in pairs(formatter_fts) do
+  for _, ft in ipairs(fts) do
+    formatters_by_ft[ft] = { formatter }
   end
 end
 
@@ -372,10 +443,101 @@ require("lazy").setup({
   { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
 
   -- lsp
-  "williamboman/mason.nvim",
-  "WhoIsSethDaniel/mason-tool-installer.nvim",
-  "stevearc/conform.nvim",
-  "mfussenegger/nvim-lint",
+  {
+    "williamboman/mason.nvim",
+    lazy = false,
+    config = function()
+      require("mason").setup()
+    end,
+  },
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    lazy = false,
+    dependencies = { "williamboman/mason.nvim" },
+    config = function()
+      local ensure_installed = {}
+      for server_name, opts in pairs(lsp_servers) do
+        ensure_installed[#ensure_installed + 1] = opts.mason_name or server_name
+      end
+      vim.list_extend(ensure_installed, {
+        "stylua", "goimports", "prettierd", "sqlfluff",
+        "yamllint", "ansible-lint", "shfmt", "shellcheck",
+      })
+      require("mason-tool-installer").setup({
+        ensure_installed = ensure_installed,
+      })
+    end,
+  },
+  {
+    "stevearc/conform.nvim",
+    lazy = false,
+    config = function()
+      require("conform").setup({
+        formatters_by_ft = vim.tbl_extend("force", formatters_by_ft, {
+          ["_"] = { "trim_whitespace" },
+        }),
+        default_format_opts = {
+          lsp_format = "fallback",
+        },
+        format_on_save = {
+          timeout_ms = 1000,
+        },
+        formatters = {
+          sqlfluff = {
+            prepend_args = { "--dialect", "postgres" },
+          },
+        },
+      })
+    end,
+  },
+  {
+    "mfussenegger/nvim-lint",
+    lazy = false,
+    config = function()
+      require("lint").linters_by_ft = {
+        sql = { "sqlfluff" },
+        yaml = { "yamllint" },
+        python = { "ruff" },
+        sh = { "shellcheck" },
+        bash = { "shellcheck" },
+        ["yaml.ansible"] = { "ansible-lint" },
+      }
+
+      local lint_group = vim.api.nvim_create_augroup("UserLint", { clear = true })
+
+      vim.api.nvim_create_autocmd("BufWritePost", {
+        group = lint_group,
+        callback = function()
+          require("lint").try_lint()
+        end,
+      })
+
+      -- Auto-fix Ansible files after save (async)
+      vim.api.nvim_create_autocmd("BufWritePost", {
+        group = lint_group,
+        pattern = { "*.yml", "*.yaml" },
+        callback = function()
+          if vim.bo.filetype == "yaml.ansible" then
+            local bufnr = vim.api.nvim_get_current_buf()
+            local filepath = vim.fn.expand("%:p")
+            vim.fn.jobstart({ "ansible-lint", "--fix", filepath }, {
+              on_exit = function()
+                -- Reload buffer after async lint completes, then refresh diagnostics
+                vim.schedule(function()
+                  if vim.api.nvim_buf_is_valid(bufnr) and not vim.bo[bufnr].modified then
+                    vim.api.nvim_buf_call(bufnr, function()
+                      vim.cmd.checktime()
+                      require("lint").try_lint()
+                    end)
+                  end
+                end)
+              end,
+            })
+          end
+        end,
+      })
+    end,
+  },
   {
     "mrcjkb/rustaceanvim",
     version = "^5",
@@ -384,7 +546,6 @@ require("lazy").setup({
       vim.g.rustaceanvim = function()
         return {
           server = {
-            on_attach = lsp_on_attach,
             capabilities = require("blink.cmp").get_lsp_capabilities(),
             default_settings = {
               ["rust-analyzer"] = {
@@ -462,7 +623,7 @@ require("lazy").setup({
   },
 
   -- discoverability
-  "folke/which-key.nvim",
+  { "folke/which-key.nvim", lazy = false },
   {
     "nvim-telescope/telescope.nvim",
     cmd = "Telescope",
@@ -571,16 +732,37 @@ require("lazy").setup({
   },
 })
 
+-- LSP configuration
+local capabilities = require("blink.cmp").get_lsp_capabilities()
+for server_name, opts in pairs(lsp_servers) do
+  local lsp_opts = vim.tbl_extend("force", {
+    capabilities = capabilities,
+  }, opts)
+  lsp_opts.mason_name = nil
+  vim.lsp.config[server_name] = lsp_opts
+end
+vim.lsp.enable(vim.tbl_keys(lsp_servers))
+
 -- Autocommands
-vim.api.nvim_create_autocmd("BufWritePre", {
-  group = vim.api.nvim_create_augroup("UserFormat", { clear = true }),
-  callback = function()
-    if #require("conform").list_formatters() > 0 then
-      return
+
+-- Unified LSP attach handler (replaces per-server on_attach)
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
+  callback = function(event)
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    if not client then return end
+
+    -- Disable hover for ruff (pyright handles it)
+    if client.name == "ruff" then
+      client.server_capabilities.hoverProvider = false
     end
-    local view = vim.fn.winsaveview()
-    vim.cmd.keeppatterns([[%s/\s\+$//e]])
-    vim.fn.winrestview(view)
+
+    if client.server_capabilities.documentSymbolProvider then
+      require("nvim-navic").attach(client, event.buf)
+    end
+    if client.server_capabilities.inlayHintProvider then
+      vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
+    end
   end,
 })
 
@@ -703,7 +885,8 @@ local wk_keymaps = {
     ft = "rust",
   },
 
-  -- Leader mappings
+  -- Code group
+  { "<leader>c", group = "code" },
   {
     "<leader>ca",
     vim.lsp.buf.code_action,
@@ -741,7 +924,8 @@ local wk_keymaps = {
     desc = "format buffer",
   },
 
-  -- Telescope mappings
+  -- Telescope group
+  { "<leader>t", group = "telescope" },
   {
     "<leader>a",
     "<cmd>Telescope live_grep<cr>",
@@ -752,7 +936,6 @@ local wk_keymaps = {
     "<cmd>Telescope git_files<cr>",
     desc = "search versioned files",
   },
-  { "<leader>t", group = "telescope" },
   {
     "<leader><space>",
     "<cmd>Telescope find_files<cr>",
@@ -763,22 +946,10 @@ local wk_keymaps = {
     "<cmd>Telescope grep_string<cr>",
     desc = "search cursor",
   },
-  { "<leader>c", group = "code" },
   {
     "<leader>:",
     "<cmd>Telescope command_history<cr>",
     desc = "command history",
-  },
-  { "<leader>q", group = "quickfix/session" },
-  {
-    "<leader>qf",
-    "<cmd>Telescope quickfix<cr>",
-    desc = "telescope quickfix",
-  },
-  {
-    "<leader>w",
-    "<cmd>Telescope loclist<cr>",
-    desc = "telescope loclist",
   },
   {
     "<leader>tms",
@@ -809,6 +980,19 @@ local wk_keymaps = {
     "<leader>r",
     "<cmd>Telescope resume<cr>",
     desc = "telescope resume",
+  },
+
+  -- Quickfix/session group
+  { "<leader>q", group = "quickfix/session" },
+  {
+    "<leader>qf",
+    "<cmd>Telescope quickfix<cr>",
+    desc = "telescope quickfix",
+  },
+  {
+    "<leader>w",
+    "<cmd>Telescope loclist<cr>",
+    desc = "telescope loclist",
   },
 
   -- Git mappings
@@ -1157,171 +1341,3 @@ for _, m in ipairs(fold_keymaps) do
 end
 
 require("which-key").add(wk_keymaps)
-
--- LSP / Formatters / Linters
-local lsp_servers = {
-  lua_ls = {
-    mason_name = "lua-language-server",
-    settings = {
-      Lua = {
-        diagnostics = {
-          globals = {
-            "hs",
-            "spoon",
-          },
-        },
-      },
-    },
-  },
-  gopls = {
-    settings = {
-      gopls = {
-        analyses = {
-          unusedparams = true,
-          shadow = true,
-        },
-        staticcheck = true,
-        gofumpt = true,
-      },
-    },
-  },
-  terraformls = {
-    mason_name = "terraform-ls",
-  },
-  pyright = {
-    settings = {
-      python = {
-        analysis = {
-          typeCheckingMode = "strict",
-          autoSearchPaths = true,
-          useLibraryCodeForTypes = true,
-          autoImportCompletions = true,
-          diagnosticMode = "workspace",
-        },
-      },
-    },
-  },
-  ruff = {
-    handlers = {
-      ["textDocument/hover"] = function() end,
-    },
-  },
-  ts_ls = {
-    mason_name = "typescript-language-server",
-  },
-  yamlls = {
-    mason_name = "yaml-language-server",
-  },
-  vimls = {
-    mason_name = "vim-language-server",
-  },
-  ansiblels = {
-    mason_name = "ansible-language-server",
-  },
-  bashls = {
-    mason_name = "bash-language-server",
-  },
-  sqlls = {
-    mason_name = "sqls",
-  },
-}
-
-require("mason").setup()
-
--- Setup capabilities for all servers
-local capabilities = require("blink.cmp").get_lsp_capabilities()
-
--- Configure all LSP servers with Neovim 0.11 API and build Mason ensure_installed list
-local ensure_installed = {}
-for server_name, opts in pairs(lsp_servers) do
-  ensure_installed[#ensure_installed + 1] = opts.mason_name or server_name
-  local lsp_opts = vim.tbl_extend("force", {
-    capabilities = capabilities,
-    on_attach = lsp_on_attach,
-  }, opts)
-  lsp_opts.mason_name = nil
-  vim.lsp.config[server_name] = lsp_opts
-end
-
-vim.lsp.enable(vim.tbl_keys(lsp_servers))
--- Formatters and linters
-local extra_tools = { "stylua", "goimports", "prettierd", "sqlfluff", "yamllint", "ansible-lint", "shfmt", "shellcheck" }
-vim.list_extend(ensure_installed, extra_tools)
-
-require("mason-tool-installer").setup({
-  ensure_installed = ensure_installed,
-})
-
-local formatter_fts = {
-  prettierd = { "javascript", "typescript", "javascriptreact", "typescriptreact", "css", "json", "html", "markdown", "yaml" },
-  stylua = { "lua" },
-  goimports = { "go" },
-  sqlfluff = { "sql" },
-  ruff_format = { "python" },
-  shfmt = { "sh", "bash" },
-}
-
-local formatters_by_ft = {}
-for formatter, fts in pairs(formatter_fts) do
-  for _, ft in ipairs(fts) do
-    formatters_by_ft[ft] = { formatter }
-  end
-end
-
-require("conform").setup({
-  formatters_by_ft = formatters_by_ft,
-  default_format_opts = {
-    lsp_format = "fallback",
-  },
-  format_on_save = {
-    timeout_ms = 1000,
-  },
-  formatters = {
-    sqlfluff = {
-      prepend_args = { "--dialect", "postgres" },
-    },
-  },
-})
-
-require("lint").linters_by_ft = {
-  sql = { "sqlfluff" },
-  yaml = { "yamllint" },
-  python = { "ruff" },
-  sh = { "shellcheck" },
-  bash = { "shellcheck" },
-  ["yaml.ansible"] = { "ansible-lint" },
-}
-
-local lint_group = vim.api.nvim_create_augroup("UserLint", { clear = true })
-
-vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-  group = lint_group,
-  callback = function()
-    require("lint").try_lint()
-  end,
-})
-
--- Auto-fix Ansible files after save (async)
-vim.api.nvim_create_autocmd("BufWritePost", {
-  group = lint_group,
-  pattern = { "*.yml", "*.yaml" },
-  callback = function()
-    if vim.bo.filetype == "yaml.ansible" then
-      local bufnr = vim.api.nvim_get_current_buf()
-      local filepath = vim.fn.expand("%:p")
-      vim.fn.jobstart({ "ansible-lint", "--fix", filepath }, {
-        on_exit = function()
-          -- Reload buffer after async lint completes, then refresh diagnostics
-          vim.schedule(function()
-            if vim.api.nvim_buf_is_valid(bufnr) and not vim.bo[bufnr].modified then
-              vim.api.nvim_buf_call(bufnr, function()
-                vim.cmd.checktime()
-                require("lint").try_lint()
-              end)
-            end
-          end)
-        end,
-      })
-    end
-  end,
-})
