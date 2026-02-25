@@ -184,6 +184,35 @@ for formatter, fts in pairs(formatter_fts) do
   end
 end
 
+-- Linter config (defined before lazy.setup so plugin config functions can reference it)
+local linter_fts = {
+  sqlfluff = { "sql" },
+  yamllint = { "yaml" },
+  ruff = { "python" },
+  shellcheck = { "sh", "bash" },
+  ["ansible-lint"] = { FT_ANSIBLE },
+}
+
+local linters_by_ft = {}
+for linter, fts in pairs(linter_fts) do
+  for _, ft in ipairs(fts) do
+    linters_by_ft[ft] = linters_by_ft[ft] or {}
+    linters_by_ft[ft][#linters_by_ft[ft] + 1] = linter
+  end
+end
+
+-- Expose tool lists for :checkhealth config
+local health_lsp = {}
+for name, opts in pairs(lsp_servers) do
+  health_lsp[#health_lsp + 1] = opts.mason_name or name
+end
+local health_formatters = {}
+for name in pairs(formatter_fts) do
+  health_formatters[#health_formatters + 1] = name == "ruff_format" and "ruff" or name
+end
+local health_linters = vim.tbl_keys(linter_fts)
+vim.g._health_tools = { lsp = health_lsp, formatters = health_formatters, linters = health_linters }
+
 -- Setup lazy.nvim
 require("lazy").setup({
   -- my work
@@ -467,8 +496,13 @@ require("lazy").setup({
           ensure_installed[#ensure_installed + 1] = formatter
         end
       end
-      -- Non-formatter linters/tools (not in formatter_fts)
-      vim.list_extend(ensure_installed, { "yamllint", "ansible-lint", "shellcheck" })
+      -- Derive linter tools from linter_fts (skip tools already installed as formatters or LSP servers)
+      local linter_skip = { ruff = true, sqlfluff = true }
+      for linter in pairs(linter_fts) do
+        if not linter_skip[linter] then
+          ensure_installed[#ensure_installed + 1] = linter
+        end
+      end
       require("mason-tool-installer").setup({
         ensure_installed = ensure_installed,
       })
@@ -500,14 +534,7 @@ require("lazy").setup({
     "mfussenegger/nvim-lint",
     event = "BufWritePost",
     config = function()
-      require("lint").linters_by_ft = {
-        sql = { "sqlfluff" },
-        yaml = { "yamllint" },
-        python = { "ruff" },
-        sh = { "shellcheck" },
-        bash = { "shellcheck" },
-        [FT_ANSIBLE] = { "ansible-lint" },
-      }
+      require("lint").linters_by_ft = linters_by_ft
 
       local lint_group = vim.api.nvim_create_augroup("UserLint", { clear = true })
 
@@ -1113,10 +1140,6 @@ local wk_keymaps = {
 
   -- Go mappings
   { "<localleader>g", group = "go", ft = "go" },
-  { "<localleader>gt", function() vim.cmd("split | term go test " .. vim.fn.expand("%")) end, desc = "Run tests in current file", ft = "go" },
-  { "<localleader>gT", function() vim.cmd("split | term go test ./...") end, desc = "Run all tests", ft = "go" },
-  { "<localleader>gr", function() vim.cmd("split | term go run " .. vim.fn.expand("%")) end, desc = "Run current file", ft = "go" },
-  { "<localleader>gb", function() vim.cmd("split | term go build") end, desc = "Build package", ft = "go" },
 
   -- Python mappings
   { "<localleader>p", group = "python", ft = "python" },
@@ -1288,6 +1311,22 @@ local wk_keymaps = {
   -- file explorer
   { "<leader>e", "<cmd>Oil<cr>", desc = "file explorer" },
 }
+
+-- Go keymaps (generated)
+local go_keymaps = {
+  { "t", function() return "test " .. vim.fn.expand("%") end, "Run tests in current file" },
+  { "T", function() return "test ./..." end,                  "Run all tests" },
+  { "r", function() return "run " .. vim.fn.expand("%") end,  "Run current file" },
+  { "b", function() return "build" end,                       "Build package" },
+}
+for _, m in ipairs(go_keymaps) do
+  wk_keymaps[#wk_keymaps + 1] = {
+    "<localleader>g" .. m[1],
+    function() vim.cmd("split | term go " .. m[2]()) end,
+    desc = m[3],
+    ft = "go",
+  }
+end
 
 -- Rust keymaps (generated)
 local rust_keymaps = {
