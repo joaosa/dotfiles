@@ -915,7 +915,7 @@ local wk_keymaps = {
     desc = "show cursor diagnostics",
   },
   {
-    "<leader>ih",
+    "<leader>ch",
     function()
       vim.lsp.inlay_hint.enable(
         not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }),
@@ -978,7 +978,7 @@ local wk_keymaps = {
     desc = "treesitter",
   },
   {
-    "<leader>ss",
+    "<leader>tz",
     "<cmd>Telescope spell_suggest<cr>",
     desc = "spelling",
   },
@@ -1075,6 +1075,7 @@ local wk_keymaps = {
   },
 
   -- Trouble mappings
+  { "<leader>x", group = "diagnostics" },
   {
     "<leader>xx",
     "<cmd>Trouble diagnostics toggle<cr>",
@@ -1164,6 +1165,7 @@ local wk_keymaps = {
   },
 
   -- Opencode mappings
+  { "<localleader>o", group = "opencode" },
   {
     "<localleader>og",
     "<cmd>Opencode<cr>",
