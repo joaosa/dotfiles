@@ -16,6 +16,7 @@ vim.opt.list = true
 vim.opt.listchars = { tab = "▸ ", trail = "▫" }
 -- show line numbers
 vim.opt.number = true
+vim.opt.relativenumber = true
 -- stable sign column
 vim.opt.signcolumn = "yes"
 vim.opt.cursorline = true
@@ -56,7 +57,6 @@ vim.opt.scrolloff = 5
 vim.opt.foldcolumn = "1"
 vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
-vim.opt.foldenable = true
 
 -- Constants
 local FT_ANSIBLE = "yaml.ansible"
@@ -486,7 +486,7 @@ require("lazy").setup({
           lsp_format = "fallback",
         },
         format_on_save = {
-          timeout_ms = 1000,
+          timeout_ms = 2000,
         },
         formatters = {
           sqlfluff = {
@@ -750,6 +750,7 @@ end
 vim.lsp.enable(vim.tbl_keys(lsp_servers))
 
 -- Autocommands
+-- NOTE: nvim-lint autocommands (UserLint group) are in the plugin's config function above.
 
 -- Unified LSP attach handler (replaces per-server on_attach)
 vim.api.nvim_create_autocmd("LspAttach", {
