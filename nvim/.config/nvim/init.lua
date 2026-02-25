@@ -61,6 +61,30 @@ vim.opt.foldlevelstart = 99
 -- Constants
 local FT_ANSIBLE = "yaml.ansible"
 local COLORSCHEME = "gruvbox"
+local CLOSE_KEYS = { "q", "<esc>" }
+
+-- Helpers
+
+--- Invert a tool→filetypes map into a filetype→tools map.
+local function invert_tool_fts(tool_fts)
+  local by_ft = {}
+  for tool, fts in pairs(tool_fts) do
+    for _, ft in ipairs(fts) do
+      by_ft[ft] = by_ft[ft] or {}
+      by_ft[ft][#by_ft[ft] + 1] = tool
+    end
+  end
+  return by_ft
+end
+
+--- Build a table mapping each CLOSE_KEYS entry to a given action.
+local function close_keymaps(action)
+  local t = {}
+  for _, key in ipairs(CLOSE_KEYS) do
+    t[key] = action
+  end
+  return t
+end
 
 -- Filetype detection
 local ansible_patterns = {}
@@ -177,12 +201,7 @@ local formatter_fts = {
   shfmt = { "sh", "bash" },
 }
 
-local formatters_by_ft = {}
-for formatter, fts in pairs(formatter_fts) do
-  for _, ft in ipairs(fts) do
-    formatters_by_ft[ft] = { formatter }
-  end
-end
+local formatters_by_ft = invert_tool_fts(formatter_fts)
 
 -- Linter config (defined before lazy.setup so plugin config functions can reference it)
 local linter_fts = {
@@ -193,25 +212,21 @@ local linter_fts = {
   ["ansible-lint"] = { FT_ANSIBLE },
 }
 
-local linters_by_ft = {}
-for linter, fts in pairs(linter_fts) do
-  for _, ft in ipairs(fts) do
-    linters_by_ft[ft] = linters_by_ft[ft] or {}
-    linters_by_ft[ft][#linters_by_ft[ft] + 1] = linter
-  end
+local linters_by_ft = invert_tool_fts(linter_fts)
+
+-- Shared LSP mason names (used by health + mason-tool-installer)
+local lsp_mason_names = {}
+for name, opts in pairs(lsp_servers) do
+  lsp_mason_names[#lsp_mason_names + 1] = opts.mason_name or name
 end
 
 -- Expose tool lists for :checkhealth config
-local health_lsp = {}
-for name, opts in pairs(lsp_servers) do
-  health_lsp[#health_lsp + 1] = opts.mason_name or name
-end
 local health_formatters = {}
 for name in pairs(formatter_fts) do
   health_formatters[#health_formatters + 1] = name == "ruff_format" and "ruff" or name
 end
 local health_linters = vim.tbl_keys(linter_fts)
-vim.g._health_tools = { lsp = health_lsp, formatters = health_formatters, linters = health_linters }
+vim.g._health_tools = { lsp = lsp_mason_names, formatters = health_formatters, linters = health_linters }
 
 -- Setup lazy.nvim
 require("lazy").setup({
@@ -331,11 +346,9 @@ require("lazy").setup({
       view_options = {
         show_hidden = false,
       },
-      keymaps = {
-        ["q"] = "actions.close",
-        ["<esc>"] = "actions.close",
+      keymaps = vim.tbl_extend("force", close_keymaps("actions.close"), {
         ["g."] = "actions.toggle_hidden",
-      },
+      }),
     },
   },
   {
@@ -485,10 +498,7 @@ require("lazy").setup({
     lazy = false,
     dependencies = { "williamboman/mason.nvim" },
     config = function()
-      local ensure_installed = {}
-      for server_name, opts in pairs(lsp_servers) do
-        ensure_installed[#ensure_installed + 1] = opts.mason_name or server_name
-      end
+      local ensure_installed = vim.list_extend({}, lsp_mason_names)
       -- Derive formatter tools from formatter_fts (skip ruff_format — already installed as ruff LSP)
       local formatter_skip = { ruff_format = true }
       for formatter in pairs(formatter_fts) do
@@ -693,10 +703,7 @@ require("lazy").setup({
     "folke/trouble.nvim",
     cmd = "Trouble",
     opts = {
-      keys = {
-        ["q"] = "close",
-        ["<esc>"] = "close",
-      },
+      keys = close_keymaps("close"),
     },
   },
 
@@ -718,10 +725,7 @@ require("lazy").setup({
         telescope = true,
       },
       mappings = {
-        status = {
-          ["q"] = "Close",
-          ["<esc>"] = "Close",
-        },
+        status = close_keymaps("Close"),
       },
     },
   },
@@ -729,10 +733,7 @@ require("lazy").setup({
     "sindrets/diffview.nvim",
     cmd = { "DiffviewOpen", "DiffviewFileHistory", "DiffviewClose" },
     opts = function()
-      local dv_close = {
-        ["q"] = "<Cmd>DiffviewClose<CR>",
-        ["<esc>"] = "<Cmd>DiffviewClose<CR>",
-      }
+      local dv_close = close_keymaps("<Cmd>DiffviewClose<CR>")
       return {
         enhanced_diff_hl = true,
         use_icons = true,
@@ -814,7 +815,7 @@ local close_group = vim.api.nvim_create_augroup("UserClose", { clear = true })
 
 local function set_close_keymaps(buf, desc)
   vim.bo[buf].buflisted = false
-  for _, key in ipairs({ "q", "<esc>" }) do
+  for _, key in ipairs(CLOSE_KEYS) do
     vim.keymap.set("n", key, "<cmd>close<cr>", { buffer = buf, silent = true, desc = desc })
   end
 end
