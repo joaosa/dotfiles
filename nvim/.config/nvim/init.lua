@@ -1242,16 +1242,20 @@ require("mason-tool-installer").setup({
   ensure_installed = ensure_installed,
 })
 
+local formatter_fts = {
+  prettierd = { "javascript", "typescript", "javascriptreact", "typescriptreact", "css", "json", "html", "markdown", "yaml" },
+  stylua = { "lua" },
+  goimports = { "go" },
+  sqlfluff = { "sql" },
+  ruff_format = { "python" },
+  shfmt = { "sh", "bash" },
+}
+
 local formatters_by_ft = {}
-for _, ft in ipairs({ "javascript", "typescript", "javascriptreact", "typescriptreact", "css", "json", "html", "markdown", "yaml" }) do
-  formatters_by_ft[ft] = { "prettierd" }
-end
-formatters_by_ft.lua = { "stylua" }
-formatters_by_ft.go = { "goimports" }
-formatters_by_ft.sql = { "sqlfluff" }
-formatters_by_ft.python = { "ruff_format" }
-for _, ft in ipairs({ "sh", "bash" }) do
-  formatters_by_ft[ft] = { "shfmt" }
+for formatter, fts in pairs(formatter_fts) do
+  for _, ft in ipairs(fts) do
+    formatters_by_ft[ft] = { formatter }
+  end
 end
 
 require("conform").setup({
