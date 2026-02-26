@@ -8,5 +8,5 @@ Session.vim
 *.log
 
 # Stow package artifacts
-karabiner/.config/karabiner/automatic_backups/
-hammerspoon/.hammerspoon/Spoons/
+stow/karabiner/.config/karabiner/automatic_backups/
+stow/hammerspoon/.hammerspoon/Spoons/
