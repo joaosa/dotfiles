@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DRY_RUN="${DRY_RUN:-false}"
+
+# If run via curl | bash (no Brewfile present), clone the repo first
+if [ ! -f "$SCRIPT_DIR/Brewfile" ]; then
+  REPO_DIR="$HOME/ghq/github.com/joaosa/dotfiles"
+  if [ ! -d "$REPO_DIR" ]; then
+    # Ensure Xcode CLT is available for git
+    if ! xcode-select -p >/dev/null 2>&1; then
+      xcode-select --install 2>/dev/null || true
+      echo "Waiting for Xcode Command Line Tools..."
+      until xcode-select -p >/dev/null 2>&1; do sleep 5; done
+    fi
+    git clone https://github.com/joaosa/dotfiles "$REPO_DIR"
+  fi
+  exec "$REPO_DIR/bootstrap" "$@"
+fi
+
+# Handle flags before sourcing anything
+case "${1:-}" in
+  -h|--help)
+    echo "Usage: $0 [module ...]"
+    echo ""
+    echo "Run with no arguments to execute all modules in order."
+    echo "Specify module names to run only those modules."
+    echo ""
+    echo "Environment:"
+    echo "  DRY_RUN=true    Preview changes without executing"
+    echo ""
+    echo "Options:"
+    echo "  --help    Show this help"
+    echo "  --list    List available modules"
+    exit 0
+    ;;
+  --list)
+    source "$SCRIPT_DIR/lib/logging.sh"
+    source "$SCRIPT_DIR/lib/helpers.sh"
+    source "$SCRIPT_DIR/lib/module.sh"
+    list_modules
+    exit 0
+    ;;
+esac
+
+# Source libraries
+source "$SCRIPT_DIR/lib/logging.sh"
+source "$SCRIPT_DIR/lib/helpers.sh"
+source "$SCRIPT_DIR/versions.env"
+source "$SCRIPT_DIR/lib/module.sh"
+
+# Reset tracking
+START_TIME=$(date +%s)
+ITEMS_INSTALLED=0
+ITEMS_SKIPPED=0
+ITEMS_WARNED=0
+ITEMS_FAILED=0
+
+if [ "$DRY_RUN" = "true" ]; then
+  echo "=== DRY RUN MODE ==="
+  echo "No changes will be made to the system."
+  echo "To execute for real, run: DRY_RUN=false $0"
+  echo ""
+fi
+
+# Parse arguments: use provided modules or default order
+if [ $# -gt 0 ]; then
+  MODULES_TO_RUN=("$@")
+else
+  MODULES_TO_RUN=("${MODULE_ORDER[@]+"${MODULE_ORDER[@]}"}")
+fi
+
+TOTAL=${#MODULES_TO_RUN[@]}
+CURRENT=0
+FAILED_MODULES=()
+
+for module in "${MODULES_TO_RUN[@]}"; do
+  ((++CURRENT))
+  if ! run_module "$module" "$CURRENT" "$TOTAL"; then
+    FAILED_MODULES+=("$module")
+  fi
+  # After homebrew module, ensure brew is on PATH for subsequent modules
+  # (the module runs in a subshell, so its PATH export is lost)
+  if [ "$module" = "homebrew" ] && ! command -v brew >/dev/null 2>&1; then
+    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)" || \
+      eval "$(/usr/local/bin/brew shellenv 2>/dev/null)" || true
+  fi
+done
+
+print_summary
+
+if [ "${#FAILED_MODULES[@]}" -gt 0 ]; then
+  log_error "Failed modules: ${FAILED_MODULES[*]}"
+  exit 1
+fi
