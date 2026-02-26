@@ -50,21 +50,10 @@ local function debounce(fn, delay)
     end
 end
 
--- Launch or focus application
-local function launchOrFocusApp(appName)
-    local app = hs.application.find(appName)
-    if app and app:isRunning() then
-        app:activate()
-    else
-        hs.application.launchOrFocus(appName)
-    end
-end
-
 return {
     trim = trim,
     pluralize = pluralize,
     findBinary = findBinary,
     missingDeps = missingDeps,
     debounce = debounce,
-    launchOrFocusApp = launchOrFocusApp,
 }
