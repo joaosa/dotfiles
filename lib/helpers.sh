@@ -80,6 +80,54 @@ get_tool_version() {
 }
 
 # ============================================================================
+# STOW PACKAGE DISCOVERY
+# ============================================================================
+
+# Print one stow package name per line, skipping hidden directories.
+discover_stow_packages() {
+  local stow_dir="$SCRIPT_DIR/stow"
+  local name
+  for d in "$stow_dir"/*/; do
+    [ -d "$d" ] || continue
+    name=$(basename "$d")
+    [[ "$name" == .* ]] && continue
+    echo "$name"
+  done
+}
+
+# ============================================================================
+# PACKAGE NAME PARSING
+# ============================================================================
+
+# Extract binary name from a Go install path: github.com/user/repo/cmd/tool@v1.0 -> tool
+go_binary_name() {
+  local pkg="$1"
+  local name="${pkg##*/}"
+  echo "${name%%@*}"
+}
+
+# Extract package name from an npm specifier: @scope/name@version -> @scope/name, name@version -> name
+npm_package_name() {
+  local pkg="$1"
+  if [[ "$pkg" == @*/*@* ]]; then
+    echo "${pkg%@*}"
+  else
+    echo "${pkg%%@*}"
+  fi
+}
+
+# Extract version from an npm specifier: @scope/name@version -> version, name@version -> version
+npm_package_version() {
+  local pkg="$1"
+  echo "${pkg##*@}"
+}
+
+# Check if an npm package specifier (name or name@version) is globally installed.
+is_npm_pkg_installed() {
+  npm list -g "$1" --depth=0 >/dev/null 2>&1
+}
+
+# ============================================================================
 # ASDF MANAGEMENT
 # ============================================================================
 
@@ -138,23 +186,15 @@ install_asdf_packages() {
 
     case "$language" in
       "golang")
-        # github.com/user/repo/cmd/tool@v1.0 -> tool
-        binary_name="${package##*/}"
-        binary_name="${binary_name%%@*}"
+        binary_name=$(go_binary_name "$package")
         display_name="$binary_name"
         command -v "$binary_name" >/dev/null 2>&1 && is_installed=true
         ;;
       "nodejs")
-        # Handle scoped packages: @scope/name@version vs name@version
-        if [[ "$package" == @*/*@* ]]; then
-          package_name="${package%@*}"
-          package_version="${package##*@}"
-        else
-          package_name="${package%%@*}"
-          package_version="${package#*@}"
-        fi
+        package_name=$(npm_package_name "$package")
+        package_version=$(npm_package_version "$package")
         display_name="$package_name@$package_version"
-        npm list -g "$package_name@$package_version" --depth=0 >/dev/null 2>&1 && is_installed=true
+        is_npm_pkg_installed "$package_name@$package_version" && is_installed=true
         ;;
       *)
         log_error "Unsupported language: $language"
@@ -329,29 +369,40 @@ download_if_missing() {
 # ============================================================================
 
 print_summary() {
-  local end_time
-  end_time=$(date +%s)
-  local elapsed=$((end_time - START_TIME))
-  local minutes=$((elapsed / 60))
-  local seconds=$((elapsed % 60))
+  local doctor_mode=false
+  [ "${1:-}" = "--doctor" ] && doctor_mode=true
 
-  local header
-  if [ "$ITEMS_FAILED" -gt 0 ]; then
-    header="${RED}Setup finished with errors${RESET}"
+  echo ""
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+  if [ "$doctor_mode" = false ]; then
+    local header
+    if [ "$ITEMS_FAILED" -gt 0 ]; then
+      header="${RED}Setup finished with errors${RESET}"
+    else
+      header="${GREEN}Setup complete${RESET}"
+    fi
+    echo -e "$header"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo ""
+
+    echo -e "${GREEN}✓${RESET} Installed: $ITEMS_INSTALLED"
+    echo -e "${YELLOW}⊘${RESET} Skipped:   $ITEMS_SKIPPED"
+    [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings:  $ITEMS_WARNED"
+    [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:    $ITEMS_FAILED"
+    echo ""
+
+    local end_time
+    end_time=$(date +%s)
+    local elapsed=$((end_time - START_TIME))
+    local minutes=$((elapsed / 60))
+    local seconds=$((elapsed % 60))
+    echo -e "   Total time: ${minutes}m ${seconds}s"
   else
-    header="${GREEN}Setup complete${RESET}"
+    echo -e "${GREEN}✓${RESET} Passed:   $ITEMS_INSTALLED"
+    [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings: $ITEMS_WARNED"
+    [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:   $ITEMS_FAILED"
   fi
 
-  echo ""
-  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-  echo -e "$header"
-  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-  echo ""
-  echo -e "${GREEN}✓${RESET} Installed: $ITEMS_INSTALLED"
-  echo -e "${YELLOW}⊘${RESET} Skipped:   $ITEMS_SKIPPED"
-  [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings:  $ITEMS_WARNED"
-  [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:    $ITEMS_FAILED"
-  echo ""
-  echo -e "   Total time: ${minutes}m ${seconds}s"
   echo ""
 }

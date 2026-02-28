@@ -11,10 +11,6 @@ run() {
       log_success "Installed Rust"
     fi
   else
-    if ! is_dry_run; then
-      rustup toolchain list | grep -q stable || rustup install stable
-      rustup default stable >/dev/null 2>&1 || true
-    fi
     log_skip "Rust already installed"
   fi
 

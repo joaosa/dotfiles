@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Doctor: Verify setup health by checking expected binaries, stow links, and versions
 
-set -euo pipefail
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/helpers.sh"
-init_standalone
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && { set -euo pipefail; source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/helpers.sh"; init_standalone; }
 
 check_binary() {
   local name="$1" description="${2:-$1}"
@@ -49,7 +47,47 @@ check_version() {
   fi
 }
 
-main() {
+check_stow_links() {
+  local stow_dir="$SCRIPT_DIR/stow"
+  local -A checked_config_dirs
+  local pkg_name
+  while IFS= read -r pkg_name; do
+    local pkg_dir="$stow_dir/$pkg_name/"
+
+    # Check immediate children of each stow package
+    for entry in "$pkg_dir"* "$pkg_dir".*; do
+      [ -e "$entry" ] || continue
+      local base
+      base=$(basename "$entry")
+      [[ "$base" == "." || "$base" == ".." ]] && continue
+
+      if [ "$base" = ".config" ] && [ -d "$entry" ]; then
+        # For .config, stow symlinks one level deeper (e.g. ~/.config/nvim -> ...)
+        for sub in "$entry"/*/; do
+          [ -d "$sub" ] || continue
+          local sub_name
+          sub_name=$(basename "$sub")
+          # Avoid duplicate checks if multiple packages share a .config subdir
+          [[ -n "${checked_config_dirs[$sub_name]+x}" ]] && continue
+          checked_config_dirs[$sub_name]=1
+          check_symlink "$HOME/.config/$sub_name" "$pkg_name: ~/.config/$sub_name"
+        done
+        # Also check .config files (not dirs) like starship.toml
+        for sub in "$entry"/*; do
+          [ -f "$sub" ] || continue
+          local sub_name
+          sub_name=$(basename "$sub")
+          check_symlink "$HOME/.config/$sub_name" "$pkg_name: ~/.config/$sub_name"
+        done
+      else
+        # Top-level entry: stow creates a direct symlink in $HOME
+        check_symlink "$HOME/$base" "$pkg_name: ~/$base"
+      fi
+    done
+  done < <(discover_stow_packages)
+}
+
+run() {
   log_section "1" "5" "CORE TOOLS"
   check_binary brew "Homebrew"
   check_binary git "Git"
@@ -76,13 +114,8 @@ main() {
   local pkg name bin_name
 
   for pkg in "${NPM_PACKAGES[@]}"; do
-    # Handle scoped packages: @scope/name@version vs name@version
-    if [[ "$pkg" == @*/*@* ]]; then
-      name="${pkg%@*}"
-    else
-      name="${pkg%%@*}"
-    fi
-    if npm list -g "$pkg" --depth=0 >/dev/null 2>&1; then
+    name=$(npm_package_name "$pkg")
+    if is_npm_pkg_installed "$pkg"; then
       log_success "npm: $name"
     else
       log_error "npm: $name: not installed"
@@ -90,8 +123,7 @@ main() {
   done
 
   for pkg in "${GO_PACKAGES[@]}"; do
-    name="${pkg##*/}"
-    name="${name%%@*}"
+    name=$(go_binary_name "$pkg")
     check_binary "$name" "go: $name"
   done
 
@@ -101,16 +133,11 @@ main() {
   done
 
   log_section "4" "5" "STOW LINKS"
-  check_symlink "$HOME/.config/nvim" "nvim config"
-  check_symlink "$HOME/.config/alacritty" "alacritty config"
-  check_symlink "$HOME/.tmux.conf" "tmux config"
-  check_symlink "$HOME/.zshrc" "zsh config"
-  check_symlink "$HOME/.gitconfig" "git config"
-  is_macos && check_symlink "$HOME/.hammerspoon" "hammerspoon config"
+  check_stow_links
 
   log_section "5" "5" "DOWNLOADS"
-  check_file "$HOME/.kubectl_aliases" "kubectl aliases"
-  check_file "$HOME/.local/share/whisper/ggml-base.en.bin" "whisper model"
+  check_file "$KUBECTL_ALIASES_PATH" "kubectl aliases"
+  check_file "$WHISPER_MODEL_PATH" "whisper model"
 
   echo ""
   if brew bundle check --file="$SCRIPT_DIR/Brewfile" >/dev/null 2>&1; then
@@ -119,16 +146,7 @@ main() {
     log_error "Some Brewfile packages are missing (run: just homebrew)"
   fi
 
-  # Summary
-  echo ""
-  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-  echo -e "${GREEN}✓${RESET} Passed:   $ITEMS_INSTALLED"
-  [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings: $ITEMS_WARNED"
-  [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:   $ITEMS_FAILED"
-  echo ""
-
   return $(( ITEMS_FAILED > 0 ? 1 : 0 ))
 }
 
-main
-exit $?
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && { run || true; print_summary --doctor; exit $(( ITEMS_FAILED > 0 ? 1 : 0 )); }

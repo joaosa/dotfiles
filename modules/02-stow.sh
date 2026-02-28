@@ -11,15 +11,10 @@ run() {
     return 1
   fi
 
-  # Auto-discover stow packages (top-level dirs, excluding hidden)
   local -a stow_dirs=()
-  for d in "$stow_dir"/*/; do
-    [ -d "$d" ] || continue
-    local name
-    name=$(basename "$d")
-    [[ "$name" == .* ]] && continue
-    stow_dirs+=("$name")
-  done
+  while IFS= read -r pkg; do
+    stow_dirs+=("$pkg")
+  done < <(discover_stow_packages)
 
   if [ ${#stow_dirs[@]} -eq 0 ]; then
     log_warn "No stow packages found in $stow_dir"
