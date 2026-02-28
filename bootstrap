@@ -51,11 +51,7 @@ source "$SCRIPT_DIR/versions.env"
 source "$SCRIPT_DIR/lib/module.sh"
 
 # Reset tracking
-START_TIME=$(date +%s)
-ITEMS_INSTALLED=0
-ITEMS_SKIPPED=0
-ITEMS_WARNED=0
-ITEMS_FAILED=0
+reset_counters
 
 if [ "$DRY_RUN" = "true" ]; then
   echo "=== DRY RUN MODE ==="

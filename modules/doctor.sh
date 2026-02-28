@@ -129,7 +129,7 @@ run() {
 
   for pkg in "${CARGO_PACKAGES[@]}"; do
     bin_name=$(cargo_bin_name "$pkg")
-    check_binary "$bin_name" "cargo: $pkg"
+    check_binary "$bin_name" "cargo: $(cargo_crate_name "$pkg")"
   done
 
   log_section "4" "5" "STOW LINKS"

@@ -58,11 +58,7 @@ init_standalone() {
   source "$SCRIPT_DIR/lib/logging.sh"
   # helpers.sh is already sourced (we're in it)
   source "$SCRIPT_DIR/versions.env"
-  START_TIME=$(date +%s)
-  ITEMS_INSTALLED=0
-  ITEMS_SKIPPED=0
-  ITEMS_WARNED=0
-  ITEMS_FAILED=0
+  reset_counters
 }
 
 # ============================================================================
@@ -238,14 +234,20 @@ install_asdf_packages() {
 # CARGO
 # ============================================================================
 
-# Map cargo crate names to their binary names (where they differ)
+# Extract binary name from a cargo package spec (crate:binary or just crate)
 cargo_bin_name() {
   local pkg="$1"
-  case "$pkg" in
-    openpgp-card-tools) echo "oct" ;;
-    openpgp-card-tool-git) echo "oct-git" ;;
-    *) echo "${pkg##*/}" ;;
-  esac
+  if [[ "$pkg" == *:* ]]; then
+    echo "${pkg#*:}"
+  else
+    echo "${pkg##*/}"
+  fi
+}
+
+# Extract crate name from a cargo package spec (crate:binary or just crate)
+cargo_crate_name() {
+  local pkg="$1"
+  echo "${pkg%%:*}"
 }
 
 install_cargo_packages() {
@@ -253,29 +255,30 @@ install_cargo_packages() {
   local -a already_installed=()
 
   for pkg in "${packages[@]}"; do
-    local bin_name
+    local bin_name crate_name
     bin_name=$(cargo_bin_name "$pkg")
+    crate_name=$(cargo_crate_name "$pkg")
 
     if command -v "$bin_name" >/dev/null 2>&1; then
-      already_installed+=("$pkg")
+      already_installed+=("$crate_name")
       continue
     fi
 
-    if is_dry_run "install cargo package: $pkg"; then continue; fi
+    if is_dry_run "install cargo package: $crate_name"; then continue; fi
 
     local cargo_exit=0
     # openpgp-card-tool-git requires explicit framework linking on macOS
-    if is_macos && [ "$pkg" = "openpgp-card-tool-git" ]; then
+    if is_macos && [ "$crate_name" = "openpgp-card-tool-git" ]; then
       RUSTFLAGS="-C link-arg=-framework -C link-arg=AppKit -C link-arg=-framework -C link-arg=CoreServices" \
-        cargo install "$pkg" || cargo_exit=$?
+        cargo install "$crate_name" || cargo_exit=$?
     else
-      cargo install "$pkg" || cargo_exit=$?
+      cargo install "$crate_name" || cargo_exit=$?
     fi
 
     if [ "$cargo_exit" -eq 0 ]; then
-      log_success "Installed $pkg"
+      log_success "Installed $crate_name"
     else
-      log_error "Failed to install $pkg (exit code: $cargo_exit)"
+      log_error "Failed to install $crate_name (exit code: $cargo_exit)"
     fi
   done
 
@@ -362,47 +365,4 @@ download_if_missing() {
 
   mv "$temp_file" "$file_path"
   log_success "Downloaded: $filename"
-}
-
-# ============================================================================
-# SUMMARY
-# ============================================================================
-
-print_summary() {
-  local doctor_mode=false
-  [ "${1:-}" = "--doctor" ] && doctor_mode=true
-
-  echo ""
-  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-
-  if [ "$doctor_mode" = false ]; then
-    local header
-    if [ "$ITEMS_FAILED" -gt 0 ]; then
-      header="${RED}Setup finished with errors${RESET}"
-    else
-      header="${GREEN}Setup complete${RESET}"
-    fi
-    echo -e "$header"
-    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-    echo ""
-
-    echo -e "${GREEN}✓${RESET} Installed: $ITEMS_INSTALLED"
-    echo -e "${YELLOW}⊘${RESET} Skipped:   $ITEMS_SKIPPED"
-    [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings:  $ITEMS_WARNED"
-    [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:    $ITEMS_FAILED"
-    echo ""
-
-    local end_time
-    end_time=$(date +%s)
-    local elapsed=$((end_time - START_TIME))
-    local minutes=$((elapsed / 60))
-    local seconds=$((elapsed % 60))
-    echo -e "   Total time: ${minutes}m ${seconds}s"
-  else
-    echo -e "${GREEN}✓${RESET} Passed:   $ITEMS_INSTALLED"
-    [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings: $ITEMS_WARNED"
-    [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:   $ITEMS_FAILED"
-  fi
-
-  echo ""
 }

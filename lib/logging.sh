@@ -20,6 +20,14 @@ ITEMS_SKIPPED="${ITEMS_SKIPPED:-0}"
 ITEMS_WARNED="${ITEMS_WARNED:-0}"
 ITEMS_FAILED="${ITEMS_FAILED:-0}"
 
+reset_counters() {
+  START_TIME=$(date +%s)
+  ITEMS_INSTALLED=0
+  ITEMS_SKIPPED=0
+  ITEMS_WARNED=0
+  ITEMS_FAILED=0
+}
+
 log_info() {
   echo -e "${BLUE}i${RESET}  $*"
 }
@@ -76,4 +84,47 @@ log_skip_grouped() {
 
   echo -e "${YELLOW}⊘${RESET}  $message: ${items[*]}"
   ((ITEMS_SKIPPED += count)) || true
+}
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+
+print_summary() {
+  local doctor_mode=false
+  [ "${1:-}" = "--doctor" ] && doctor_mode=true
+
+  echo ""
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+
+  if [ "$doctor_mode" = false ]; then
+    local header
+    if [ "$ITEMS_FAILED" -gt 0 ]; then
+      header="${RED}Setup finished with errors${RESET}"
+    else
+      header="${GREEN}Setup complete${RESET}"
+    fi
+    echo -e "$header"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo ""
+
+    echo -e "${GREEN}✓${RESET} Installed: $ITEMS_INSTALLED"
+    echo -e "${YELLOW}⊘${RESET} Skipped:   $ITEMS_SKIPPED"
+    [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings:  $ITEMS_WARNED"
+    [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:    $ITEMS_FAILED"
+    echo ""
+
+    local end_time
+    end_time=$(date +%s)
+    local elapsed=$((end_time - START_TIME))
+    local minutes=$((elapsed / 60))
+    local seconds=$((elapsed % 60))
+    echo -e "   Total time: ${minutes}m ${seconds}s"
+  else
+    echo -e "${GREEN}✓${RESET} Passed:   $ITEMS_INSTALLED"
+    [ "$ITEMS_WARNED" -gt 0 ] && echo -e "${YELLOW}!${RESET} Warnings: $ITEMS_WARNED"
+    [ "$ITEMS_FAILED" -gt 0 ] && echo -e "${RED}✗${RESET} Failed:   $ITEMS_FAILED"
+  fi
+
+  echo ""
 }
