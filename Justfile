@@ -35,27 +35,17 @@ services:
 downloads:
     ./bootstrap downloads
 
-# Generate OPNsense secrets (requires YubiKey)
-[group('infra')]
-secrets:
-    bash infra/secrets/generate-secrets.sh
-
-# Install Claude Code desktop notifications
-[group('extras')]
-ccnotify:
-    bash extras/setup-ccnotify.sh
-
 # Verify setup health (check binaries, stow links, versions)
 [group('utils')]
 doctor:
-    bash modules/doctor.sh
+    ./bootstrap doctor
 
 # Lint all shell scripts with shellcheck
 [group('utils')]
 lint:
     shellcheck -x lib/*.sh modules/*.sh bootstrap versions.env
 
-# Remove Homebrew packages not in Brewfile
+# Remove Homebrew packages not in Brewfile (same as the cleanup step in modules/01-homebrew.sh)
 [group('utils')]
 clean:
     brew bundle cleanup --force --file=Brewfile

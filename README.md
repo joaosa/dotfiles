@@ -75,20 +75,18 @@ Each module can run standalone: `bash modules/04-languages.sh`
 │   ├── 04-languages.sh    # Rust, Node, Go, npm/go/cargo packages
 │   ├── 05-services.sh     # Syncthing
 │   └── 06-downloads.sh    # Verified file downloads
-├── stow/                  # GNU Stow packages (symlinked to ~)
-│   ├── alacritty/
-│   ├── git/
-│   ├── hammerspoon/
-│   ├── karabiner/
-│   ├── nvim/
-│   ├── opencode/
-│   ├── tmux/
-│   └── zsh/
-├── infra/                 # Infrastructure (separate from bootstrap)
-│   ├── secrets/           # OPNsense encrypted secrets
-│   └── network-audit.md
-└── extras/
-    └── setup-ccnotify.sh  # Claude Code notifications
+└── stow/                  # GNU Stow packages (symlinked to ~)
+    ├── alacritty/
+    ├── git/
+    ├── hammerspoon/
+    ├── karabiner/
+    ├── nvim/
+    ├── opencode/
+    ├── ruff/
+    ├── starship/
+    ├── stylua/
+    ├── tmux/
+    └── zsh/
 ```
 
 ## Features
@@ -117,23 +115,6 @@ Each module can run standalone: `bash modules/04-languages.sh`
 - [`Brewfile`](./Brewfile) — Homebrew packages and casks
 - [`.tool-versions`](./.tool-versions) — asdf-managed languages (Node.js, Go)
 - [`versions.env`](./versions.env) — Everything else (npm, Go, Cargo packages, Prezto commit, download URLs)
-
-## Optional
-
-### OPNsense Secrets
-
-```bash
-just secrets                                      # Generate (requires YubiKey)
-DRY_RUN=true bash infra/secrets/generate-secrets.sh  # Preview
-```
-
-### Claude Code Notifications
-
-```bash
-just ccnotify
-```
-
-See [CLAUDE.md](./CLAUDE.md) for details.
 
 ## Prerequisites
 

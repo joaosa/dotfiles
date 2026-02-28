@@ -9,21 +9,11 @@ run() {
     log_info "Installing Homebrew (commit: ${HOMEBREW_INSTALL_COMMIT:0:8})..."
     if ! is_dry_run "install Homebrew"; then
       local install_url="https://raw.githubusercontent.com/Homebrew/install/${HOMEBREW_INSTALL_COMMIT}/install.sh"
-      local temp_script
-      temp_script=$(mktemp)
+      local temp_script="/tmp/homebrew-install-${HOMEBREW_INSTALL_COMMIT:0:8}.sh"
       register_temp_file "$temp_script"
 
-      if ! curl -fsSL -m 120 -o "$temp_script" "$install_url"; then
+      if ! download_if_missing "$temp_script" "$install_url" "$HOMEBREW_INSTALL_SHA256"; then
         die "Failed to download Homebrew installer"
-      fi
-
-      local actual_sha256
-      actual_sha256=$(sha256sum_portable "$temp_script" | awk '{print $1}')
-      if [ "$actual_sha256" != "$HOMEBREW_INSTALL_SHA256" ]; then
-        log_error "Homebrew installer checksum mismatch!"
-        log_detail "Expected: $HOMEBREW_INSTALL_SHA256"
-        log_detail "Got:      $actual_sha256"
-        die "Refusing to run unverified installer"
       fi
 
       /bin/bash "$temp_script"
