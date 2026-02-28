@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Module: Install dotfiles via GNU Stow (auto-discovers packages)
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && { set -euo pipefail; source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/helpers.sh"; init_standalone; }
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
 
 run() {
   local stow_dir="$SCRIPT_DIR/stow"

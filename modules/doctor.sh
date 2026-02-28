@@ -1,51 +1,7 @@
 #!/usr/bin/env bash
 # Doctor: Verify setup health by checking expected binaries, stow links, and versions
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && { set -euo pipefail; source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/helpers.sh"; init_standalone; }
-
-check_binary() {
-  local name="$1" description="${2:-$1}"
-  if command -v "$name" >/dev/null 2>&1; then
-    log_success "$description"
-  else
-    log_error "$description: not found"
-  fi
-}
-
-check_file() {
-  local path="$1" description="${2:-$1}"
-  if [ -f "$path" ]; then
-    log_success "$description"
-  else
-    log_error "$description: missing"
-  fi
-}
-
-check_symlink() {
-  local path="$1" description="${2:-$1}"
-  if [ -L "$path" ]; then
-    log_success "$description (-> $(readlink "$path"))"
-  elif [ -e "$path" ]; then
-    log_warn "$description exists but is not a symlink"
-  else
-    log_error "$description: missing"
-  fi
-}
-
-check_version() {
-  local binary="$1" expected="$2" description="${3:-$1}"
-  if ! command -v "$binary" >/dev/null 2>&1; then
-    log_error "$description: not installed"
-    return
-  fi
-  local actual
-  actual=$("$binary" --version 2>/dev/null | head -1 || echo "unknown")
-  if echo "$actual" | grep -qF "$expected"; then
-    log_success "$description $expected"
-  else
-    log_warn "$description: expected $expected, got $actual"
-  fi
-}
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
 
 check_stow_links() {
   local stow_dir="$SCRIPT_DIR/stow"
@@ -111,26 +67,9 @@ run() {
   [ -n "$golang_version" ] && check_version go "$golang_version" "Go"
 
   log_section "3" "5" "PACKAGES"
-  local pkg name bin_name
-
-  for pkg in "${NPM_PACKAGES[@]}"; do
-    name=$(npm_package_name "$pkg")
-    if is_npm_pkg_installed "$pkg"; then
-      log_success "npm: $name"
-    else
-      log_error "npm: $name: not installed"
-    fi
-  done
-
-  for pkg in "${GO_PACKAGES[@]}"; do
-    name=$(go_binary_name "$pkg")
-    check_binary "$name" "go: $name"
-  done
-
-  for pkg in "${CARGO_PACKAGES[@]}"; do
-    bin_name=$(cargo_bin_name "$pkg")
-    check_binary "$bin_name" "cargo: $(cargo_crate_name "$pkg")"
-  done
+  verify_asdf_packages "nodejs" "${NPM_PACKAGES[@]}"
+  verify_asdf_packages "golang" "${GO_PACKAGES[@]}"
+  verify_cargo_packages "${CARGO_PACKAGES[@]}"
 
   log_section "4" "5" "STOW LINKS"
   check_stow_links

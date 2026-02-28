@@ -19,7 +19,7 @@ homebrew:
 stow:
     ./bootstrap stow
 
-# Configure shell (Prezto, fzf, git, parallel)
+# Configure shell (Prezto, fzf, parallel)
 shell:
     ./bootstrap shell
 

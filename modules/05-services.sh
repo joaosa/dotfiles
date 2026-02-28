@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Module: Service configuration (Syncthing)
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && { set -euo pipefail; source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/helpers.sh"; init_standalone; }
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
 
 run() {
   # Syncthing config path varies by OS
