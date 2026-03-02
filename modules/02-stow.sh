@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # Module: Install dotfiles via GNU Stow (auto-discovers packages)
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {
-  local stow_dir="$SCRIPT_DIR/stow"
-
-  if [ ! -d "$stow_dir" ]; then
-    log_error "Stow directory not found: $stow_dir"
+  if [ ! -d "$STOW_DIR" ]; then
+    log_error "Stow directory not found: $STOW_DIR"
     return 1
   fi
 
@@ -17,7 +15,7 @@ run() {
   done < <(discover_stow_packages)
 
   if [ ${#stow_dirs[@]} -eq 0 ]; then
-    log_warn "No stow packages found in $stow_dir"
+    log_warn "No stow packages found in $STOW_DIR"
     return 0
   fi
 
@@ -26,7 +24,7 @@ run() {
 
   # Stow each package individually for granular error reporting
   for pkg in "${stow_dirs[@]}"; do
-    if stow -d "$stow_dir" -t "$HOME" --restow "$pkg"; then
+    if stow -d "$STOW_DIR" -t "$HOME" --restow "$pkg"; then
       log_success "Stowed $pkg"
     else
       log_error "Failed to stow $pkg"

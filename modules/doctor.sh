@@ -1,47 +1,7 @@
 #!/usr/bin/env bash
 # Doctor: Verify setup health by checking expected binaries, stow links, and versions
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
-
-check_stow_links() {
-  local stow_dir="$SCRIPT_DIR/stow"
-  local -A checked_config_dirs
-  local pkg_name
-  while IFS= read -r pkg_name; do
-    local pkg_dir="$stow_dir/$pkg_name/"
-
-    # Check immediate children of each stow package
-    for entry in "$pkg_dir"* "$pkg_dir".*; do
-      [ -e "$entry" ] || continue
-      local base
-      base=$(basename "$entry")
-      [[ "$base" == "." || "$base" == ".." ]] && continue
-
-      if [ "$base" = ".config" ] && [ -d "$entry" ]; then
-        # For .config, stow symlinks one level deeper (e.g. ~/.config/nvim -> ...)
-        for sub in "$entry"/*/; do
-          [ -d "$sub" ] || continue
-          local sub_name
-          sub_name=$(basename "$sub")
-          # Avoid duplicate checks if multiple packages share a .config subdir
-          [[ -n "${checked_config_dirs[$sub_name]+x}" ]] && continue
-          checked_config_dirs[$sub_name]=1
-          check_symlink "$HOME/.config/$sub_name" "$pkg_name: ~/.config/$sub_name"
-        done
-        # Also check .config files (not dirs) like starship.toml
-        for sub in "$entry"/*; do
-          [ -f "$sub" ] || continue
-          local sub_name
-          sub_name=$(basename "$sub")
-          check_symlink "$HOME/.config/$sub_name" "$pkg_name: ~/.config/$sub_name"
-        done
-      else
-        # Top-level entry: stow creates a direct symlink in $HOME
-        check_symlink "$HOME/$base" "$pkg_name: ~/$base"
-      fi
-    done
-  done < <(discover_stow_packages)
-}
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {
   log_section "1" "5" "CORE TOOLS"

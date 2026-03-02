@@ -103,16 +103,15 @@ install_asdf_packages() {
   local installed_count=0
 
   for package in "${packages[@]}"; do
-    local binary_name="" package_name="" package_version="" display_name=""
-    local is_installed=false
+    local display_name="" is_installed=false install_exit=0
 
     case "$language" in
       "golang")
-        binary_name=$(go_binary_name "$package")
-        display_name="$binary_name"
-        command -v "$binary_name" >/dev/null 2>&1 && is_installed=true
+        display_name=$(go_binary_name "$package")
+        command -v "$display_name" >/dev/null 2>&1 && is_installed=true
         ;;
       "nodejs")
+        local package_name package_version
         package_name=$(npm_package_name "$package")
         package_version=$(npm_package_version "$package")
         display_name="$package_name@$package_version"
@@ -126,26 +125,21 @@ install_asdf_packages() {
 
     if [ "$is_installed" = true ]; then
       already_installed+=("$display_name")
-    elif is_dry_run "install $language package: $display_name"; then
       continue
-    else
-      log_info "Installing $language package: $package"
-      case "$language" in
-        "golang")
-          if ! go install "$package"; then
-            log_error "Failed to install Go package: $display_name"
-            continue
-          fi
-          ;;
-        "nodejs")
-          if ! npm install -g "$package"; then
-            log_error "Failed to install npm package: $display_name"
-            continue
-          fi
-          ;;
-      esac
+    fi
+    if is_dry_run "install $language package: $display_name"; then continue; fi
+
+    log_info "Installing $language package: $package"
+    case "$language" in
+      "golang") go install "$package" || install_exit=$? ;;
+      "nodejs") npm install -g "$package" || install_exit=$? ;;
+    esac
+
+    if [ "$install_exit" -eq 0 ]; then
       log_success "Installed $language package: $display_name"
       ((installed_count++)) || true
+    else
+      log_error "Failed to install $language package: $display_name"
     fi
   done
 
@@ -206,6 +200,7 @@ pin_brew_packages() {
 
   for package in $(brew list --formula); do
     if ! echo "$pinned_packages" | grep -qxF "$package"; then
+      if is_dry_run "pin: $package"; then continue; fi
       if ! brew pin "$package" 2>/dev/null; then
         log_error "Failed to pin: $package"
       else
@@ -301,4 +296,44 @@ verify_cargo_packages() {
     bin_name=$(cargo_bin_name "$pkg")
     check_binary "$bin_name" "cargo: $(cargo_crate_name "$pkg")"
   done
+}
+
+# Verify that stow-managed symlinks exist in $HOME.
+check_stow_links() {
+  local -A checked_config_dirs
+  local pkg_name
+  while IFS= read -r pkg_name; do
+    local pkg_dir="$STOW_DIR/$pkg_name/"
+
+    # Check immediate children of each stow package
+    for entry in "$pkg_dir"* "$pkg_dir".*; do
+      [ -e "$entry" ] || continue
+      local base
+      base=$(basename "$entry")
+      [[ "$base" == "." || "$base" == ".." ]] && continue
+
+      if [ "$base" = ".config" ] && [ -d "$entry" ]; then
+        # For .config, stow symlinks one level deeper (e.g. ~/.config/nvim -> ...)
+        for sub in "$entry"/*/; do
+          [ -d "$sub" ] || continue
+          local sub_name
+          sub_name=$(basename "$sub")
+          # Avoid duplicate checks if multiple packages share a .config subdir
+          [[ -n "${checked_config_dirs[$sub_name]+x}" ]] && continue
+          checked_config_dirs[$sub_name]=1
+          check_symlink "$HOME/.config/$sub_name" "$pkg_name: ~/.config/$sub_name"
+        done
+        # Also check .config files (not dirs) like starship.toml
+        for sub in "$entry"/*; do
+          [ -f "$sub" ] || continue
+          local sub_name
+          sub_name=$(basename "$sub")
+          check_symlink "$HOME/.config/$sub_name" "$pkg_name: ~/.config/$sub_name"
+        done
+      else
+        # Top-level entry: stow creates a direct symlink in $HOME
+        check_symlink "$HOME/$base" "$pkg_name: ~/$base"
+      fi
+    done
+  done < <(discover_stow_packages)
 }

@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
 # Module: Language runtimes and packages (Rust, Node, Go, npm, cargo)
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {
   # Rust
-  if ! command -v rustc >/dev/null 2>&1; then
-    if ! is_dry_run "install Rust"; then
-      rustup-init -y --default-toolchain stable
-      log_success "Installed Rust"
-    fi
-  else
-    log_skip "Rust already installed"
-  fi
+  ensure_installed "Rust" \
+    'command -v rustc >/dev/null 2>&1' \
+    'rustup-init -y --default-toolchain stable'
 
   # Node.js via asdf
   install_asdf_language "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"

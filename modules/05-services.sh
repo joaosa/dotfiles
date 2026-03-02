@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Module: Service configuration (Syncthing)
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {
   # Syncthing config path varies by OS
@@ -26,23 +26,13 @@ run() {
 
   # Syncthing - start as background service
   if is_macos; then
-    if ! brew services info syncthing --json 2>/dev/null | grep -q '"running":true'; then
-      if ! is_dry_run "start syncthing service"; then
-        brew services start syncthing
-        log_success "Started syncthing service"
-      fi
-    else
-      log_skip "syncthing service already running"
-    fi
+    ensure_service_running "syncthing" \
+      'brew services info syncthing --json 2>/dev/null | grep -q "\"running\":true"' \
+      'brew services start syncthing'
   elif is_linux; then
-    if ! systemctl --user is-active syncthing >/dev/null 2>&1; then
-      if ! is_dry_run "start syncthing service"; then
-        systemctl --user enable --now syncthing
-        log_success "Started syncthing service"
-      fi
-    else
-      log_skip "syncthing service already running"
-    fi
+    ensure_service_running "syncthing" \
+      'systemctl --user is-active syncthing >/dev/null 2>&1' \
+      'systemctl --user enable --now syncthing'
   fi
 }
 

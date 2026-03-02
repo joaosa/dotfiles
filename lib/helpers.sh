@@ -25,6 +25,40 @@ is_dry_run() {
 }
 
 # ============================================================================
+# IDEMPOTENT INSTALL
+# ============================================================================
+
+# Encapsulates the common check/dry-run/install/log pattern.
+# Usage: ensure_installed "description" "check_command" "install_commands"
+#   $1 — human-readable description (used in log messages)
+#   $2 — shell command that succeeds (exit 0) when already installed
+#   $3 — shell command(s) to run for installation
+ensure_installed() {
+  local description="$1" check_cmd="$2" install_cmd="$3"
+  if eval "$check_cmd"; then
+    log_skip "$description already installed"
+  elif ! is_dry_run "install $description"; then
+    eval "$install_cmd"
+    log_success "Installed $description"
+  fi
+}
+
+# Encapsulates the common check/dry-run/start/log pattern for services.
+# Usage: ensure_service_running "name" "check_cmd" "start_cmd"
+#   $1 — service name (used in log messages)
+#   $2 — shell command that succeeds (exit 0) when service is already running
+#   $3 — shell command(s) to start the service
+ensure_service_running() {
+  local name="$1" check_cmd="$2" start_cmd="$3"
+  if eval "$check_cmd"; then
+    log_skip "$name service already running"
+  elif ! is_dry_run "start $name service"; then
+    eval "$start_cmd"
+    log_success "Started $name service"
+  fi
+}
+
+# ============================================================================
 # MODULE INIT
 # ============================================================================
 
@@ -32,6 +66,7 @@ is_dry_run() {
 # Usage (at top of module): init_standalone
 init_standalone() {
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[1]}")/.." && pwd)"
+  STOW_DIR="$SCRIPT_DIR/stow"
   DRY_RUN="${DRY_RUN:-false}"
   source "$SCRIPT_DIR/lib/logging.sh"
   # helpers.sh is already sourced (we're in it)
@@ -59,9 +94,8 @@ get_tool_version() {
 
 # Print one stow package name per line, skipping hidden directories.
 discover_stow_packages() {
-  local stow_dir="$SCRIPT_DIR/stow"
   local name
-  for d in "$stow_dir"/*/; do
+  for d in "$STOW_DIR"/*/; do
     [ -d "$d" ] || continue
     name=$(basename "$d")
     [[ "$name" == .* ]] && continue

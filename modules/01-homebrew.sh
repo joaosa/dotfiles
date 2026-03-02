@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Module: Homebrew installation, package management, and cleanup
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/lib/standalone.sh"
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {
   # Install Homebrew if missing (pinned to specific commit with SHA256 verification)
@@ -44,10 +44,8 @@ run() {
   fi
 
   # Pin packages
-  if ! is_dry_run "pin all Homebrew packages"; then
-    log_info "Pinning Homebrew packages..."
-    pin_brew_packages
-  fi
+  log_info "Pinning Homebrew packages..."
+  pin_brew_packages
 
   # Clean up packages not in Brewfile
   if ! is_dry_run "clean up packages not in Brewfile"; then
