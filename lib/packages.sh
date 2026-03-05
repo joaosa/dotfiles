@@ -163,7 +163,8 @@ install_cargo_packages() {
     bin_name=$(cargo_bin_name "$pkg")
     crate_name=$(cargo_crate_name "$pkg")
 
-    if command -v "$bin_name" >/dev/null 2>&1; then
+    # Check ~/.cargo/bin first to avoid system binary conflicts (e.g. /usr/sbin/asr)
+    if [ -x "$HOME/.cargo/bin/$bin_name" ]; then
       already_installed+=("$crate_name")
       continue
     fi
@@ -175,6 +176,8 @@ install_cargo_packages() {
     if is_macos && [ "$crate_name" = "openpgp-card-tool-git" ]; then
       RUSTFLAGS="-C link-arg=-framework -C link-arg=AppKit -C link-arg=-framework -C link-arg=CoreServices" \
         cargo install "$crate_name" || cargo_exit=$?
+    elif [ "$crate_name" = "qwen-asr-cli" ]; then
+      RUSTFLAGS="-C target-cpu=native" cargo install "$crate_name" || cargo_exit=$?
     else
       cargo install "$crate_name" || cargo_exit=$?
     fi
@@ -230,6 +233,15 @@ check_binary() {
 check_file() {
   local path="$1" description="${2:-$1}"
   if [ -f "$path" ]; then
+    log_success "$description"
+  else
+    log_error "$description: missing"
+  fi
+}
+
+check_dir() {
+  local path="$1" description="${2:-$1}"
+  if [ -d "$path" ]; then
     log_success "$description"
   else
     log_error "$description: missing"
@@ -294,7 +306,7 @@ verify_cargo_packages() {
   for pkg in "${packages[@]}"; do
     local bin_name
     bin_name=$(cargo_bin_name "$pkg")
-    check_binary "$bin_name" "cargo: $(cargo_crate_name "$pkg")"
+    check_file "$HOME/.cargo/bin/$bin_name" "cargo: $(cargo_crate_name "$pkg")"
   done
 }
 

@@ -26,7 +26,7 @@ local modules = {
     "app-launcher",
     "date-paste",
     "utilities",
-    "whisper",
+    "asr",
     "app-chooser",
     "caffeine",
     "shutdown",

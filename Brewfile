@@ -123,7 +123,6 @@ brew "agg"
 # Audio/networking
 brew "websocat"
 brew "sox"
-brew "whisper-cpp"
 
 # Kubernetes
 brew "helm"

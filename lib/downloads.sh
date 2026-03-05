@@ -64,3 +64,27 @@ download_if_missing() {
   mv "$temp_file" "$file_path"
   log_success "Downloaded: $filename"
 }
+
+download_asr_model() {
+  local model_dir="$1" repo="$2" commit="$3"
+
+  if [ -d "$model_dir" ] && [ -f "$model_dir/config.json" ]; then
+    log_skip "ASR model (already exists)"
+    return 0
+  fi
+
+  if is_dry_run "download ASR model from $repo"; then return 0; fi
+
+  ensure_installed "huggingface-hub CLI" \
+    "command -v hf >/dev/null 2>&1" \
+    "uv tool install huggingface_hub"
+
+  log_info "Downloading ASR model: $repo"
+  mkdir -p "$(dirname "$model_dir")"
+
+  if ! hf download "$repo" --revision "$commit" --local-dir "$model_dir"; then
+    log_error "Failed to download ASR model"
+    return 1
+  fi
+  log_success "Downloaded ASR model: $repo"
+}

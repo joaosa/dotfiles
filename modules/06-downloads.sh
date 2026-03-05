@@ -5,7 +5,7 @@
 
 run() {
   download_if_missing "$KUBECTL_ALIASES_PATH" "$KUBECTL_ALIASES_URL" "$KUBECTL_ALIASES_SHA256"
-  download_if_missing "$WHISPER_MODEL_PATH" "$WHISPER_MODEL_URL" "$WHISPER_MODEL_SHA256"
+  download_asr_model "$ASR_MODEL_DIR" "$ASR_MODEL_REPO" "$ASR_MODEL_COMMIT"
 }
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && { run; print_summary; }

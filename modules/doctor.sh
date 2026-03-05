@@ -36,7 +36,7 @@ run() {
 
   log_section "5" "5" "DOWNLOADS"
   check_file "$KUBECTL_ALIASES_PATH" "kubectl aliases"
-  check_file "$WHISPER_MODEL_PATH" "whisper model"
+  check_dir "$ASR_MODEL_DIR" "ASR model (Qwen3-ASR-0.6B)"
 
   echo ""
   if brew bundle check --file="$SCRIPT_DIR/Brewfile" >/dev/null 2>&1; then
