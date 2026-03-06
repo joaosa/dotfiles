@@ -698,6 +698,28 @@ require("lazy").setup({
       telescope.load_extension("ui-select")
     end,
   },
+  {
+    "aznhe21/actions-preview.nvim",
+    opts = {
+      telescope = {
+        sorting_strategy = "ascending",
+        layout_strategy = "vertical",
+        layout_config = {
+          prompt_position = "top",
+          mirror = true,
+        },
+      },
+    },
+  },
+  {
+    "kosayoda/nvim-lightbulb",
+    event = "LspAttach",
+    opts = {
+      priority = 20,
+      autocmd = { enabled = true },
+      sign = { enabled = true, text = "💡" },
+    },
+  },
   { "folke/todo-comments.nvim", event = "BufRead", opts = {} },
   {
     "folke/trouble.nvim",
@@ -954,7 +976,7 @@ local wk_keymaps = {
       if vim.bo.filetype == "rust" and vim.fn.exists(":RustLsp") > 0 then
         vim.cmd.RustLsp("codeAction")
       else
-        vim.lsp.buf.code_action()
+        require("actions-preview").code_actions()
       end
     end,
     desc = "code action",
