@@ -745,7 +745,29 @@ require("lazy").setup({
       }
     end,
   },
-  { "akinsho/git-conflict.nvim", event = "BufRead", opts = {} },
+  {
+    "akinsho/git-conflict.nvim",
+    event = "BufRead",
+    opts = { default_mappings = false },
+    config = function(_, opts)
+      require("git-conflict").setup(opts)
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "GitConflictDetected",
+        callback = function(ev)
+          local buf = ev.buf
+          local map = function(lhs, cmd, desc)
+            vim.keymap.set("n", lhs, "<cmd>" .. cmd .. "<cr>", { buffer = buf, desc = desc })
+          end
+          map("co", "GitConflictChooseOurs", "Choose ours")
+          map("ct", "GitConflictChooseTheirs", "Choose theirs")
+          map("cb", "GitConflictChooseBoth", "Choose both")
+          map("c0", "GitConflictChooseNone", "Choose none")
+          map("]x", "GitConflictNextConflict", "Next conflict")
+          map("[x", "GitConflictPrevConflict", "Prev conflict")
+        end,
+      })
+    end,
+  },
   {
     "sudo-tee/opencode.nvim",
     cmd = "Opencode",
@@ -914,28 +936,28 @@ local wk_keymaps = {
   },
   {
     "K",
-    vim.lsp.buf.hover,
+    function()
+      if vim.bo.filetype == "rust" and vim.fn.exists(":RustLsp") > 0 then
+        vim.cmd.RustLsp({ "hover", "actions" })
+      else
+        vim.lsp.buf.hover()
+      end
+    end,
     desc = "LSP hover",
-  },
-  {
-    "K",
-    function() vim.cmd.RustLsp({ "hover", "actions" }) end,
-    desc = "Rust hover actions",
-    ft = "rust",
   },
 
   -- Code group
   { "<leader>c", group = "code" },
   {
     "<leader>ca",
-    vim.lsp.buf.code_action,
+    function()
+      if vim.bo.filetype == "rust" and vim.fn.exists(":RustLsp") > 0 then
+        vim.cmd.RustLsp("codeAction")
+      else
+        vim.lsp.buf.code_action()
+      end
+    end,
     desc = "code action",
-  },
-  {
-    "<leader>ca",
-    function() vim.cmd.RustLsp("codeAction") end,
-    desc = "Rust code action",
-    ft = "rust",
   },
   {
     "<leader>cd",
@@ -1342,7 +1364,7 @@ local rust_keymaps = {
 for _, m in ipairs(rust_keymaps) do
   wk_keymaps[#wk_keymaps + 1] = {
     "<localleader>r" .. m[1],
-    function() vim.cmd.RustLsp(m[2]) end,
+    function() if vim.fn.exists(":RustLsp") > 0 then vim.cmd.RustLsp(m[2]) end end,
     desc = "Rust " .. m[3],
     ft = "rust",
   }
