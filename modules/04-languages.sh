@@ -26,6 +26,10 @@ run() {
   # Cargo packages
   log_info "Installing Cargo packages..."
   install_cargo_packages "${CARGO_PACKAGES[@]}"
+
+  # uv tool packages
+  log_info "Installing uv packages..."
+  install_uv_packages "${UV_PACKAGES[@]}"
 }
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && { run; print_summary; }

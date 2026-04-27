@@ -49,6 +49,22 @@ cargo_crate_name() {
   echo "${pkg%%:*}"
 }
 
+# Extract binary name from a uv package spec (package:binary or just package)
+uv_bin_name() {
+  local pkg="$1"
+  if [[ "$pkg" == *:* ]]; then
+    echo "${pkg#*:}"
+  else
+    echo "${pkg%%:*}"
+  fi
+}
+
+# Extract package name from a uv package spec (package:binary or just package)
+uv_pkg_name() {
+  local pkg="$1"
+  echo "${pkg%%:*}"
+}
+
 # ============================================================================
 # ASDF MANAGEMENT
 # ============================================================================
@@ -193,6 +209,36 @@ install_cargo_packages() {
 }
 
 # ============================================================================
+# UV TOOL
+# ============================================================================
+
+install_uv_packages() {
+  local packages=("$@")
+  local -a already_installed=()
+
+  for pkg in "${packages[@]}"; do
+    local bin_name pkg_name
+    bin_name=$(uv_bin_name "$pkg")
+    pkg_name=$(uv_pkg_name "$pkg")
+
+    if [ -x "$HOME/.local/bin/$bin_name" ]; then
+      already_installed+=("$pkg_name")
+      continue
+    fi
+
+    if is_dry_run "install uv package: $pkg_name"; then continue; fi
+
+    if uv tool install "$pkg_name"; then
+      log_success "Installed $pkg_name"
+    else
+      log_error "Failed to install $pkg_name"
+    fi
+  done
+
+  log_skip_grouped "uv packages already installed" "${already_installed[@]+"${already_installed[@]}"}"
+}
+
+# ============================================================================
 # HOMEBREW
 # ============================================================================
 
@@ -307,6 +353,16 @@ verify_cargo_packages() {
     local bin_name
     bin_name=$(cargo_bin_name "$pkg")
     check_file "$HOME/.cargo/bin/$bin_name" "cargo: $(cargo_crate_name "$pkg")"
+  done
+}
+
+# Verify that uv-managed tools are installed.
+verify_uv_packages() {
+  local packages=("$@")
+  for pkg in "${packages[@]}"; do
+    local bin_name
+    bin_name=$(uv_bin_name "$pkg")
+    check_file "$HOME/.local/bin/$bin_name" "uv: $(uv_pkg_name "$pkg")"
   done
 }
 

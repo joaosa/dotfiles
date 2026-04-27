@@ -30,6 +30,7 @@ run() {
   verify_asdf_packages "nodejs" "${NPM_PACKAGES[@]}"
   verify_asdf_packages "golang" "${GO_PACKAGES[@]}"
   verify_cargo_packages "${CARGO_PACKAGES[@]}"
+  verify_uv_packages "${UV_PACKAGES[@]}"
 
   log_section "4" "5" "STOW LINKS"
   check_stow_links
