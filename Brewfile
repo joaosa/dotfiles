@@ -37,7 +37,7 @@ brew "bottom"
 
 # Data processing
 brew "jq"
-brew "python-yq"
+brew "yq"
 brew "jless"
 brew "miller"
 brew "jd"
@@ -128,12 +128,14 @@ brew "sox"
 brew "helm"
 brew "kubectl"
 brew "kubeseal"
+brew "fluxcd/tap/flux"
 brew "kubectx"
 brew "k3d"
 brew "k9s"
 
 # Cloud
 brew "azure-cli"
+cask "gcloud-cli"
 
 # Fonts
 cask "font-sauce-code-pro-nerd-font"
