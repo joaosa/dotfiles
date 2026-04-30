@@ -25,10 +25,6 @@ yellow = "#d79921"
 background = "#282828"
 foreground = "#ebdbb2"
 
-[env]
-# ref - https://gist.github.com/andersevenrud/015e61af2fd264371032763d4ed965b6
-TERM = "xterm-256color"
-
 [font.bold]
 style = "Light"
 
