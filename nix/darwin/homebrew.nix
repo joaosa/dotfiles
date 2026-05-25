@@ -1,8 +1,17 @@
-{ pkgs, username, ... }:
+{
+  lib,
+  phase,
+  pkgs,
+  username,
+  ...
+}:
 
+let
+  homebrewEnabled = phase.homebrewBrews != [ ] || phase.homebrewCasks != [ ];
+in
 {
   nix-homebrew = {
-    enable = true;
+    enable = homebrewEnabled;
     enableRosetta = pkgs.stdenv.hostPlatform.isAarch64;
     user = username;
     autoMigrate = true;
@@ -10,62 +19,17 @@
   };
 
   homebrew = {
-    enable = true;
+    enable = homebrewEnabled;
     user = username;
     enableZshIntegration = true;
 
-    taps = [
-      "aviator-co/tap"
-      "fluxcd/tap"
-    ];
+    taps =
+      lib.optional (builtins.elem "aviator-co/tap/av" phase.homebrewBrews) "aviator-co/tap"
+      ++ lib.optional (builtins.elem "fluxcd/tap/flux" phase.homebrewBrews) "fluxcd/tap";
 
-    brews = [
-      "agg"
-      "cargo-geiger"
-      "colima"
-      "docker"
-      "docker-buildx"
-      "fortune"
-      "fluxcd/tap/flux"
-      "gitmux"
-      "iftop"
-      "jd"
-      "ollama"
-      "opencode"
-      "pinentry-mac"
-      "prek"
-      "aviator-co/tap/av"
-      "sesh"
-      "tailscale"
-      "tcptraceroute"
-      "telnet"
-      "terminal-notifier"
-      "watch"
-      "ykman"
-      {
-        name = "syncthing";
-        restart_service = "changed";
-      }
-    ];
+    brews = phase.homebrewBrews;
 
-    casks = [
-      "alacritty"
-      "blender"
-      "discord"
-      "firefox@developer-edition"
-      "font-sauce-code-pro-nerd-font"
-      "gcloud-cli"
-      "google-drive"
-      "hammerspoon"
-      "ipfs-desktop"
-      "karabiner-elements"
-      "mullvad-vpn"
-      "obsidian"
-      "orcaslicer"
-      "signal"
-      "slack"
-      "spotify"
-    ];
+    casks = phase.homebrewCasks;
 
     global.autoUpdate = false;
     onActivation = {

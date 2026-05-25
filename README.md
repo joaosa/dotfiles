@@ -21,8 +21,12 @@ This repo installs software and modifies your system. Before running:
 git clone https://github.com/joaosa/dotfiles ~/ghq/github.com/joaosa/dotfiles
 cd ~/ghq/github.com/joaosa/dotfiles
 
-# Install Nix or Lix first, then run the initial nix-darwin activation
-# This also generates flake.lock as your normal user before sudo runs.
+# Install Nix or Lix first, then review the phase gates and build
+$EDITOR nix/phase.nix
+just nix-build
+just nix-home-build
+
+# Activate only after the current phase is understood
 just nix-bootstrap
 
 # Later changes use the installed darwin-rebuild
@@ -38,6 +42,36 @@ This flake is currently configured for:
 The Nix setup manages CLI/dev tools through nixpkgs, user files through Home
 Manager, and GUI apps plus macOS-specific formulae through nix-darwin's
 Homebrew module.
+
+### Phased Rollout
+
+[`nix/phase.nix`](./nix/phase.nix) is the rollout switchboard. Defaults are
+intentionally conservative: no Home Manager packages, no Home Manager dotfiles,
+no Homebrew ownership, no zsh takeover, no font install, and no Syncthing config
+migration.
+
+Enable one small thing at a time, build, then activate:
+
+```nix
+{
+  homePackageKeys = [ "ripgrep" ];
+  homeFileTargets = [ ];
+  systemPackageKeys = [ ];
+  homeShell = false;
+  syncthingGuiTls = false;
+  systemShell = false;
+  fonts = false;
+  homebrewBrews = [ ];
+  homebrewCasks = [ ];
+}
+```
+
+Suggested order:
+
+1. `homePackageKeys` for low-risk CLI tools, one or a few at a time
+2. `homeFileTargets` for individual dotfiles once you are ready for Home Manager to own them
+3. `homebrewBrews` and `homebrewCasks` once you want nix-darwin to manage selected Homebrew entries
+4. `homeShell`, `systemShell`, `fonts`, and `syncthingGuiTls` after the smaller pieces are stable
 
 ### Legacy Bootstrap
 
@@ -66,9 +100,10 @@ curl -fsSL https://raw.githubusercontent.com/joaosa/dotfiles/master/bootstrap | 
 just nix-bootstrap      # First nix-darwin activation after Nix/Lix install
 just nix-switch         # Apply the nix-darwin + Home Manager flake
 just nix-build          # Build the flake without activating
+just nix-home-build     # Build the standalone Home Manager output
 just nix-check          # Validate flake outputs
 just nix-update         # Update flake inputs
-just nix-home           # Apply only the standalone Home Manager output
+just nix-home           # Apply Home Manager using the pinned Nix CLI package
 
 just                    # Legacy full bootstrap (all modules in order)
 just dry-run            # Preview legacy changes without executing
@@ -91,6 +126,7 @@ Each module can run standalone: `bash modules/04-languages.sh`
 .
 ├── flake.nix              # Nix flake entry point
 ├── nix/
+│   ├── phase.nix          # Rollout gates for incremental Nix adoption
 │   ├── packages.nix       # nixpkgs package inventory
 │   ├── darwin/
 │   │   ├── default.nix    # nix-darwin system configuration

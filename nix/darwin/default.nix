@@ -1,6 +1,7 @@
 {
   inputs,
   lib,
+  phase,
   pkgs,
   username,
   system,
@@ -9,13 +10,13 @@
 
 let
   sauceCodeProNerdFont =
-    if
-      builtins.hasAttr "nerd-fonts" pkgs
-      && builtins.hasAttr "sauce-code-pro" pkgs.nerd-fonts
-    then
+    if builtins.hasAttr "nerd-fonts" pkgs && builtins.hasAttr "sauce-code-pro" pkgs.nerd-fonts then
       [ pkgs.nerd-fonts.sauce-code-pro ]
     else
       [ ];
+  systemPackagesByKey = {
+    inherit (pkgs) git zsh;
+  };
 in
 {
   imports = [ ./homebrew.nix ];
@@ -41,13 +42,10 @@ in
     home = "/Users/${username}";
   };
 
-  environment.systemPackages = with pkgs; [
-    git
-    zsh
-  ];
-  environment.pathsToLink = [ "/share/zsh" ];
-  environment.shells = [ pkgs.zsh ];
-  programs.zsh.enable = true;
+  environment.systemPackages = lib.attrVals phase.systemPackageKeys systemPackagesByKey;
+  environment.pathsToLink = lib.mkIf phase.systemShell [ "/share/zsh" ];
+  environment.shells = lib.mkIf phase.systemShell [ pkgs.zsh ];
+  programs.zsh.enable = phase.systemShell;
 
-  fonts.packages = sauceCodeProNerdFont;
+  fonts.packages = lib.mkIf phase.fonts sauceCodeProNerdFont;
 }

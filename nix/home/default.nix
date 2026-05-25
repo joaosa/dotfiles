@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  phase,
   pkgs,
   username,
   ...
@@ -14,41 +15,9 @@ let
     url = "https://raw.githubusercontent.com/ahmetb/kubectl-aliases/7549fa45bbde7499b927c74cae13bfb9169c9497/.kubectl_aliases";
     hash = "sha256-Kqb6kk2EZjoX55flZqiuNRLJQDfC2XMgO+F3tyCEnqk=";
   };
-in
-{
-  home.username = username;
-  home.homeDirectory = homeDir;
-  home.stateVersion = "25.11";
-
-  programs.home-manager.enable = true;
-  xdg.enable = true;
-
-  home.packages = import ../packages.nix { inherit lib pkgs; };
-
-  home.sessionPath = [
-    "${homeDir}/.local/bin"
-    "${homeDir}/.cargo/bin"
-    "${homeDir}/.go/bin"
-    "/opt/homebrew/bin"
-    "/opt/homebrew/sbin"
-    "/usr/local/bin"
-    "/usr/local/sbin"
-  ];
-
-  home.sessionVariables = {
-    BROWSER = "open";
-    EDITOR = "nvim";
-    VISUAL = "nvim";
-    PAGER = "less";
-    LANG = "en_US.UTF-8";
-    GOPATH = "${homeDir}/.go";
-    LESS = "-F -g -i -M -R -S -w -X -z-4";
-  };
-
-  home.file = {
+  allHomeFiles = {
     ".config/alacritty".source = link "stow/alacritty/.config/alacritty";
-    ".config/karabiner/karabiner.json".source =
-      link "stow/karabiner/.config/karabiner/karabiner.json";
+    ".config/karabiner/karabiner.json".source = link "stow/karabiner/.config/karabiner/karabiner.json";
     ".config/nvim".source = link "stow/nvim/.config/nvim";
     ".config/opencode".source = link "stow/opencode/.config/opencode";
     ".config/ruff".source = link "stow/ruff/.config/ruff";
@@ -66,16 +35,53 @@ in
     ".tmux.conf".source = link "stow/tmux/.tmux.conf";
     ".yamllint".source = link "stow/nvim/.yamllint";
   };
+in
+{
+  home.username = username;
+  home.homeDirectory = homeDir;
+  home.stateVersion = "25.11";
 
-  home.activation.syncthingGuiTls = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    syncthing_config="${homeDir}/Library/Application Support/Syncthing/config.xml"
-    if [ -f "$syncthing_config" ] && ${pkgs.gnugrep}/bin/grep -q '<gui enabled="true" tls="false"' "$syncthing_config"; then
-      /usr/bin/sed -i.bak 's/<gui enabled="true" tls="false"/<gui enabled="true" tls="true"/' "$syncthing_config"
-      /bin/rm -f "$syncthing_config.bak"
-    fi
-  '';
+  programs.home-manager.enable = true;
+  xdg.enable = true;
 
-  programs.fzf = {
+  home.packages = import ../packages.nix {
+    inherit lib pkgs;
+    enabledKeys = phase.homePackageKeys;
+  };
+
+  home.sessionPath = lib.mkIf phase.homeShell [
+    "${homeDir}/.local/bin"
+    "${homeDir}/.cargo/bin"
+    "${homeDir}/.go/bin"
+    "/opt/homebrew/bin"
+    "/opt/homebrew/sbin"
+    "/usr/local/bin"
+    "/usr/local/sbin"
+  ];
+
+  home.sessionVariables = lib.mkIf phase.homeShell {
+    BROWSER = "open";
+    EDITOR = "nvim";
+    VISUAL = "nvim";
+    PAGER = "less";
+    LANG = "en_US.UTF-8";
+    GOPATH = "${homeDir}/.go";
+    LESS = "-F -g -i -M -R -S -w -X -z-4";
+  };
+
+  home.file = lib.filterAttrs (target: _: builtins.elem target phase.homeFileTargets) allHomeFiles;
+
+  home.activation.syncthingGuiTls = lib.mkIf phase.syncthingGuiTls (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      syncthing_config="${homeDir}/Library/Application Support/Syncthing/config.xml"
+      if [ -f "$syncthing_config" ] && ${pkgs.gnugrep}/bin/grep -q '<gui enabled="true" tls="false"' "$syncthing_config"; then
+        /usr/bin/sed -i.bak 's/<gui enabled="true" tls="false"/<gui enabled="true" tls="true"/' "$syncthing_config"
+        /bin/rm -f "$syncthing_config.bak"
+      fi
+    ''
+  );
+
+  programs.fzf = lib.mkIf phase.homeShell {
     enable = true;
     enableZshIntegration = true;
     defaultCommand = "fd --type f --hidden --follow --exclude .git";
@@ -95,7 +101,7 @@ in
     changeDirWidgetOptions = [ "--preview 'ls -1 {}'" ];
   };
 
-  programs.zsh = {
+  programs.zsh = lib.mkIf phase.homeShell {
     enable = true;
     dotDir = config.home.homeDirectory;
     enableCompletion = true;

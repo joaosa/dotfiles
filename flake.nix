@@ -34,9 +34,11 @@
         inherit system;
         config.allowUnfree = true;
       };
+      phase = import ./nix/phase.nix;
       specialArgs = {
         inherit
           inputs
+          phase
           username
           hostname
           system
@@ -69,9 +71,10 @@
       };
 
       packages.${system} = {
+        home-manager = home-manager.packages.${system}.home-manager;
         ripgrep = pkgs.ripgrep;
       };
 
-      formatter.${system} = pkgs.nixfmt;
+      formatter.${system} = pkgs.nixfmt-tree;
     };
 }
