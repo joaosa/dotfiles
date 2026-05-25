@@ -1,29 +1,52 @@
 # dotfiles
 
-Automated development environment bootstrap with security best practices.
+Declarative macOS development environment using Nix, nix-darwin, Home Manager,
+and nix-homebrew. The previous shell/Homebrew bootstrap remains available as a
+fallback while the migration settles.
 
 ## Security Considerations
 
-This script installs software and modifies your system. Before running:
+This repo installs software and modifies your system. Before running:
 
-1. **Review the code** - Read the [`modules/`](./modules/) and [`Brewfile`](./Brewfile) to understand what will be installed
-2. **Verify integrity** - The script includes SHA256 checksums for downloaded files (see [`versions.env`](./versions.env))
-3. **Preview changes** - Use dry-run mode to see what would be installed
+1. **Review the code** - Read [`flake.nix`](./flake.nix), [`nix/`](./nix/), [`modules/`](./modules/), and [`Brewfile`](./Brewfile) to understand what will be installed
+2. **Verify integrity** - Nix uses fixed-output hashes for fetched files, and the legacy scripts include SHA256 checksums in [`versions.env`](./versions.env)
+3. **Preview changes** - Use `just nix-build` for Nix or `just dry-run` for the legacy bootstrap
 
 ## Installation
 
-### Recommended: Review First
+### Recommended: Nix
 
 ```bash
 # Clone and review
 git clone https://github.com/joaosa/dotfiles ~/ghq/github.com/joaosa/dotfiles
 cd ~/ghq/github.com/joaosa/dotfiles
 
-# Preview changes
-just dry-run
+# Install Nix or Lix first, then run the initial nix-darwin activation
+# This also generates flake.lock as your normal user before sudo runs.
+just nix-bootstrap
 
-# Run everything
-just
+# Later changes use the installed darwin-rebuild
+just nix-switch
+```
+
+This flake is currently configured for:
+
+- host: `Mac`
+- user: `joao-sousa-andrade`
+- platform: `aarch64-darwin`
+
+The Nix setup manages CLI/dev tools through nixpkgs, user files through Home
+Manager, and GUI apps plus macOS-specific formulae through nix-darwin's
+Homebrew module.
+
+### Legacy Bootstrap
+
+The old bootstrap flow is still present for fallback and for pieces that have
+not been fully converted yet, such as the ASR model download:
+
+```bash
+# Preview legacy shell changes
+just dry-run
 
 # Or run specific modules
 just homebrew
@@ -31,7 +54,7 @@ just stow
 just languages
 ```
 
-### Quick Install
+### Legacy Quick Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/joaosa/dotfiles/master/bootstrap | bash
@@ -40,15 +63,22 @@ curl -fsSL https://raw.githubusercontent.com/joaosa/dotfiles/master/bootstrap | 
 ## Usage
 
 ```bash
-just                    # Full bootstrap (all modules in order)
-just dry-run            # Preview all changes without executing
-just homebrew           # Install Homebrew packages from Brewfile
-just stow              # Install dotfiles via GNU Stow
-just shell             # Configure shell (Prezto, fzf, git, parallel)
-just languages         # Install language runtimes and packages
-just services          # Configure services (Syncthing)
-just downloads         # Download config files (kubectl aliases, whisper model)
-just clean             # Remove Homebrew packages not in Brewfile
+just nix-bootstrap      # First nix-darwin activation after Nix/Lix install
+just nix-switch         # Apply the nix-darwin + Home Manager flake
+just nix-build          # Build the flake without activating
+just nix-check          # Validate flake outputs
+just nix-update         # Update flake inputs
+just nix-home           # Apply only the standalone Home Manager output
+
+just                    # Legacy full bootstrap (all modules in order)
+just dry-run            # Preview legacy changes without executing
+just homebrew           # Legacy Homebrew packages from Brewfile
+just stow               # Legacy dotfiles via GNU Stow
+just shell              # Legacy shell setup
+just languages          # Legacy language runtimes and global packages
+just services           # Legacy services setup
+just downloads          # Legacy ASR model download
+just clean              # Legacy Brewfile cleanup
 ```
 
 Modules can also be combined: `./bootstrap homebrew languages`
@@ -59,9 +89,17 @@ Each module can run standalone: `bash modules/04-languages.sh`
 
 ```
 .
+├── flake.nix              # Nix flake entry point
+├── nix/
+│   ├── packages.nix       # nixpkgs package inventory
+│   ├── darwin/
+│   │   ├── default.nix    # nix-darwin system configuration
+│   │   └── homebrew.nix   # nix-homebrew + declarative casks/formulae
+│   └── home/
+│       └── default.nix    # Home Manager user configuration
 ├── bootstrap              # Entry point (curl-friendly)
 ├── Justfile               # Task runner
-├── Brewfile               # Homebrew packages & casks
+├── Brewfile               # Legacy Homebrew package inventory
 ├── .tool-versions         # asdf language versions
 ├── versions.env           # All other version pins
 ├── lib/
@@ -94,27 +132,29 @@ Each module can run standalone: `bash modules/04-languages.sh`
 ### Security
 
 - SHA256 checksum verification for all downloads (including Homebrew installer)
-- Version pinning for all packages (Go, npm, Cargo, asdf, Prezto)
-- Homebrew packages pinned to prevent auto-updates
-- DRY_RUN mode to preview changes
+- Flake-pinned Nix inputs once `flake.lock` is generated
+- Legacy version pins for Go, npm, Cargo, asdf, Prezto, and downloads
+- Homebrew auto-update and activation upgrades disabled under nix-darwin
+- Legacy DRY_RUN mode to preview shell bootstrap changes
 
 ### Idempotency
 
-- Safe to re-run at any time — only installs what's missing
-- Stow `--restow` handles re-runs cleanly
-- Check-before-install pattern throughout
+- Nix activations are declarative and safe to re-run
+- Home Manager owns user-level symlinks and backs up replaced files with `.hm-backup`
+- Legacy modules keep their check-before-install pattern
 
 ### Modularity
 
-- Each module runs independently or as part of the full bootstrap
-- Stow packages auto-discovered — add a directory, run `just stow`
-- Version pins consolidated in `versions.env`
+- Nix configuration is split into package, system, Homebrew, and home modules
+- Legacy shell modules still run independently or as part of the old bootstrap
 
 ## Version Management
 
-- [`Brewfile`](./Brewfile) — Homebrew packages and casks
-- [`.tool-versions`](./.tool-versions) — asdf-managed languages (Node.js, Go)
-- [`versions.env`](./versions.env) — Everything else (npm, Go, Cargo packages, Prezto commit, download URLs)
+- [`flake.nix`](./flake.nix) and [`nix/`](./nix/) — primary Nix, nix-darwin, Home Manager, and Homebrew configuration
+- `flake.lock` — generated by `nix flake lock` or `just nix-update`
+- [`Brewfile`](./Brewfile) — legacy Homebrew inventory
+- [`.tool-versions`](./.tool-versions) — legacy asdf language versions
+- [`versions.env`](./versions.env) — legacy npm, Go, Cargo, Prezto, and download pins
 
 ## Prerequisites
 

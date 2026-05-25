@@ -3,6 +3,31 @@
 # Full bootstrap
 default: bootstrap
 
+# First nix-darwin activation after installing Nix/Lix
+nix-bootstrap:
+    nix flake lock
+    sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake .#Mac
+
+# Apply the flake after nix-darwin is installed
+nix-switch:
+    sudo darwin-rebuild switch --flake .#Mac
+
+# Build the nix-darwin system without activating it
+nix-build:
+    darwin-rebuild build --flake .#Mac
+
+# Validate flake outputs
+nix-check:
+    nix flake check
+
+# Update flake inputs
+nix-update:
+    nix flake update
+
+# Apply only the standalone Home Manager output
+nix-home:
+    home-manager switch --flake .#joao-sousa-andrade
+
 # Run complete bootstrap (or specify modules: just bootstrap stow languages)
 bootstrap *MODULES:
     ./bootstrap {{MODULES}}

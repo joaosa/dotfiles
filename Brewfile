@@ -1,3 +1,5 @@
+tap "aviator-co/tap"
+
 # Development tools
 brew "git"
 brew "ghq"
@@ -30,6 +32,7 @@ brew "git-crypt"
 brew "gitmux"
 brew "gitleaks"
 brew "prek"
+brew "aviator-co/tap/av"
 
 # System monitoring
 brew "htop"
@@ -149,7 +152,6 @@ cask "hammerspoon"
 cask "alacritty"
 
 # Productivity
-cask "homerow"
 cask "obsidian"
 
 # Communication
