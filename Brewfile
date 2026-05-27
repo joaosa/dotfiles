@@ -61,21 +61,11 @@ brew "colima"
 # Programming languages & tools
 brew "ansible"
 brew "luarocks"
-brew "rustup"
-brew "cargo-geiger"
-brew "pkg-config"
 
 # Recording
-brew "agg"
 
 # Kubernetes
-brew "helm"
 brew "kubectl"
-brew "kubeseal"
-brew "fluxcd/tap/flux"
-brew "kubectx"
-brew "k3d"
-brew "k9s"
 
 # Cloud
 brew "azure-cli"

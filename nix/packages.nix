@@ -46,6 +46,7 @@ let
     "bat"
     "bottom"
     "cargo-bloat"
+    "cargo-geiger"
     "cargo-llvm-cov"
     "cargo-nextest"
     "cargo-watch"
@@ -59,6 +60,7 @@ let
     "dive"
     "fd"
     "findutils"
+    "fluxcd"
     "fswatch"
     "fzf"
     "gawk"
@@ -122,6 +124,9 @@ let
   ];
 
   alternatives = {
+    agg = [
+      "asciinema-agg"
+    ];
     nodejs = [
       "nodejs_22"
       "nodejs"
