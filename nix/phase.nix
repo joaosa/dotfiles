@@ -107,6 +107,7 @@
     "yq-go"
     "ykman"
     "zoxide"
+    "zsh"
   ];
 
   # Home Manager-managed dotfiles by target path.
