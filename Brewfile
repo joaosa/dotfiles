@@ -5,7 +5,6 @@ brew "git"
 brew "zsh"
 brew "neovim"
 brew "tmux"
-brew "opencode"
 brew "ollama"
 
 # Core utilities

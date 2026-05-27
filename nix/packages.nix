@@ -99,6 +99,7 @@ let
     "mtr"
     "neovim"
     "nmap"
+    "opencode"
     "openpgp-card-tool-git"
     "openpgp-card-tools"
     "parallel"

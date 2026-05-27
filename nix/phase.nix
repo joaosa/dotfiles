@@ -56,6 +56,7 @@
     "mkcert"
     "mtr"
     "nmap"
+    "opencode"
     "parallel"
     "pkg-config"
     "pngquant"
