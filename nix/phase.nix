@@ -38,6 +38,7 @@
     "git-secret"
     "gitmux"
     "gitleaks"
+    "gnupg"
     "htop"
     "hyperfine"
     "iftop"
@@ -61,6 +62,7 @@
     "opencode"
     "parallel"
     "pkg-config"
+    "pinentry-mac"
     "pngquant"
     "poppler"
     "prek"
@@ -87,6 +89,7 @@
     "wireguard-go"
     "wireguard-tools"
     "yq-go"
+    "ykman"
     "zoxide"
   ];
 

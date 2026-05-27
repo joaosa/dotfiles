@@ -159,6 +159,12 @@ let
       "poppler-utils"
       "poppler"
     ];
+    pinentry-mac = [
+      "pinentry_mac"
+    ];
+    ykman = [
+      "yubikey-manager"
+    ];
     helm = [
       "kubernetes-helm"
       "helm"

@@ -23,11 +23,6 @@ brew "urlview"
 
 brew "tailscale"
 
-# Security
-brew "ykman"
-brew "gnupg"
-brew "pinentry-mac"       # GPG PIN entry for YubiKey
-
 # Container tools
 brew "docker"
 brew "docker-buildx"
