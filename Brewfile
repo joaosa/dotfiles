@@ -5,8 +5,6 @@ brew "tmux"
 # Git tools
 brew "aviator-co/tap/av"
 
-brew "tailscale"
-
 cask "gcloud-cli"
 
 # Fonts
