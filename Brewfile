@@ -21,22 +21,13 @@ cask "alacritty"
 cask "obsidian"
 
 # Communication
-cask "signal"
-cask "discord"
 cask "slack"
-
-# Security & Privacy
-cask "mullvad-vpn"
 
 # 3D Printing & Design
 cask "orcaslicer"
-cask "blender"
 
 # Media
 cask "spotify"
-
-# Distributed storage
-cask "ipfs-desktop"
 
 # Browsers
 cask "firefox@developer-edition"
