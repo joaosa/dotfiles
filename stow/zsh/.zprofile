@@ -50,6 +50,10 @@ path=(
   $path
 )
 
+if [[ -d "$HOME/.nix-profile/lib/pkgconfig" ]]; then
+  export PKG_CONFIG_PATH="$HOME/.nix-profile/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi
+
 #
 # Less
 #

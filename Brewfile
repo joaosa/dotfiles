@@ -5,7 +5,6 @@ brew "git"
 brew "zsh"
 brew "neovim"
 brew "tmux"
-brew "sesh"
 brew "opencode"
 brew "ollama"
 
@@ -19,8 +18,6 @@ brew "gnu-sed"
 brew "asdf"
 
 # Git tools
-brew "gitmux"
-brew "prek"
 brew "aviator-co/tap/av"
 
 # Data processing
@@ -28,30 +25,13 @@ brew "jd"
 
 # Utilities
 brew "urlview"
-brew "terminal-notifier"
 
-# File watching
-brew "watch"
-
-# Image processing
-brew "imagemagick"
-brew "tesseract"
-brew "poppler"
-
-# Network tools
-brew "iftop"
-brew "tcptraceroute"
-brew "mtr"
-brew "telnet"
 brew "tailscale"
 
 # Security
 brew "ykman"
 brew "gnupg"
 brew "pinentry-mac"       # GPG PIN entry for YubiKey
-
-# Fun
-brew "fortune"
 
 # Container tools
 brew "docker"
@@ -62,13 +42,6 @@ brew "colima"
 brew "ansible"
 brew "luarocks"
 
-# Recording
-
-# Kubernetes
-brew "kubectl"
-
-# Cloud
-brew "azure-cli"
 cask "gcloud-cli"
 
 # Fonts

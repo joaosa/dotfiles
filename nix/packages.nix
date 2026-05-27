@@ -61,6 +61,7 @@ let
     "fd"
     "findutils"
     "fluxcd"
+    "fortune"
     "fswatch"
     "fzf"
     "gawk"
@@ -70,6 +71,7 @@ let
     "git-crypt"
     "git-extras"
     "git-secret"
+    "gitmux"
     "gitleaks"
     "gnugrep"
     "gnupg"
@@ -77,7 +79,9 @@ let
     "gore"
     "htop"
     "hyperfine"
+    "iftop"
     "imagemagick"
+    "inetutils"
     "jless"
     "jq"
     "just"
@@ -86,6 +90,8 @@ let
     "kubectl"
     "kubectx"
     "kubeseal"
+    "leptonica"
+    "libheif"
     "luarocks"
     "miller"
     "mitmproxy"
@@ -98,6 +104,7 @@ let
     "parallel"
     "pkg-config"
     "pngquant"
+    "prek"
     "procs"
     "pv"
     "pwgen"
@@ -107,14 +114,18 @@ let
     "rustup"
     "sccache"
     "shellcheck"
+    "sesh"
     "sops"
     "sox"
     "starship"
     "stow"
     "tesseract"
+    "tcptraceroute"
+    "terminal-notifier"
     "tmux"
     "uv"
     "vegeta"
+    "watch"
     "websocat"
     "wireguard-go"
     "wireguard-tools"
@@ -144,7 +155,7 @@ let
       "dust"
     ];
     poppler = [
-      "poppler_utils"
+      "poppler-utils"
       "poppler"
     ];
     helm = [
@@ -160,8 +171,17 @@ let
       "azurecli"
     ];
   };
+
+  extraOutputs = {
+    libheif = [
+      pkgs.libheif.dev
+    ];
+  };
 in
 packagesFrom (builtins.filter enabled packageNames)
 ++ lib.concatMap firstAvailable (
   lib.attrValues (lib.filterAttrs (key: _: enabled key) alternatives)
+)
+++ lib.concatMap (key: extraOutputs.${key}) (
+  builtins.filter enabled (builtins.attrNames extraOutputs)
 )
