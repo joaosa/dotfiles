@@ -2,7 +2,6 @@ tap "aviator-co/tap"
 
 # Development tools
 brew "zsh"
-brew "neovim"
 brew "tmux"
 
 # Git tools

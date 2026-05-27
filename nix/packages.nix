@@ -68,6 +68,7 @@ let
     "fswatch"
     "fzf"
     "gawk"
+    "gettext"
     "gh"
     "ghq"
     "git"
@@ -192,6 +193,17 @@ let
   };
 
   extraPackages = {
+    "luajit" = [
+      (pkgs.runCommand "luajit-bin" { } ''
+                mkdir -p "$out/bin"
+                cat > "$out/bin/luajit" <<EOF
+        #!${pkgs.runtimeShell}
+        exec "${pkgs.luajit}/bin/luajit" "\$@"
+        EOF
+                chmod +x "$out/bin/luajit"
+      '')
+    ];
+
     "gnu-prefixed-tools" = [
       (pkgs.runCommand "gnu-prefixed-tools" { } ''
                 mkdir -p "$out/bin"
