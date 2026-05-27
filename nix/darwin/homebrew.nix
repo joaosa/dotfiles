@@ -23,9 +23,7 @@ in
     user = username;
     enableZshIntegration = true;
 
-    taps =
-      lib.optional (builtins.elem "aviator-co/tap/av" phase.homebrewBrews) "aviator-co/tap"
-      ++ lib.optional (builtins.elem "fluxcd/tap/flux" phase.homebrewBrews) "fluxcd/tap";
+    taps = lib.optional (builtins.elem "fluxcd/tap/flux" phase.homebrewBrews) "fluxcd/tap";
 
     brews = phase.homebrewBrews;
 
