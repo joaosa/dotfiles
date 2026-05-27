@@ -32,6 +32,7 @@
     "gawk"
     "gh"
     "ghq"
+    "git"
     "git-crypt"
     "git-extras"
     "git-secret"
