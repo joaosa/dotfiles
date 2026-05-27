@@ -69,7 +69,28 @@ in
     LESS = "-F -g -i -M -R -S -w -X -z-4";
   };
 
-  home.file = lib.filterAttrs (target: _: builtins.elem target phase.homeFileTargets) allHomeFiles;
+  home.file =
+    lib.filterAttrs (target: _: builtins.elem target phase.homeFileTargets) allHomeFiles
+    // lib.optionalAttrs (builtins.elem "docker-buildx" phase.homePackageKeys) {
+      ".docker/cli-plugins/docker-buildx" = {
+        source = "${pkgs.docker-buildx}/bin/docker-buildx";
+        force = true;
+      };
+    };
+
+  services.ollama = lib.mkIf phase.ollamaService {
+    enable = true;
+    environmentVariables = {
+      OLLAMA_FLASH_ATTENTION = "1";
+      OLLAMA_KV_CACHE_TYPE = "q8_0";
+    };
+  };
+
+  services.syncthing = lib.mkIf phase.syncthingService {
+    enable = true;
+    overrideDevices = false;
+    overrideFolders = false;
+  };
 
   home.activation.syncthingGuiTls = lib.mkIf phase.syncthingGuiTls (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''

@@ -52,12 +52,15 @@ let
     "cargo-watch"
     "claude-code"
     "codex"
+    "colima"
     "coreutils"
     "crane"
     "delve"
     "delta"
     "direnv"
     "dive"
+    "docker"
+    "docker-buildx"
     "fd"
     "findutils"
     "fluxcd"
@@ -92,6 +95,8 @@ let
     "kubeseal"
     "leptonica"
     "libheif"
+    "lima"
+    "lua"
     "luarocks"
     "miller"
     "mitmproxy"
@@ -124,6 +129,7 @@ let
     "tcptraceroute"
     "terminal-notifier"
     "tmux"
+    "tree"
     "uv"
     "vegeta"
     "watch"
@@ -184,6 +190,30 @@ let
       pkgs.libheif.dev
     ];
   };
+
+  extraPackages = {
+    "gnu-prefixed-tools" = [
+      (pkgs.runCommand "gnu-prefixed-tools" { } ''
+                mkdir -p "$out/bin"
+
+                for dir in \
+                  ${pkgs.coreutils}/bin \
+                  ${pkgs.findutils}/bin \
+                  ${pkgs.gnugrep}/bin \
+                  ${pkgs.gnused}/bin
+                do
+                  for tool in "$dir"/*; do
+                    name="$(basename "$tool")"
+                    cat > "$out/bin/g$name" <<EOF
+        #!${pkgs.runtimeShell}
+        exec "$tool" "\$@"
+        EOF
+                    chmod +x "$out/bin/g$name"
+                  done
+                done
+      '')
+    ];
+  };
 in
 packagesFrom (builtins.filter enabled packageNames)
 ++ lib.concatMap firstAvailable (
@@ -191,4 +221,7 @@ packagesFrom (builtins.filter enabled packageNames)
 )
 ++ lib.concatMap (key: extraOutputs.${key}) (
   builtins.filter enabled (builtins.attrNames extraOutputs)
+)
+++ lib.concatMap (key: extraPackages.${key}) (
+  builtins.filter enabled (builtins.attrNames extraPackages)
 )

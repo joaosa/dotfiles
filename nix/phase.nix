@@ -11,6 +11,7 @@
     "dust"
     "agg"
     "age"
+    "ansible"
     "asciinema"
     "asdf-vm"
     "azure-cli"
@@ -21,10 +22,15 @@
     "cargo-llvm-cov"
     "cargo-nextest"
     "cargo-watch"
+    "colima"
+    "coreutils"
     "delve"
     "delta"
     "direnv"
     "dive"
+    "docker"
+    "docker-buildx"
+    "findutils"
     "fluxcd"
     "fortune"
     "fswatch"
@@ -38,7 +44,10 @@
     "git-secret"
     "gitmux"
     "gitleaks"
+    "gnu-prefixed-tools"
+    "gnugrep"
     "gnupg"
+    "gnused"
     "htop"
     "hyperfine"
     "iftop"
@@ -55,6 +64,9 @@
     "kubeseal"
     "leptonica"
     "libheif"
+    "lima"
+    "lua"
+    "luarocks"
     "miller"
     "mkcert"
     "mtr"
@@ -82,6 +94,7 @@
     "terminal-notifier"
     "tesseract"
     "units"
+    "tree"
     "uv"
     "vegeta"
     "watch"
@@ -102,6 +115,10 @@
 
   # Runs the Syncthing GUI TLS config migration.
   syncthingGuiTls = false;
+
+  # Home Manager-managed launchd services.
+  ollamaService = true;
+  syncthingService = true;
 
   # nix-darwin-managed system shell integration and font installation.
   # Examples: [ "git" "zsh" ]

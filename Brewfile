@@ -4,13 +4,6 @@ tap "aviator-co/tap"
 brew "zsh"
 brew "neovim"
 brew "tmux"
-brew "ollama"
-
-# Core utilities
-brew "coreutils"
-brew "findutils"
-brew "grep"
-brew "gnu-sed"
 
 # Git tools
 brew "aviator-co/tap/av"
@@ -22,15 +15,6 @@ brew "jd"
 brew "urlview"
 
 brew "tailscale"
-
-# Container tools
-brew "docker"
-brew "docker-buildx"
-brew "colima"
-
-# Programming languages & tools
-brew "ansible"
-brew "luarocks"
 
 cask "gcloud-cli"
 
@@ -69,5 +53,4 @@ cask "ipfs-desktop"
 cask "firefox@developer-edition"
 
 # Sync
-brew "syncthing"
 cask "google-drive"
