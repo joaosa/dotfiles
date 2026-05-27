@@ -102,6 +102,19 @@ in
     ''
   );
 
+  home.activation.asdfPythonGettextShim = lib.mkIf phase.asdfPythonGettextShim (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      gettext_opt="/opt/homebrew/opt/gettext"
+
+      if [ -e "$gettext_opt" ] && [ ! -L "$gettext_opt" ]; then
+        echo "Skipping $gettext_opt because it exists and is not a symlink"
+      else
+        /bin/mkdir -p /opt/homebrew/opt
+        /bin/ln -sfn "${pkgs.gettext}" "$gettext_opt"
+      fi
+    ''
+  );
+
   programs.fzf = lib.mkIf phase.homeShell {
     enable = true;
     enableZshIntegration = true;

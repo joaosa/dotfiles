@@ -120,6 +120,9 @@
   # Runs the Syncthing GUI TLS config migration.
   syncthingGuiTls = false;
 
+  # Provides Nix gettext at the legacy Homebrew opt path for asdf-built Python.
+  asdfPythonGettextShim = true;
+
   # Home Manager-managed launchd services.
   ollamaService = true;
   syncthingService = true;

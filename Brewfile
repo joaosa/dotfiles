@@ -5,12 +5,6 @@ brew "tmux"
 # Git tools
 brew "aviator-co/tap/av"
 
-# Data processing
-brew "jd"
-
-# Utilities
-brew "urlview"
-
 brew "tailscale"
 
 cask "gcloud-cli"
