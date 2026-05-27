@@ -96,7 +96,6 @@
     "stow"
     "tcptraceroute"
     "terminal-notifier"
-    "tailscale"
     "tesseract"
     "units"
     "tree"
@@ -136,7 +135,7 @@
   fonts = false;
 
   # Declarative Homebrew management. Start empty and add one formula/cask at a time.
-  homebrewBrews = [ ];
+  homebrewBrews = [ "tailscale" ];
   homebrewCasks = [
     "gcloud-cli"
     "font-sauce-code-pro-nerd-font"

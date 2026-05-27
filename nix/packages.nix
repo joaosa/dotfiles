@@ -130,7 +130,6 @@ let
     "tesseract"
     "tcptraceroute"
     "terminal-notifier"
-    "tailscale"
     "tmux"
     "tree"
     "uv"
