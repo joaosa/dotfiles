@@ -12,6 +12,7 @@
     "agg"
     "age"
     "asciinema"
+    "asdf-vm"
     "azure-cli"
     "bash"
     "bottom"

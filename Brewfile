@@ -13,9 +13,6 @@ brew "findutils"
 brew "grep"
 brew "gnu-sed"
 
-# Version managers
-brew "asdf"
-
 # Git tools
 brew "aviator-co/tap/av"
 

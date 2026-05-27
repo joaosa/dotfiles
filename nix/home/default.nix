@@ -221,8 +221,12 @@ in
         command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
 
         if command -v asdf >/dev/null 2>&1; then
-          asdf_data_dir="$(dirname "$(dirname "$(command -v asdf)")")/share/asdf-vm"
-          [ -f "$asdf_data_dir/asdf.sh" ] && . "$asdf_data_dir/asdf.sh"
+          asdf_prefix="$(dirname "$(dirname "$(command -v asdf)")")"
+          if [ -f "$asdf_prefix/etc/profile.d/asdf-prepare.sh" ]; then
+            . "$asdf_prefix/etc/profile.d/asdf-prepare.sh"
+          elif [ -f "$asdf_prefix/share/asdf-vm/asdf.sh" ]; then
+            . "$asdf_prefix/share/asdf-vm/asdf.sh"
+          fi
         elif [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
           . /opt/homebrew/opt/asdf/libexec/asdf.sh
         elif [ -f "$HOME/.asdf/asdf.sh" ]; then

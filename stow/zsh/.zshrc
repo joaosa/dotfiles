@@ -98,7 +98,14 @@ bindkey -M viins '^f' sesh-sessions
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
 # asdf
-if [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
+if command -v asdf &>/dev/null; then
+  asdf_prefix="$(dirname "$(dirname "$(command -v asdf)")")"
+  if [ -f "$asdf_prefix/etc/profile.d/asdf-prepare.sh" ]; then
+    . "$asdf_prefix/etc/profile.d/asdf-prepare.sh"
+  elif [ -f "$asdf_prefix/share/asdf-vm/asdf.sh" ]; then
+    . "$asdf_prefix/share/asdf-vm/asdf.sh"
+  fi
+elif [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
   . /opt/homebrew/opt/asdf/libexec/asdf.sh
 elif [ -f "$HOME/.asdf/asdf.sh" ]; then
   . "$HOME/.asdf/asdf.sh"
