@@ -71,6 +71,7 @@
       };
 
       packages.${system} = {
+        darwin-rebuild = nix-darwin.packages.${system}.darwin-rebuild;
         home-manager = home-manager.packages.${system}.home-manager;
         ripgrep = pkgs.ripgrep;
       };

@@ -7,11 +7,11 @@ default: bootstrap
 # First nix-darwin activation after installing Nix/Lix
 nix-bootstrap:
     {{nix}} flake lock
-    sudo {{nix}} run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake .#Mac
+    sudo -H {{nix}} --extra-experimental-features "nix-command flakes" run .#darwin-rebuild -- switch --flake .#Mac
 
 # Apply the flake after nix-darwin is installed
 nix-switch:
-    sudo darwin-rebuild switch --flake .#Mac
+    sudo -H {{nix}} --extra-experimental-features "nix-command flakes" run .#darwin-rebuild -- switch --flake .#Mac
 
 # Build the nix-darwin system without activating it
 nix-build:

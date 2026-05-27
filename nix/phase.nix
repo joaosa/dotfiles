@@ -137,5 +137,17 @@
 
   # Declarative Homebrew management. Start empty and add one formula/cask at a time.
   homebrewBrews = [ ];
-  homebrewCasks = [ ];
+  homebrewCasks = [
+    "gcloud-cli"
+    "font-sauce-code-pro-nerd-font"
+    "karabiner-elements"
+    "hammerspoon"
+    "alacritty"
+    "obsidian"
+    "slack"
+    "orcaslicer"
+    "spotify"
+    "firefox@developer-edition"
+    "google-drive"
+  ];
 }

@@ -29,7 +29,7 @@ just nix-home-build
 # Activate only after the current phase is understood
 just nix-bootstrap
 
-# Later changes use the installed darwin-rebuild
+# Later changes use the pinned darwin-rebuild from this flake
 just nix-switch
 ```
 

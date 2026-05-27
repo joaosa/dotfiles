@@ -43,6 +43,7 @@ typeset -gU cdpath fpath mailpath path
 
 # Set the list of directories that Zsh searches for programs.
 path=(
+  "/etc/profiles/per-user/$USER/bin"
   "$HOME/.nix-profile/bin"
   /nix/var/nix/profiles/default/bin
   /opt/homebrew/{bin,sbin}
