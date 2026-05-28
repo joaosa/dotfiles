@@ -137,7 +137,7 @@ Each module can run standalone: `bash modules/04-languages.sh`
 │   └── module.sh          # Module runner framework
 ├── modules/
 │   ├── 02-stow.sh         # Auto-discover & stow dotfiles
-│   ├── 03-shell.sh        # Prezto and fzf
+│   ├── 03-shell.sh        # Prezto
 │   ├── 04-languages.sh    # Rust, Node, Go, npm/go/cargo packages
 │   └── 06-downloads.sh    # Legacy ASR model download
 └── stow/                  # GNU Stow packages (symlinked to ~)

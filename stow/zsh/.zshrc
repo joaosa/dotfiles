@@ -75,7 +75,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_CTRL_T_OPTS='--preview-window right:50%'
 export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 export FZF_ALT_C_OPTS='--preview "ls -1 {}"'
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+command -v fzf >/dev/null 2>&1 && source <(fzf --zsh)
 
 # sesh: fuzzy tmux session picker (ctrl+f)
 function sesh-sessions() {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Module: Shell configuration (Prezto, fzf)
+# Module: Shell configuration (Prezto)
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
@@ -17,11 +17,6 @@ run() {
   ensure_installed "Prezto" \
     '[ -d "${ZDOTDIR:-$HOME}/.zprezto" ]' \
     _install_prezto
-
-  ensure_installed "fzf" \
-    '[ -f ~/.fzf.bash ] || [ -f ~/.fzf.zsh ]' \
-    '"$(brew --prefix)/opt/fzf/install" --all'
-
 }
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && { run; print_summary; }
