@@ -19,7 +19,10 @@ let
   };
 in
 {
-  imports = [ ./homebrew.nix ];
+  imports = [
+    ./homebrew.nix
+    ./tailscale.nix
+  ];
 
   nixpkgs.hostPlatform = system;
   nixpkgs.config.allowUnfree = true;
