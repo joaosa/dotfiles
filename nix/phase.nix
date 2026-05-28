@@ -118,6 +118,7 @@
   # Examples: [ ".gitconfig" ".tmux.conf" ".config/nvim" ]
   homeFileTargets = [
     ".kubectl_aliases"
+    ".parallel/will-cite"
   ];
 
   # Replaces shell startup behavior with the Home Manager zsh/prezto config.

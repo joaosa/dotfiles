@@ -38,7 +38,10 @@ let
       force = true;
     };
     ".lightline.conf".source = link "stow/tmux/.lightline.conf";
-    ".parallel/will-cite".text = "";
+    ".parallel/will-cite" = {
+      text = "";
+      force = true;
+    };
     ".stylua.toml".source = link "stow/stylua/.stylua.toml";
     ".tmux.conf".source = link "stow/tmux/.tmux.conf";
     ".yamllint".source = link "stow/nvim/.yamllint";

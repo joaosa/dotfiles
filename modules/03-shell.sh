@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Module: Shell configuration (Prezto, fzf, GNU parallel)
+# Module: Shell configuration (Prezto, fzf)
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
@@ -22,9 +22,6 @@ run() {
     '[ -f ~/.fzf.bash ] || [ -f ~/.fzf.zsh ]' \
     '"$(brew --prefix)/opt/fzf/install" --all'
 
-  ensure_installed "GNU parallel" \
-    '[ -f ~/.parallel/will-cite ]' \
-    'mkdir -p ~/.parallel && touch ~/.parallel/will-cite'
 }
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && { run; print_summary; }

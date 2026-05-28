@@ -45,7 +45,7 @@ dry-run *MODULES:
 stow:
     ./bootstrap stow
 
-# Configure shell (Prezto, fzf, parallel)
+# Configure shell (Prezto, fzf)
 shell:
     ./bootstrap shell
 
