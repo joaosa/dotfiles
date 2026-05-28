@@ -239,31 +239,6 @@ install_uv_packages() {
 }
 
 # ============================================================================
-# HOMEBREW
-# ============================================================================
-
-pin_brew_packages() {
-  local pinned_packages
-  pinned_packages=$(brew list --pinned)
-  local -a already_pinned=()
-
-  for package in $(brew list --formula); do
-    if ! echo "$pinned_packages" | grep -qxF "$package"; then
-      if is_dry_run "pin: $package"; then continue; fi
-      if ! brew pin "$package" 2>/dev/null; then
-        log_error "Failed to pin: $package"
-      else
-        log_success "Pinned: $package"
-      fi
-    else
-      already_pinned+=("$package")
-    fi
-  done
-
-  log_skip_grouped "Already pinned" "${already_pinned[@]+"${already_pinned[@]}"}"
-}
-
-# ============================================================================
 # VERIFICATION (used by doctor.sh)
 # ============================================================================
 

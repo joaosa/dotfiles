@@ -39,13 +39,6 @@ run() {
   check_file "$KUBECTL_ALIASES_PATH" "kubectl aliases"
   check_dir "$ASR_MODEL_DIR" "ASR model (Qwen3-ASR-0.6B)"
 
-  echo ""
-  if brew bundle check --file="$SCRIPT_DIR/Brewfile" >/dev/null 2>&1; then
-    log_success "All Brewfile packages installed"
-  else
-    log_error "Some Brewfile packages are missing (run: just homebrew)"
-  fi
-
   return $(( ITEMS_FAILED > 0 ? 1 : 0 ))
 }
 

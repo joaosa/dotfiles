@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Module: Homebrew installation, package management, and cleanup
+# Module: Homebrew installation for legacy modules
 
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
@@ -23,40 +23,6 @@ run() {
     fi
   else
     log_skip "Homebrew already installed"
-  fi
-
-  # Install from Brewfile
-  if brew bundle check --file="$SCRIPT_DIR/Brewfile" >/dev/null 2>&1; then
-    log_skip "All Brewfile packages already installed"
-  elif ! is_dry_run "install Brewfile packages"; then
-    log_info "Installing packages from Brewfile..."
-    if ! bundle_output=$(brew bundle --file="$SCRIPT_DIR/Brewfile" 2>&1); then
-      echo "$bundle_output"
-      if echo "$bundle_output" | grep -q "must.*brew unpin"; then
-        echo ""
-        log_warn "Installation blocked by pinned dependencies."
-        echo "$bundle_output" | grep "must.*brew unpin" | sed -E 's/.*`(brew unpin [^`]+)`.*/  \1/' | sort -u
-      fi
-      log_error "Brewfile installation failed"
-      return 1
-    fi
-    log_success "Brewfile packages installed"
-  fi
-
-  # Pin packages
-  log_info "Pinning Homebrew packages..."
-  pin_brew_packages
-
-  # Clean up packages not in Brewfile
-  if ! is_dry_run "clean up packages not in Brewfile"; then
-    log_info "Checking for packages to clean up..."
-    cleanup_output=$(brew bundle cleanup --force --file="$SCRIPT_DIR/Brewfile" 2>&1)
-    if echo "$cleanup_output" | grep -qE "(Uninstall|Untap)"; then
-      echo "$cleanup_output"
-      log_success "Cleanup complete"
-    else
-      log_skip "No packages to clean up"
-    fi
   fi
 }
 

@@ -41,7 +41,7 @@ bootstrap *MODULES:
 dry-run *MODULES:
     DRY_RUN=true ./bootstrap {{MODULES}}
 
-# Install Homebrew packages from Brewfile
+# Install Homebrew for legacy modules
 homebrew:
     ./bootstrap homebrew
 
@@ -74,8 +74,3 @@ doctor:
 [group('utils')]
 lint:
     shellcheck -x lib/*.sh modules/*.sh bootstrap versions.env
-
-# Remove Homebrew packages not in Brewfile (same as the cleanup step in modules/01-homebrew.sh)
-[group('utils')]
-clean:
-    brew bundle cleanup --force --file=Brewfile
