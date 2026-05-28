@@ -45,6 +45,11 @@ let
     ".stylua.toml".source = link "stow/stylua/.stylua.toml";
     ".tmux.conf".source = link "stow/tmux/.tmux.conf";
     ".yamllint".source = link "stow/nvim/.yamllint";
+    ".zprezto".source = "${pkgs.zsh-prezto}/share/zsh-prezto";
+    ".zshenv" = {
+      source = link "stow/zsh/.zshenv";
+      force = true;
+    };
   };
 in
 {

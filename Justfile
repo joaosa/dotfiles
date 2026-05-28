@@ -45,10 +45,6 @@ dry-run *MODULES:
 stow:
     ./bootstrap stow
 
-# Configure shell (Prezto)
-shell:
-    ./bootstrap shell
-
 # Install language runtimes and packages
 languages:
     ./bootstrap languages
