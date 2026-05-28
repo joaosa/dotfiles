@@ -297,10 +297,28 @@ in
         [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
         function kubectl() { echo "+ kubectl $@">&2; command kubectl "$@"; }
 
-        [[ -n "$TMUX" ]] && return
-        if command -v tmux >/dev/null 2>&1; then
+        function tmux() {
+          if [[ -n "$TMUX" && ( "$1" == "a" || "$1" == "attach" || "$1" == "attach-session" ) ]]; then
+            shift
+            if (( $# == 0 )); then
+              local session
+              session=$(command tmux list-sessions -F '#{session_name}' -f '#{==:#{session_attached},0}' 2>/dev/null | head -1)
+              [[ -n "$session" ]] && command tmux switch-client -t "$session" || command tmux switch-client
+            else
+              command tmux switch-client "$@"
+            fi
+          else
+            command tmux "$@"
+          fi
+        }
+
+        if [[ -z "$TMUX" && -t 0 && -t 1 ]] && command -v tmux >/dev/null 2>&1; then
           session=$(tmux list-sessions -F '#{session_name}' -f '#{==:#{session_attached},0}' 2>/dev/null | head -1)
-          [[ -n "$session" ]] && exec tmux attach -t "$session" || exec tmux new-session -s "default-$$"
+          if [[ -n "$session" ]]; then
+            tmux attach -t "$session" || true
+          else
+            tmux new-session -s "default-$$" || true
+          fi
         fi
       ''
     ];

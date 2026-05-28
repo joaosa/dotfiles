@@ -48,6 +48,10 @@ vi_mode_style = { shape = "Block" }
 shape = "Block"
 blinking = "On"
 
+[terminal.shell]
+program = "/bin/zsh"
+args = ["-l", "-i"]
+
 # ref - https://github.com/alacritty/alacritty/blob/master/alacritty.toml
 [window]
 decorations = "none"
