@@ -118,7 +118,10 @@
   # Examples: [ ".gitconfig" ".tmux.conf" ".config/nvim" ]
   homeFileTargets = [
     ".kubectl_aliases"
+    ".local/bin/Obsidian"
+    ".local/bin/obsidian"
     ".parallel/will-cite"
+    ".zprofile"
     ".zpreztorc"
     ".zprezto"
     ".zshenv"

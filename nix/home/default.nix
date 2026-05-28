@@ -20,6 +20,10 @@ let
     url = "https://raw.githubusercontent.com/ahmetb/kubectl-aliases/7549fa45bbde7499b927c74cae13bfb9169c9497/.kubectl_aliases";
     hash = "sha256-Kqb6kk2EZjoX55flZqiuNRLJQDfC2XMgO+F3tyCEnqk=";
   };
+  obsidianCli = ''
+    #!${pkgs.bash}/bin/bash
+    exec /Applications/Obsidian.app/Contents/MacOS/Obsidian "$@"
+  '';
   allHomeFiles = {
     ".config/alacritty".source = link "stow/alacritty/.config/alacritty";
     ".config/karabiner/karabiner.json".source = link "stow/karabiner/.config/karabiner/karabiner.json";
@@ -38,6 +42,14 @@ let
       force = true;
     };
     ".lightline.conf".source = link "stow/tmux/.lightline.conf";
+    ".local/bin/Obsidian" = {
+      text = obsidianCli;
+      executable = true;
+    };
+    ".local/bin/obsidian" = {
+      text = obsidianCli;
+      executable = true;
+    };
     ".parallel/will-cite" = {
       text = "";
       force = true;
@@ -45,6 +57,7 @@ let
     ".stylua.toml".source = link "stow/stylua/.stylua.toml";
     ".tmux.conf".source = link "stow/tmux/.tmux.conf";
     ".yamllint".source = link "stow/nvim/.yamllint";
+    ".zprofile".source = link "stow/zsh/.zprofile";
     ".zpreztorc".source = link "stow/zsh/.zpreztorc";
     ".zprezto".source = "${pkgs.zsh-prezto}/share/zsh-prezto";
     ".zshenv" = {
