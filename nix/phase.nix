@@ -98,6 +98,7 @@
     "tcptraceroute"
     "terminal-notifier"
     "tesseract"
+    "tmux"
     "units"
     "tree"
     "uv"
