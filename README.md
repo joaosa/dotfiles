@@ -104,7 +104,6 @@ just nix-home           # Apply Home Manager using the pinned Nix CLI package
 
 just                    # Legacy full bootstrap (all modules in order)
 just dry-run            # Preview legacy changes without executing
-just homebrew           # Install Homebrew for legacy modules
 just stow               # Legacy dotfiles via GNU Stow
 just shell              # Legacy shell setup
 just languages          # Legacy language runtimes and global packages
@@ -137,7 +136,6 @@ Each module can run standalone: `bash modules/04-languages.sh`
 │   ├── helpers.sh         # Shared functions (download, asdf, packages)
 │   └── module.sh          # Module runner framework
 ├── modules/
-│   ├── 01-homebrew.sh     # Homebrew install for legacy modules
 │   ├── 02-stow.sh         # Auto-discover & stow dotfiles
 │   ├── 03-shell.sh        # Prezto, fzf, git config, parallel
 │   ├── 04-languages.sh    # Rust, Node, Go, npm/go/cargo packages
@@ -160,7 +158,7 @@ Each module can run standalone: `bash modules/04-languages.sh`
 
 ### Security
 
-- SHA256 checksum verification for all downloads (including Homebrew installer)
+- SHA256 checksum verification for downloaded assets
 - Flake-pinned Nix inputs once `flake.lock` is generated
 - Legacy version pins for Go, npm, Cargo, asdf, Prezto, and downloads
 - Homebrew auto-update and activation upgrades disabled under nix-darwin

@@ -15,7 +15,7 @@ list_modules() {
 }
 
 # Resolve a module name to its file path.
-# Matches by: exact name, or numeric-prefix (e.g. "homebrew" -> "01-homebrew.sh")
+# Matches by: exact name, or numeric-prefix (e.g. "stow" -> "02-stow.sh")
 _resolve_module() {
   local name="$1"
   local modules_dir="$SCRIPT_DIR/modules"

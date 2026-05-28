@@ -41,10 +41,6 @@ bootstrap *MODULES:
 dry-run *MODULES:
     DRY_RUN=true ./bootstrap {{MODULES}}
 
-# Install Homebrew for legacy modules
-homebrew:
-    ./bootstrap homebrew
-
 # Install dotfiles via stow
 stow:
     ./bootstrap stow

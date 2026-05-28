@@ -77,12 +77,6 @@ for module in "${MODULES_TO_RUN[@]}"; do
   if ! run_module "$module" "$CURRENT" "$TOTAL"; then
     FAILED_MODULES+=("$module")
   fi
-  # After the Homebrew module, ensure brew is on PATH for subsequent modules
-  # (the module runs in a subshell, so its PATH export is lost)
-  if [ "$module" = "homebrew" ] && ! command -v brew >/dev/null 2>&1; then
-    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null)" || \
-      eval "$(/usr/local/bin/brew shellenv 2>/dev/null)" || true
-  fi
 done
 
 print_summary
