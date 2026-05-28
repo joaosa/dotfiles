@@ -51,9 +51,19 @@ path=(
   $path
 )
 
-if [[ -d "$HOME/.nix-profile/lib/pkgconfig" ]]; then
-  export PKG_CONFIG_PATH="$HOME/.nix-profile/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-fi
+pkg_config_paths=(
+  "$HOME/.nix-profile/lib/pkgconfig"
+  "$HOME/.nix-profile/share/pkgconfig"
+  /run/current-system/sw/lib/pkgconfig
+  /run/current-system/sw/share/pkgconfig
+)
+
+for pkg_config_path in "${pkg_config_paths[@]}"; do
+  if [[ -d "$pkg_config_path" ]]; then
+    export PKG_CONFIG_PATH="$pkg_config_path${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+  fi
+done
+unset pkg_config_path pkg_config_paths
 
 #
 # Less

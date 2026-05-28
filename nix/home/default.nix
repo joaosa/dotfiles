@@ -59,7 +59,15 @@ in
     "/usr/local/sbin"
   ];
 
-  home.sessionVariables = lib.mkIf phase.homeShell {
+  home.sessionVariables = {
+    PKG_CONFIG_PATH = lib.concatStringsSep ":" [
+      "${homeDir}/.nix-profile/lib/pkgconfig"
+      "${homeDir}/.nix-profile/share/pkgconfig"
+      "/run/current-system/sw/lib/pkgconfig"
+      "/run/current-system/sw/share/pkgconfig"
+    ];
+  }
+  // lib.optionalAttrs phase.homeShell {
     BROWSER = "open";
     EDITOR = "nvim";
     VISUAL = "nvim";
