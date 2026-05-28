@@ -116,7 +116,9 @@
 
   # Home Manager-managed dotfiles by target path.
   # Examples: [ ".gitconfig" ".tmux.conf" ".config/nvim" ]
-  homeFileTargets = [ ];
+  homeFileTargets = [
+    ".kubectl_aliases"
+  ];
 
   # Replaces shell startup behavior with the Home Manager zsh/prezto config.
   homeShell = false;

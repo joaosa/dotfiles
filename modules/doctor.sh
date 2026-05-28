@@ -36,7 +36,6 @@ run() {
   check_stow_links
 
   log_section "5" "5" "DOWNLOADS"
-  check_file "$KUBECTL_ALIASES_PATH" "kubectl aliases"
   check_dir "$ASR_MODEL_DIR" "ASR model (Qwen3-ASR-0.6B)"
 
   return $(( ITEMS_FAILED > 0 ? 1 : 0 ))

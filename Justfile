@@ -53,7 +53,7 @@ shell:
 languages:
     ./bootstrap languages
 
-# Download config files (kubectl aliases, whisper model)
+# Download legacy ASR model
 downloads:
     ./bootstrap downloads
 

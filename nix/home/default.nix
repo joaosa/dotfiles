@@ -33,7 +33,10 @@ let
     ".hammerspoon/init.lua".source = link "stow/hammerspoon/.hammerspoon/init.lua";
     ".hammerspoon/lib".source = link "stow/hammerspoon/.hammerspoon/lib";
     ".hammerspoon/modules".source = link "stow/hammerspoon/.hammerspoon/modules";
-    ".kubectl_aliases".source = kubectlAliases;
+    ".kubectl_aliases" = {
+      source = kubectlAliases;
+      force = true;
+    };
     ".lightline.conf".source = link "stow/tmux/.lightline.conf";
     ".parallel/will-cite".text = "";
     ".stylua.toml".source = link "stow/stylua/.stylua.toml";
