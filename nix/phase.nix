@@ -134,16 +134,15 @@
   # nix-darwin-managed system launchd services.
   tailscaleService = true;
 
-  # nix-darwin-managed system shell integration and font installation.
+  # nix-darwin-managed system shell integration and Home Manager-managed fonts.
   # Examples: [ "git" "zsh" ]
   systemPackageKeys = [ ];
   systemShell = false;
-  fonts = false;
+  fonts = true;
 
   # Declarative Homebrew management. Start empty and add one formula/cask at a time.
   homebrewBrews = [ ];
   homebrewCasks = [
-    "font-sauce-code-pro-nerd-font"
     "karabiner-elements"
     "hammerspoon"
     "alacritty"

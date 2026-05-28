@@ -11,6 +11,11 @@ let
   homeDir = "/Users/${username}";
   dotfilesPath = "${homeDir}/ghq/github.com/joaosa/dotfiles";
   link = relativePath: config.lib.file.mkOutOfStoreSymlink "${dotfilesPath}/${relativePath}";
+  sauceCodeProNerdFont =
+    if builtins.hasAttr "nerd-fonts" pkgs && builtins.hasAttr "sauce-code-pro" pkgs.nerd-fonts then
+      pkgs.nerd-fonts.sauce-code-pro
+    else
+      null;
   kubectlAliases = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/ahmetb/kubectl-aliases/7549fa45bbde7499b927c74cae13bfb9169c9497/.kubectl_aliases";
     hash = "sha256-Kqb6kk2EZjoX55flZqiuNRLJQDfC2XMgO+F3tyCEnqk=";
@@ -120,6 +125,17 @@ in
         /bin/mkdir -p /opt/homebrew/opt
         /bin/ln -sfn "${pkgs.gettext}" "$gettext_opt"
       fi
+    ''
+  );
+
+  home.activation.sauceCodeProNerdFont = lib.mkIf (phase.fonts && sauceCodeProNerdFont != null) (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      font_src="${sauceCodeProNerdFont}/share/fonts/truetype/NerdFonts/SauceCodePro"
+      font_dst="${homeDir}/Library/Fonts"
+
+      /bin/mkdir -p "$font_dst"
+      /usr/bin/find "$font_dst" -maxdepth 1 -type f -name 'SauceCodeProNerdFont*.ttf' -delete
+      ${pkgs.rsync}/bin/rsync -acL --chmod=u+w "$font_src"/SauceCodeProNerdFont*.ttf "$font_dst"/
     ''
   );
 
