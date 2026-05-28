@@ -117,10 +117,16 @@
   # Home Manager-managed dotfiles by target path.
   # Examples: [ ".gitconfig" ".tmux.conf" ".config/nvim" ]
   homeFileTargets = [
+    ".config/alacritty"
+    ".config/ruff"
+    ".config/starship.toml"
     ".kubectl_aliases"
     ".local/bin/Obsidian"
     ".local/bin/obsidian"
+    ".lightline.conf"
     ".parallel/will-cite"
+    ".stylua.toml"
+    ".tmux.conf"
     ".zprofile"
     ".zpreztorc"
     ".zprezto"
