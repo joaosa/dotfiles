@@ -46,6 +46,7 @@
     "git-secret"
     "gitmux"
     "gitleaks"
+    "google-cloud-sdk"
     "gnu-prefixed-tools"
     "gnugrep"
     "gnupg"
@@ -142,7 +143,6 @@
   # Declarative Homebrew management. Start empty and add one formula/cask at a time.
   homebrewBrews = [ ];
   homebrewCasks = [
-    "gcloud-cli"
     "font-sauce-code-pro-nerd-font"
     "karabiner-elements"
     "hammerspoon"

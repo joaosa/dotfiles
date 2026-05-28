@@ -195,6 +195,12 @@ let
   };
 
   extraPackages = {
+    "google-cloud-sdk" = [
+      (pkgs.google-cloud-sdk.withExtraComponents [
+        pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
+      ])
+    ];
+
     "luajit" = [
       (pkgs.runCommand "luajit-bin" { } ''
                 mkdir -p "$out/bin"
