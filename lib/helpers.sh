@@ -51,7 +51,6 @@ ensure_installed() {
 # Usage (at top of module): init_standalone
 init_standalone() {
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[1]}")/.." && pwd)"
-  STOW_DIR="$SCRIPT_DIR/stow"
   DRY_RUN="${DRY_RUN:-false}"
   source "$SCRIPT_DIR/lib/logging.sh"
   # helpers.sh is already sourced (we're in it)
@@ -71,19 +70,4 @@ get_tool_version() {
   else
     echo ""
   fi
-}
-
-# ============================================================================
-# STOW PACKAGE DISCOVERY
-# ============================================================================
-
-# Print one stow package name per line, skipping hidden directories.
-discover_stow_packages() {
-  local name
-  for d in "$STOW_DIR"/*/; do
-    [ -d "$d" ] || continue
-    name=$(basename "$d")
-    [[ "$name" == .* ]] && continue
-    echo "$name"
-  done
 }

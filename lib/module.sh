@@ -15,7 +15,7 @@ list_modules() {
 }
 
 # Resolve a module name to its file path.
-# Matches by: exact name, or numeric-prefix (e.g. "stow" -> "02-stow.sh")
+# Matches by: exact name, or numeric-prefix (e.g. "languages" -> "04-languages.sh")
 _resolve_module() {
   local name="$1"
   local modules_dir="$SCRIPT_DIR/modules"
@@ -60,6 +60,7 @@ run_module() {
     ITEMS_WARNED=0
     ITEMS_FAILED=0
     trap 'echo "$ITEMS_INSTALLED $ITEMS_SKIPPED $ITEMS_WARNED $ITEMS_FAILED" > "'"$counter_file"'"' EXIT
+    # shellcheck disable=SC1090
     source "$module_file"
     run
   )
@@ -69,9 +70,13 @@ run_module() {
   if [ -s "$counter_file" ]; then
     local di ds dw df
     read -r di ds dw df < "$counter_file"
+    # shellcheck disable=SC2031
     (( ITEMS_INSTALLED += di )) || true
+    # shellcheck disable=SC2031
     (( ITEMS_SKIPPED += ds )) || true
+    # shellcheck disable=SC2031
     (( ITEMS_WARNED += dw )) || true
+    # shellcheck disable=SC2031
     (( ITEMS_FAILED += df )) || true
   fi
   rm -f "$counter_file"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Module: Legacy ASR model download
 
+# shellcheck disable=SC1091
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {

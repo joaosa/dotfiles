@@ -126,7 +126,6 @@ let
     "sops"
     "sox"
     "starship"
-    "stow"
     "tailscale"
     "tesseract"
     "tcptraceroute"

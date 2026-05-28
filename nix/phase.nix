@@ -94,7 +94,6 @@
     "sops"
     "sox"
     "starship"
-    "stow"
     "tailscale"
     "tcptraceroute"
     "terminal-notifier"

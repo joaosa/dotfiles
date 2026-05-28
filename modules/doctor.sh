@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# Doctor: Verify setup health by checking expected binaries, stow links, and versions
+# Doctor: Verify setup health by checking expected binaries, packages, and downloads
 
+# shellcheck disable=SC1091
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {
-  log_section "1" "5" "CORE TOOLS"
+  log_section "1" "4" "CORE TOOLS"
   check_binary brew "Homebrew"
   check_binary git "Git"
-  check_binary stow "GNU Stow"
   check_binary just "Just"
   check_binary zsh "Zsh"
   check_binary nvim "Neovim"
   check_binary tmux "tmux"
 
-  log_section "2" "5" "LANGUAGE RUNTIMES"
+  log_section "2" "4" "LANGUAGE RUNTIMES"
   check_binary rustc "Rust compiler"
   check_binary cargo "Cargo"
   check_binary asdf "asdf version manager"
@@ -26,16 +26,13 @@ run() {
   golang_version=$(get_tool_version "golang")
   [ -n "$golang_version" ] && check_version go "$golang_version" "Go"
 
-  log_section "3" "5" "PACKAGES"
+  log_section "3" "4" "PACKAGES"
   verify_asdf_packages "nodejs" "${NPM_PACKAGES[@]}"
   verify_asdf_packages "golang" "${GO_PACKAGES[@]}"
   verify_cargo_packages "${CARGO_PACKAGES[@]}"
   verify_uv_packages "${UV_PACKAGES[@]}"
 
-  log_section "4" "5" "STOW LINKS"
-  check_stow_links
-
-  log_section "5" "5" "DOWNLOADS"
+  log_section "4" "4" "DOWNLOADS"
   check_dir "$ASR_MODEL_DIR" "ASR model (Qwen3-ASR-0.6B)"
 
   return $(( ITEMS_FAILED > 0 ? 1 : 0 ))

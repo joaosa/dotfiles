@@ -73,15 +73,14 @@ Suggested order:
 
 ### Legacy Bootstrap
 
-The old bootstrap flow is still present for fallback and for pieces that have
-not been fully converted yet:
+The old bootstrap flow is still present for fallback pieces that have not been
+fully converted yet:
 
 ```bash
 # Preview legacy bootstrap changes
 just dry-run
 
 # Or run specific modules
-just stow
 just languages
 ```
 
@@ -104,12 +103,11 @@ just nix-home           # Apply Home Manager using the pinned Nix CLI package
 
 just                    # Legacy full bootstrap (all modules in order)
 just dry-run            # Preview legacy changes without executing
-just stow               # Legacy dotfiles via GNU Stow
 just languages          # Legacy language runtimes and global packages
 just downloads          # Legacy ASR model download
 ```
 
-Modules can also be combined: `./bootstrap stow languages`
+Modules can also be combined: `./bootstrap languages downloads`
 
 Each module can run standalone: `bash modules/04-languages.sh`
 
@@ -135,10 +133,9 @@ Each module can run standalone: `bash modules/04-languages.sh`
 │   ├── helpers.sh         # Shared functions (download, asdf, packages)
 │   └── module.sh          # Module runner framework
 ├── modules/
-│   ├── 02-stow.sh         # Auto-discover & stow dotfiles
 │   ├── 04-languages.sh    # Rust, Node, Go, npm/go/cargo packages
 │   └── 06-downloads.sh    # Legacy ASR model download
-└── stow/                  # GNU Stow packages (symlinked to ~)
+└── stow/                  # Dotfile source tree linked by Home Manager
     ├── alacritty/
     ├── git/
     ├── hammerspoon/

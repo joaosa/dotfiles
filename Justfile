@@ -33,17 +33,13 @@ nix-update:
 nix-home:
     PATH="/nix/var/nix/profiles/default/bin:$PATH" {{nix}} run .#home-manager -- switch --flake .#joao-sousa-andrade
 
-# Run complete bootstrap (or specify modules: just bootstrap stow languages)
+# Run complete bootstrap (or specify modules: just bootstrap languages)
 bootstrap *MODULES:
     ./bootstrap {{MODULES}}
 
 # Preview changes without executing
 dry-run *MODULES:
     DRY_RUN=true ./bootstrap {{MODULES}}
-
-# Install dotfiles via stow
-stow:
-    ./bootstrap stow
 
 # Install language runtimes and packages
 languages:
@@ -53,7 +49,7 @@ languages:
 downloads:
     ./bootstrap downloads
 
-# Verify setup health (check binaries, stow links, versions)
+# Verify setup health
 [group('utils')]
 doctor:
     ./bootstrap doctor

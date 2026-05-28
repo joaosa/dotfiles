@@ -2,7 +2,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STOW_DIR="$SCRIPT_DIR/stow"
 DRY_RUN="${DRY_RUN:-false}"
 
 # If run via curl | bash, clone the repo first.
