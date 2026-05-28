@@ -26,7 +26,10 @@ let
   '';
   allHomeFiles = {
     ".config/alacritty".source = link "stow/alacritty/.config/alacritty";
-    ".config/karabiner/karabiner.json".source = link "stow/karabiner/.config/karabiner/karabiner.json";
+    ".config/karabiner" = {
+      source = link "stow/karabiner/.config/karabiner";
+      force = true;
+    };
     ".config/nvim".source = link "stow/nvim/.config/nvim";
     ".config/opencode".source = link "stow/opencode/.config/opencode";
     ".config/ruff".source = link "stow/ruff/.config/ruff";

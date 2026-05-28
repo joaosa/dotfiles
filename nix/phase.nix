@@ -118,6 +118,7 @@
   # Examples: [ ".gitconfig" ".tmux.conf" ".config/nvim" ]
   homeFileTargets = [
     ".config/alacritty"
+    ".config/karabiner"
     ".config/ruff"
     ".config/starship.toml"
     ".hammerspoon/config"
