@@ -119,8 +119,10 @@
   homeFileTargets = [
     ".kubectl_aliases"
     ".parallel/will-cite"
+    ".zpreztorc"
     ".zprezto"
     ".zshenv"
+    ".zshrc"
   ];
 
   # Replaces shell startup behavior with the Home Manager zsh/prezto config.
