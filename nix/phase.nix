@@ -119,6 +119,8 @@
   homeFileTargets = [
     ".config/alacritty"
     ".config/karabiner"
+    ".config/nvim/init.lua"
+    ".config/nvim/lua"
     ".config/ruff"
     ".config/starship.toml"
     ".gitconfig"
@@ -139,6 +141,7 @@
     ".zprezto"
     ".zshenv"
     ".zshrc"
+    ".yamllint"
   ];
 
   # Replaces shell startup behavior with the Home Manager zsh/prezto config.
