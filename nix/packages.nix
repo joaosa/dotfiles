@@ -127,6 +127,7 @@ let
     "sox"
     "starship"
     "stow"
+    "tailscale"
     "tesseract"
     "tcptraceroute"
     "terminal-notifier"

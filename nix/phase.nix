@@ -94,6 +94,7 @@
     "sox"
     "starship"
     "stow"
+    "tailscale"
     "tcptraceroute"
     "terminal-notifier"
     "tesseract"
@@ -128,6 +129,9 @@
   ollamaService = true;
   syncthingService = true;
 
+  # nix-darwin-managed system launchd services.
+  tailscaleService = true;
+
   # nix-darwin-managed system shell integration and font installation.
   # Examples: [ "git" "zsh" ]
   systemPackageKeys = [ ];
@@ -135,7 +139,7 @@
   fonts = false;
 
   # Declarative Homebrew management. Start empty and add one formula/cask at a time.
-  homebrewBrews = [ "tailscale" ];
+  homebrewBrews = [ ];
   homebrewCasks = [
     "gcloud-cli"
     "font-sauce-code-pro-nerd-font"
