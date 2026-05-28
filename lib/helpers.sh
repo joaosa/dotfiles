@@ -43,21 +43,6 @@ ensure_installed() {
   fi
 }
 
-# Encapsulates the common check/dry-run/start/log pattern for services.
-# Usage: ensure_service_running "name" "check_cmd" "start_cmd"
-#   $1 — service name (used in log messages)
-#   $2 — shell command that succeeds (exit 0) when service is already running
-#   $3 — shell command(s) to start the service
-ensure_service_running() {
-  local name="$1" check_cmd="$2" start_cmd="$3"
-  if eval "$check_cmd"; then
-    log_skip "$name service already running"
-  elif ! is_dry_run "start $name service"; then
-    eval "$start_cmd"
-    log_success "Started $name service"
-  fi
-}
-
 # ============================================================================
 # MODULE INIT
 # ============================================================================

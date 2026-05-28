@@ -57,10 +57,6 @@ shell:
 languages:
     ./bootstrap languages
 
-# Configure services (Syncthing)
-services:
-    ./bootstrap services
-
 # Download config files (kubectl aliases, whisper model)
 downloads:
     ./bootstrap downloads

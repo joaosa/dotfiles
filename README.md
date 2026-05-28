@@ -108,7 +108,6 @@ just homebrew           # Install Homebrew for legacy modules
 just stow               # Legacy dotfiles via GNU Stow
 just shell              # Legacy shell setup
 just languages          # Legacy language runtimes and global packages
-just services           # Legacy services setup
 just downloads          # Legacy ASR model download
 ```
 
@@ -142,7 +141,6 @@ Each module can run standalone: `bash modules/04-languages.sh`
 │   ├── 02-stow.sh         # Auto-discover & stow dotfiles
 │   ├── 03-shell.sh        # Prezto, fzf, git config, parallel
 │   ├── 04-languages.sh    # Rust, Node, Go, npm/go/cargo packages
-│   ├── 05-services.sh     # Syncthing
 │   └── 06-downloads.sh    # Verified file downloads
 └── stow/                  # GNU Stow packages (symlinked to ~)
     ├── alacritty/
