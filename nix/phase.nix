@@ -121,6 +121,8 @@
     ".config/karabiner"
     ".config/ruff"
     ".config/starship.toml"
+    ".gitconfig"
+    ".gitignore_global"
     ".hammerspoon/config"
     ".hammerspoon/init.lua"
     ".hammerspoon/lib"
