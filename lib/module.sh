@@ -15,7 +15,7 @@ list_modules() {
 }
 
 # Resolve a module name to its file path.
-# Matches by: exact name, or numeric-prefix (e.g. "languages" -> "04-languages.sh")
+# Matches by: exact name, or numeric-prefix (e.g. "foo" -> "04-foo.sh")
 _resolve_module() {
   local name="$1"
   local modules_dir="$SCRIPT_DIR/modules"

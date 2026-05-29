@@ -1,8 +1,8 @@
 # dotfiles
 
 Declarative macOS development environment using Nix, nix-darwin, Home Manager,
-and nix-homebrew. The previous bootstrap remains available as a fallback for
-the remaining legacy pieces while the migration settles.
+and nix-homebrew. Nix owns the primary package inventory, selected Homebrew
+formulae/casks, Home Manager files, fonts, services, and fixed-output assets.
 
 ## Security Considerations
 
@@ -10,7 +10,7 @@ This repo installs software and modifies your system. Before running:
 
 1. **Review the code** - Read [`flake.nix`](./flake.nix), [`nix/`](./nix/), and [`modules/`](./modules/) to understand what will be installed
 2. **Verify integrity** - Nix uses fixed-output hashes for fetched files, including model data
-3. **Preview changes** - Use `just nix-build` for Nix or `just dry-run` for the legacy bootstrap
+3. **Preview changes** - Use `just nix-build`, `just nix-home-build`, or `just nix-check` before activation
 
 ## Installation
 
@@ -73,44 +73,23 @@ Suggested order:
 4. `qwen3AsrModel` once you want Home Manager to own the local ASR model path
 5. `homeShell`, `systemShell`, `fonts`, and `syncthingGuiTls` after the smaller pieces are stable
 
-### Legacy Bootstrap
-
-The old bootstrap flow is still present for fallback pieces that have not been
-fully converted yet:
-
-```bash
-# Preview legacy bootstrap changes
-just dry-run
-
-# Or run specific modules
-just languages
-```
-
-### Legacy Quick Install
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/joaosa/dotfiles/master/bootstrap | bash
-```
-
 ## Usage
 
 ```bash
 just nix-bootstrap      # First nix-darwin activation after Nix/Lix install
 just nix-switch         # Apply the nix-darwin + Home Manager flake
-just nix-build          # Build the flake without activating
+just nix-build          # Build the nix-darwin system without activating
 just nix-home-build     # Build the standalone Home Manager output
 just nix-check          # Validate flake outputs
 just nix-update         # Update flake inputs
 just nix-home           # Apply Home Manager using the pinned Nix CLI package
-
-just                    # Legacy full bootstrap (all modules in order)
-just dry-run            # Preview legacy changes without executing
-just languages          # Legacy language tools not yet managed by Nix
+just doctor             # Verify expected tools and local assets
+just lint               # Run shellcheck over bootstrap helper scripts
 ```
 
-Modules can also be combined when more than one legacy module remains.
-
-Each module can run standalone: `bash modules/04-languages.sh`
+The bootstrap script remains curl-friendly and module-aware, but there are no
+numbered install modules left at the moment. Operational checks live in
+`modules/doctor.sh`.
 
 ## Structure
 
@@ -127,16 +106,15 @@ Each module can run standalone: `bash modules/04-languages.sh`
 │   └── home/
 │       ├── default.nix    # Home Manager user configuration
 │       └── qwen3-asr.nix  # Fixed-output ASR model fetches
-├── bootstrap              # Entry point (curl-friendly)
+├── bootstrap              # Entry point and module runner
 ├── Justfile               # Task runner
-├── .tool-versions         # asdf language versions
-├── versions.env           # Remaining legacy Cargo package pins
+├── .tool-versions         # asdf language versions still used by local projects
 ├── lib/
 │   ├── logging.sh         # Color-coded logging with counters
 │   ├── helpers.sh         # Shared bootstrap helpers
 │   └── module.sh          # Module runner framework
 ├── modules/
-│   └── 04-languages.sh    # Legacy language tools not yet managed by Nix
+│   └── doctor.sh          # Local setup health checks
 └── stow/                  # Dotfile source tree linked by Home Manager
     ├── alacritty/
     ├── git/
@@ -157,27 +135,26 @@ Each module can run standalone: `bash modules/04-languages.sh`
 
 - Fixed-output hashes for downloaded assets and model data
 - Flake-pinned Nix inputs once `flake.lock` is generated
-- Legacy version pins for Cargo extras
 - Homebrew auto-update and activation upgrades disabled under nix-darwin
-- Legacy DRY_RUN mode to preview bootstrap changes
+- `nix/phase.nix` gates for incremental activation
 
 ### Idempotency
 
 - Nix activations are declarative and safe to re-run
 - Home Manager owns user-level symlinks and backs up replaced files with `.hm-backup`
-- Legacy modules keep their check-before-install pattern
+- Doctor checks can be re-run without changing the system
 
 ### Modularity
 
 - Nix configuration is split into package, system, Homebrew, and home modules
-- Legacy modules still run independently or as part of the old bootstrap
+- Local package derivations live under `nix/packages/` when nixpkgs does not provide the exact tool/version needed
+- Bootstrap libraries remain available for read-only checks and future small modules
 
 ## Version Management
 
-- [`flake.nix`](./flake.nix) and [`nix/`](./nix/) — primary Nix, nix-darwin, Home Manager, and Homebrew configuration
-- `flake.lock` — generated by `nix flake lock` or `just nix-update`
-- [`.tool-versions`](./.tool-versions) — legacy asdf language versions
-- [`versions.env`](./versions.env) — legacy Cargo package pins
+- [`flake.nix`](./flake.nix) and [`nix/`](./nix/) - primary Nix, nix-darwin, Home Manager, and Homebrew configuration
+- `flake.lock` - generated by `nix flake lock` or `just nix-update`
+- [`.tool-versions`](./.tool-versions) - asdf language versions used by local projects
 
 ## Prerequisites
 

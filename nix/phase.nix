@@ -86,6 +86,7 @@
     "nmap"
     "opencode"
     "openpgp-card-tool-git"
+    "qwen-asr-cli"
     "openpgp-card-tools"
     "parallel"
     "pkg-config"

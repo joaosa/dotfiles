@@ -33,17 +33,13 @@ nix-update:
 nix-home:
     PATH="/nix/var/nix/profiles/default/bin:$PATH" {{nix}} run .#home-manager -- switch --flake .#joao-sousa-andrade
 
-# Run complete bootstrap (or specify modules: just bootstrap languages)
+# Run complete bootstrap (or specify modules by name)
 bootstrap *MODULES:
     ./bootstrap {{MODULES}}
 
 # Preview changes without executing
 dry-run *MODULES:
     DRY_RUN=true ./bootstrap {{MODULES}}
-
-# Install language runtimes and packages
-languages:
-    ./bootstrap languages
 
 # Verify setup health
 [group('utils')]
@@ -53,4 +49,4 @@ doctor:
 # Lint all shell scripts with shellcheck
 [group('utils')]
 lint:
-    shellcheck -x lib/*.sh modules/*.sh bootstrap versions.env
+    shellcheck -x lib/*.sh modules/*.sh bootstrap

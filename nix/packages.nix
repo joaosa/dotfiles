@@ -114,7 +114,6 @@ let
     "procs"
     "pv"
     "pwgen"
-    "qwen-asr-cli"
     "qrencode"
     "ripgrep"
     "rustup"
@@ -198,6 +197,10 @@ let
 
     "openpgp-card-tool-git" = [
       (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
+    ];
+
+    "qwen-asr-cli" = [
+      (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
     ];
 
     "google-cloud-sdk" = [

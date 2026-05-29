@@ -52,6 +52,5 @@ init_standalone() {
   DRY_RUN="${DRY_RUN:-false}"
   source "$SCRIPT_DIR/lib/logging.sh"
   # helpers.sh is already sourced (we're in it)
-  source "$SCRIPT_DIR/versions.env"
   reset_counters
 }
