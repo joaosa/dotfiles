@@ -24,6 +24,18 @@ let
     #!${pkgs.bash}/bin/bash
     exec /Applications/Obsidian.app/Contents/MacOS/Obsidian "$@"
   '';
+  homePackages = import ../packages.nix {
+    inherit lib pkgs;
+    enabledKeys = phase.homePackageKeys;
+  };
+  pkgConfigEnv = pkgs.buildEnv {
+    name = "home-pkg-config-path";
+    paths = homePackages;
+    pathsToLink = [
+      "/lib/pkgconfig"
+      "/share/pkgconfig"
+    ];
+  };
   allHomeFiles = {
     ".config/alacritty".source = link "stow/alacritty/.config/alacritty";
     ".config/karabiner" = {
@@ -79,10 +91,7 @@ in
   programs.home-manager.enable = true;
   xdg.enable = true;
 
-  home.packages = import ../packages.nix {
-    inherit lib pkgs;
-    enabledKeys = phase.homePackageKeys;
-  };
+  home.packages = homePackages;
 
   home.sessionPath = lib.mkIf phase.homeShell [
     "${homeDir}/.local/bin"
@@ -96,6 +105,8 @@ in
 
   home.sessionVariables = {
     PKG_CONFIG_PATH = lib.concatStringsSep ":" [
+      "${pkgConfigEnv}/lib/pkgconfig"
+      "${pkgConfigEnv}/share/pkgconfig"
       "${homeDir}/.nix-profile/lib/pkgconfig"
       "${homeDir}/.nix-profile/share/pkgconfig"
       "/run/current-system/sw/lib/pkgconfig"
