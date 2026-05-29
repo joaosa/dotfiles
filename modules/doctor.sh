@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Doctor: Verify setup health by checking expected binaries, packages, and downloads
+# Doctor: Verify setup health by checking expected binaries, packages, and model data
 
 # shellcheck disable=SC1091
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
@@ -24,8 +24,8 @@ run() {
   verify_go_packages "${GO_PACKAGES[@]}"
   verify_cargo_packages "${CARGO_PACKAGES[@]}"
 
-  log_section "4" "4" "DOWNLOADS"
-  check_dir "$ASR_MODEL_DIR" "ASR model (Qwen3-ASR-0.6B)"
+  log_section "4" "4" "MODEL DATA"
+  check_file "$HOME/.local/share/qwen3-asr/Qwen3-ASR-0.6B/config.json" "ASR model (Qwen3-ASR-0.6B)"
 
   return $(( ITEMS_FAILED > 0 ? 1 : 0 ))
 }

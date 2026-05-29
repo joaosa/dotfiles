@@ -28,6 +28,7 @@ let
     inherit lib pkgs;
     enabledKeys = phase.homePackageKeys;
   };
+  qwen3AsrModel = import ./qwen3-asr.nix { inherit pkgs; };
   pkgConfigEnv = pkgs.buildEnv {
     name = "home-pkg-config-path";
     paths = homePackages;
@@ -130,6 +131,12 @@ in
         source = "${pkgs.docker-buildx}/bin/docker-buildx";
         force = true;
       };
+    }
+    // lib.optionalAttrs phase.qwen3AsrModel {
+      ".local/share/qwen3-asr/Qwen3-ASR-0.6B" = {
+        source = qwen3AsrModel;
+        force = true;
+      };
     };
 
   services.ollama = lib.mkIf phase.ollamaService {
@@ -145,6 +152,22 @@ in
     overrideDevices = false;
     overrideFolders = false;
   };
+
+  home.activation.qwen3AsrModelPath = lib.mkIf phase.qwen3AsrModel (
+    lib.hm.dag.entryBefore [ "linkGeneration" ] ''
+      target="${homeDir}/.local/share/qwen3-asr/Qwen3-ASR-0.6B"
+      backup="$target.before-nix"
+
+      if [ -e "$target" ] && [ ! -L "$target" ]; then
+        if [ -e "$backup" ]; then
+          echo "Refusing to replace $target because $backup already exists"
+          exit 1
+        fi
+
+        /bin/mv "$target" "$backup"
+      fi
+    ''
+  );
 
   home.activation.syncthingGuiTls = lib.mkIf phase.syncthingGuiTls (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''

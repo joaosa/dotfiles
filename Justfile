@@ -45,10 +45,6 @@ dry-run *MODULES:
 languages:
     ./bootstrap languages
 
-# Download legacy ASR model
-downloads:
-    ./bootstrap downloads
-
 # Verify setup health
 [group('utils')]
 doctor:

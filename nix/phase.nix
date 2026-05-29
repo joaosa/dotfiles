@@ -164,6 +164,9 @@
   ollamaService = true;
   syncthingService = true;
 
+  # Home Manager-managed model data.
+  qwen3AsrModel = true;
+
   # nix-darwin-managed system launchd services.
   tailscaleService = true;
 

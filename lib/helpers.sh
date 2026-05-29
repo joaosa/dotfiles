@@ -5,8 +5,6 @@
 _LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/platform.sh
 source "$_LIB_DIR/platform.sh"
-# shellcheck source=lib/downloads.sh
-source "$_LIB_DIR/downloads.sh"
 # shellcheck source=lib/packages.sh
 source "$_LIB_DIR/packages.sh"
 
