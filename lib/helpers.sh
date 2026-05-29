@@ -57,17 +57,3 @@ init_standalone() {
   source "$SCRIPT_DIR/versions.env"
   reset_counters
 }
-
-# ============================================================================
-# VERSION MANAGEMENT
-# ============================================================================
-
-get_tool_version() {
-  local tool="$1"
-  local tool_versions_file="$SCRIPT_DIR/.tool-versions"
-  if [ -f "$tool_versions_file" ]; then
-    grep "^${tool} " "$tool_versions_file" | awk '{print $2}'
-  else
-    echo ""
-  fi
-}

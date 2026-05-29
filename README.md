@@ -103,7 +103,7 @@ just nix-home           # Apply Home Manager using the pinned Nix CLI package
 
 just                    # Legacy full bootstrap (all modules in order)
 just dry-run            # Preview legacy changes without executing
-just languages          # Legacy language runtimes and global packages
+just languages          # Legacy language tools not yet managed by Nix
 just downloads          # Legacy ASR model download
 ```
 
@@ -133,7 +133,7 @@ Each module can run standalone: `bash modules/04-languages.sh`
 │   ├── helpers.sh         # Shared functions (download, asdf, packages)
 │   └── module.sh          # Module runner framework
 ├── modules/
-│   ├── 04-languages.sh    # Rust, Node, Go, npm/go/cargo packages
+│   ├── 04-languages.sh    # Legacy language tools not yet managed by Nix
 │   └── 06-downloads.sh    # Legacy ASR model download
 └── stow/                  # Dotfile source tree linked by Home Manager
     ├── alacritty/
