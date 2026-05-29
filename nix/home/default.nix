@@ -126,6 +126,11 @@ in
 
   home.file =
     lib.filterAttrs (target: _: builtins.elem target phase.homeFileTargets) allHomeFiles
+    // lib.optionalAttrs (builtins.elem "nodejs" phase.homePackageKeys) {
+      ".npmrc".text = ''
+        prefix=${homeDir}/.local
+      '';
+    }
     // lib.optionalAttrs (builtins.elem "docker-buildx" phase.homePackageKeys) {
       ".docker/cli-plugins/docker-buildx" = {
         source = "${pkgs.docker-buildx}/bin/docker-buildx";
@@ -152,6 +157,12 @@ in
     overrideDevices = false;
     overrideFolders = false;
   };
+
+  home.activation.npmPrefix = lib.mkIf (builtins.elem "nodejs" phase.homePackageKeys) (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      /bin/mkdir -p "${homeDir}/.local/bin" "${homeDir}/.local/lib/node_modules"
+    ''
+  );
 
   home.activation.qwen3AsrModelPath = lib.mkIf phase.qwen3AsrModel (
     lib.hm.dag.entryBefore [ "linkGeneration" ] ''
