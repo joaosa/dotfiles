@@ -5,9 +5,6 @@
 [[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
 
 run() {
-  log_info "Installing legacy Go packages..."
-  install_go_packages "${GO_PACKAGES[@]}"
-
   log_info "Installing legacy Cargo packages..."
   install_cargo_packages "${CARGO_PACKAGES[@]}"
 }

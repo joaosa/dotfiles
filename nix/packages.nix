@@ -40,7 +40,6 @@ let
     "age"
     "ansible"
     "asciinema"
-    "asciinema-edit"
     "asdf-vm"
     "bash"
     "bat"
@@ -107,7 +106,6 @@ let
     "neovim"
     "nmap"
     "opencode"
-    "openpgp-card-tool-git"
     "openpgp-card-tools"
     "parallel"
     "pkg-config"
@@ -194,6 +192,14 @@ let
   };
 
   extraPackages = {
+    "asciinema-edit" = [
+      (pkgs.callPackage ./packages/asciinema-edit.nix { })
+    ];
+
+    "openpgp-card-tool-git" = [
+      (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
+    ];
+
     "google-cloud-sdk" = [
       (pkgs.google-cloud-sdk.withExtraComponents [
         pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin

@@ -5,13 +5,6 @@
 # PACKAGE NAME PARSING
 # ============================================================================
 
-# Extract binary name from a Go install path: github.com/user/repo/cmd/tool@v1.0 -> tool
-go_binary_name() {
-  local pkg="$1"
-  local name="${pkg##*/}"
-  echo "${name%%@*}"
-}
-
 # Extract binary name from a cargo package spec (crate:binary or just crate)
 cargo_bin_name() {
   local pkg="$1"
@@ -26,34 +19,6 @@ cargo_bin_name() {
 cargo_crate_name() {
   local pkg="$1"
   echo "${pkg%%:*}"
-}
-
-install_go_packages() {
-  local packages=("$@")
-  local -a already_installed=()
-
-  for package in "${packages[@]}"; do
-    local bin_name install_exit=0
-    bin_name=$(go_binary_name "$package")
-
-    if command -v "$bin_name" >/dev/null 2>&1; then
-      already_installed+=("$bin_name")
-      continue
-    fi
-
-    if is_dry_run "install Go package: $bin_name"; then continue; fi
-
-    log_info "Installing Go package: $package"
-    go install "$package" || install_exit=$?
-
-    if [ "$install_exit" -eq 0 ]; then
-      log_success "Installed Go package: $bin_name"
-    else
-      log_error "Failed to install Go package: $bin_name"
-    fi
-  done
-
-  log_skip_grouped "Go packages already installed" "${already_installed[@]+"${already_installed[@]}"}"
 }
 
 # ============================================================================
@@ -78,11 +43,7 @@ install_cargo_packages() {
     if is_dry_run "install cargo package: $crate_name"; then continue; fi
 
     local cargo_exit=0
-    # openpgp-card-tool-git requires explicit framework linking on macOS
-    if is_macos && [ "$crate_name" = "openpgp-card-tool-git" ]; then
-      RUSTFLAGS="-C link-arg=-framework -C link-arg=AppKit -C link-arg=-framework -C link-arg=CoreServices" \
-        cargo install "$crate_name" || cargo_exit=$?
-    elif [ "$crate_name" = "qwen-asr-cli" ]; then
+    if [ "$crate_name" = "qwen-asr-cli" ]; then
       RUSTFLAGS="-C target-cpu=native" cargo install "$crate_name" || cargo_exit=$?
     else
       cargo install "$crate_name" || cargo_exit=$?
@@ -136,15 +97,5 @@ verify_cargo_packages() {
     local bin_name
     bin_name=$(cargo_bin_name "$pkg")
     check_file "$HOME/.cargo/bin/$bin_name" "cargo: $(cargo_crate_name "$pkg")"
-  done
-}
-
-# Verify that Go-installed tools are available.
-verify_go_packages() {
-  local packages=("$@")
-  for pkg in "${packages[@]}"; do
-    local bin_name
-    bin_name=$(go_binary_name "$pkg")
-    check_binary "$bin_name" "go: $bin_name"
   done
 }

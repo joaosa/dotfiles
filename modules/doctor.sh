@@ -21,7 +21,6 @@ run() {
   check_binary asdf "asdf version manager"
 
   log_section "3" "4" "PACKAGES"
-  verify_go_packages "${GO_PACKAGES[@]}"
   verify_cargo_packages "${CARGO_PACKAGES[@]}"
 
   log_section "4" "4" "MODEL DATA"
