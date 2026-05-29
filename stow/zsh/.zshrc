@@ -16,6 +16,19 @@ fi
 # PATH
 export PATH="$HOME/.local/bin:$PATH"
 
+_prefer_nix_profile_paths() {
+  typeset -gU path
+  local -a nix_profile_paths
+
+  [[ -d "/etc/profiles/per-user/$USER/bin" ]] && nix_profile_paths+=("/etc/profiles/per-user/$USER/bin")
+  [[ -d "$HOME/.nix-profile/bin" ]] && nix_profile_paths+=("$HOME/.nix-profile/bin")
+  [[ -d /nix/var/nix/profiles/default/bin ]] && nix_profile_paths+=(/nix/var/nix/profiles/default/bin)
+
+  path=($nix_profile_paths $path)
+}
+
+_prefer_nix_profile_paths
+
 # Customize to your needs...
 # vim
 # fix the delay switching modes
@@ -110,6 +123,8 @@ elif [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
 elif [ -f "$HOME/.asdf/asdf.sh" ]; then
   . "$HOME/.asdf/asdf.sh"
 fi
+_prefer_nix_profile_paths
+unfunction _prefer_nix_profile_paths
 
 # zoxide
 command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"

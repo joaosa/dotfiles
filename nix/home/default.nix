@@ -319,6 +319,19 @@ in
 
         command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
 
+        _prefer_nix_profile_paths() {
+          typeset -gU path
+          local -a nix_profile_paths
+
+          [[ -d "/etc/profiles/per-user/${username}/bin" ]] && nix_profile_paths+=("/etc/profiles/per-user/${username}/bin")
+          [[ -d "${homeDir}/.nix-profile/bin" ]] && nix_profile_paths+=("${homeDir}/.nix-profile/bin")
+          [[ -d /nix/var/nix/profiles/default/bin ]] && nix_profile_paths+=(/nix/var/nix/profiles/default/bin)
+
+          path=($nix_profile_paths $path)
+        }
+
+        _prefer_nix_profile_paths
+
         if command -v asdf >/dev/null 2>&1; then
           asdf_prefix="$(dirname "$(dirname "$(command -v asdf)")")"
           if [ -f "$asdf_prefix/etc/profile.d/asdf-prepare.sh" ]; then
@@ -331,6 +344,8 @@ in
         elif [ -f "$HOME/.asdf/asdf.sh" ]; then
           . "$HOME/.asdf/asdf.sh"
         fi
+        _prefer_nix_profile_paths
+        unfunction _prefer_nix_profile_paths
 
         command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
         command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
