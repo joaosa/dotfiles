@@ -4,6 +4,7 @@
 
   # Home Manager packages from nix/packages.nix by package key.
   # Examples: [ "ripgrep" "fd" "tmux" "nodejs" ]
+  # claude-code and codex stay out of this list while npm latest is needed.
   homePackageKeys = [
     "ripgrep"
     "fd"

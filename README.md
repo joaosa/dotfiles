@@ -91,6 +91,17 @@ The bootstrap script remains curl-friendly and module-aware, but there are no
 numbered install modules left at the moment. Operational checks live in
 `modules/doctor.sh`.
 
+### Tool Ownership Exceptions
+
+`node` and `npm` are Nix-managed, while global npm packages install into
+`~/.local` through the Home Manager-managed `.npmrc`. `claude` and `codex` are
+intentionally installed with npm for now because their upstream CLIs move faster
+than nixpkgs; keep them out of `homePackageKeys` until Nix catches up.
+
+Project-local Rust CLIs are intentionally managed by their own dev symlink flow
+rather than Cargo's install registry or this flake. Those symlinks live in
+`~/.cargo/bin` and point at the relevant workspace `target` directory.
+
 ## Structure
 
 ```
