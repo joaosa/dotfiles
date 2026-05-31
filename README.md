@@ -123,7 +123,7 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 │   └── packages.sh        # Doctor check helpers
 ├── modules/
 │   └── doctor.sh          # Local setup health checks
-└── stow/                  # Dotfile source tree linked by Home Manager
+└── dotfiles/              # Dotfile source tree linked by Home Manager
     ├── alacritty/
     ├── git/
     ├── hammerspoon/

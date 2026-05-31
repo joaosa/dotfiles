@@ -38,26 +38,26 @@ let
     ];
   };
   allHomeFiles = {
-    ".config/alacritty".source = link "stow/alacritty/.config/alacritty";
+    ".config/alacritty".source = link "dotfiles/alacritty/.config/alacritty";
     ".config/karabiner" = {
-      source = link "stow/karabiner/.config/karabiner";
+      source = link "dotfiles/karabiner/.config/karabiner";
       force = true;
     };
-    ".config/nvim/init.lua".source = link "stow/nvim/.config/nvim/init.lua";
-    ".config/nvim/lua".source = link "stow/nvim/.config/nvim/lua";
-    ".config/ruff".source = link "stow/ruff/.config/ruff";
-    ".config/starship.toml".source = link "stow/starship/.config/starship.toml";
-    ".gitconfig".source = link "stow/git/.gitconfig";
-    ".gitignore_global".source = link "stow/git/.gitignore_global";
-    ".hammerspoon/config".source = link "stow/hammerspoon/.hammerspoon/config";
-    ".hammerspoon/init.lua".source = link "stow/hammerspoon/.hammerspoon/init.lua";
-    ".hammerspoon/lib".source = link "stow/hammerspoon/.hammerspoon/lib";
-    ".hammerspoon/modules".source = link "stow/hammerspoon/.hammerspoon/modules";
+    ".config/nvim/init.lua".source = link "dotfiles/nvim/.config/nvim/init.lua";
+    ".config/nvim/lua".source = link "dotfiles/nvim/.config/nvim/lua";
+    ".config/ruff".source = link "dotfiles/ruff/.config/ruff";
+    ".config/starship.toml".source = link "dotfiles/starship/.config/starship.toml";
+    ".gitconfig".source = link "dotfiles/git/.gitconfig";
+    ".gitignore_global".source = link "dotfiles/git/.gitignore_global";
+    ".hammerspoon/config".source = link "dotfiles/hammerspoon/.hammerspoon/config";
+    ".hammerspoon/init.lua".source = link "dotfiles/hammerspoon/.hammerspoon/init.lua";
+    ".hammerspoon/lib".source = link "dotfiles/hammerspoon/.hammerspoon/lib";
+    ".hammerspoon/modules".source = link "dotfiles/hammerspoon/.hammerspoon/modules";
     ".kubectl_aliases" = {
       source = kubectlAliases;
       force = true;
     };
-    ".lightline.conf".source = link "stow/tmux/.lightline.conf";
+    ".lightline.conf".source = link "dotfiles/tmux/.lightline.conf";
     ".local/bin/Obsidian" = {
       text = obsidianCli;
       executable = true;
@@ -70,17 +70,17 @@ let
       text = "";
       force = true;
     };
-    ".stylua.toml".source = link "stow/stylua/.stylua.toml";
-    ".tmux.conf".source = link "stow/tmux/.tmux.conf";
-    ".yamllint".source = link "stow/nvim/.yamllint";
-    ".zprofile".source = link "stow/zsh/.zprofile";
-    ".zpreztorc".source = link "stow/zsh/.zpreztorc";
+    ".stylua.toml".source = link "dotfiles/stylua/.stylua.toml";
+    ".tmux.conf".source = link "dotfiles/tmux/.tmux.conf";
+    ".yamllint".source = link "dotfiles/nvim/.yamllint";
+    ".zprofile".source = link "dotfiles/zsh/.zprofile";
+    ".zpreztorc".source = link "dotfiles/zsh/.zpreztorc";
     ".zprezto".source = "${pkgs.zsh-prezto}/share/zsh-prezto";
     ".zshenv" = {
-      source = link "stow/zsh/.zshenv";
+      source = link "dotfiles/zsh/.zshenv";
       force = true;
     };
-    ".zshrc".source = link "stow/zsh/.zshrc";
+    ".zshrc".source = link "dotfiles/zsh/.zshrc";
   };
 in
 {
