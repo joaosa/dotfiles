@@ -75,3 +75,6 @@ __pycache__/
 
 # Rust
 target/
+
+# Claude
+**/.claude/settings.local.json
