@@ -45,7 +45,6 @@ let
     };
     ".config/nvim/init.lua".source = link "stow/nvim/.config/nvim/init.lua";
     ".config/nvim/lua".source = link "stow/nvim/.config/nvim/lua";
-    ".config/opencode".source = link "stow/opencode/.config/opencode";
     ".config/ruff".source = link "stow/ruff/.config/ruff";
     ".config/starship.toml".source = link "stow/starship/.config/starship.toml";
     ".gitconfig".source = link "stow/git/.gitconfig";

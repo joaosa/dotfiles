@@ -1,8 +1,8 @@
 # Dotfiles bootstrap - run `just` to see all recipes
 nix := "/nix/var/nix/profiles/default/bin/nix"
 
-# Full bootstrap
-default: bootstrap
+# Default health check
+default: doctor
 
 # First nix-darwin activation after installing Nix/Lix
 nix-bootstrap:
@@ -33,13 +33,9 @@ nix-update:
 nix-home:
     PATH="/nix/var/nix/profiles/default/bin:$PATH" {{nix}} run .#home-manager -- switch --flake .#joao-sousa-andrade
 
-# Run complete bootstrap (or specify modules by name)
-bootstrap *MODULES:
-    ./bootstrap {{MODULES}}
-
-# Preview changes without executing
-dry-run *MODULES:
-    DRY_RUN=true ./bootstrap {{MODULES}}
+# Run the bootstrap health-check wrapper
+bootstrap *ARGS:
+    ./bootstrap {{ARGS}}
 
 # Verify setup health
 [group('utils')]

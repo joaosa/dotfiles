@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
-# Doctor: Verify setup health by checking expected binaries and model data
+# Verify setup health by checking expected binaries and model data.
+set -euo pipefail
 
-# shellcheck disable=SC1091
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && source "${BASH_SOURCE[0]%/*}/../lib/standalone.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/logging.sh
+source "$SCRIPT_DIR/lib/logging.sh"
+# shellcheck source=lib/packages.sh
+source "$SCRIPT_DIR/lib/packages.sh"
 
 run() {
+  reset_counters
+
   log_section "1" "3" "CORE TOOLS"
   check_binary brew "Homebrew"
   check_binary git "Git"
@@ -28,4 +34,6 @@ run() {
   return $(( ITEMS_FAILED > 0 ? 1 : 0 ))
 }
 
-[[ "${BASH_SOURCE[0]}" == "${0}" ]] && { run || true; print_summary --doctor; exit $(( ITEMS_FAILED > 0 ? 1 : 0 )); }
+run || true
+print_summary --doctor
+exit $(( ITEMS_FAILED > 0 ? 1 : 0 ))

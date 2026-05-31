@@ -8,7 +8,7 @@ formulae/casks, Home Manager files, fonts, services, and fixed-output assets.
 
 This repo installs software and modifies your system. Before running:
 
-1. **Review the code** - Read [`flake.nix`](./flake.nix), [`nix/`](./nix/), and [`modules/`](./modules/) to understand what will be installed
+1. **Review the code** - Read [`flake.nix`](./flake.nix) and [`nix/`](./nix/) to understand what will be installed; [`modules/doctor.sh`](./modules/doctor.sh) is read-only
 2. **Verify integrity** - Nix uses fixed-output hashes for fetched files, including model data
 3. **Preview changes** - Use `just nix-build`, `just nix-home-build`, or `just nix-check` before activation
 
@@ -84,12 +84,11 @@ just nix-check          # Validate flake outputs
 just nix-update         # Update flake inputs
 just nix-home           # Apply Home Manager using the pinned Nix CLI package
 just doctor             # Verify expected tools and local assets
-just lint               # Run shellcheck over bootstrap helper scripts
+just lint               # Run shellcheck over bootstrap and doctor scripts
 ```
 
-The bootstrap script remains curl-friendly and module-aware, but there are no
-numbered install modules left at the moment. Operational checks live in
-`modules/doctor.sh`.
+The bootstrap script remains curl-friendly, but it now only runs the read-only
+doctor checks. Declarative setup lives in Nix.
 
 ### Tool Ownership Exceptions
 
@@ -117,12 +116,11 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 │   └── home/
 │       ├── default.nix    # Home Manager user configuration
 │       └── qwen3-asr.nix  # Fixed-output ASR model fetches
-├── bootstrap              # Entry point and module runner
+├── bootstrap              # Curl-friendly doctor wrapper
 ├── Justfile               # Task runner
 ├── lib/
 │   ├── logging.sh         # Color-coded logging with counters
-│   ├── helpers.sh         # Shared bootstrap helpers
-│   └── module.sh          # Module runner framework
+│   └── packages.sh        # Doctor check helpers
 ├── modules/
 │   └── doctor.sh          # Local setup health checks
 └── stow/                  # Dotfile source tree linked by Home Manager
@@ -131,7 +129,6 @@ rather than Cargo's install registry or this flake. Those symlinks live in
     ├── hammerspoon/
     ├── karabiner/
     ├── nvim/
-    ├── opencode/
     ├── ruff/
     ├── starship/
     ├── stylua/
@@ -158,7 +155,7 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 
 - Nix configuration is split into package, system, Homebrew, and home modules
 - Local package derivations live under `nix/packages/` when nixpkgs does not provide the exact tool/version needed
-- Bootstrap libraries remain available for read-only checks and future small modules
+- Bootstrap is intentionally limited to read-only doctor checks
 
 ## Version Management
 
