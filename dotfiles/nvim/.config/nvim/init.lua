@@ -193,7 +193,17 @@ local lsp_servers = {
 
 -- Formatter config (defined before lazy.setup so plugin config functions can reference it)
 local formatter_fts = {
-  prettierd = { "javascript", "typescript", "javascriptreact", "typescriptreact", "css", "json", "html", "markdown", "yaml" },
+  prettierd = {
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact",
+    "css",
+    "json",
+    "html",
+    "markdown",
+    "yaml",
+  },
   stylua = { "lua" },
   goimports = { "go" },
   sqlfluff = { "sql" },
@@ -301,9 +311,14 @@ require("lazy").setup({
       local accent = { "#282828", "#a89b89" }
       local muted = { "#847c72", "#534d4a" }
       vim.g.tmuxline_theme = {
-        a = accent, b = muted, c = muted,
-        x = muted, y = muted, z = accent,
-        win = muted, cwin = accent,
+        a = accent,
+        b = muted,
+        c = muted,
+        x = muted,
+        y = muted,
+        z = accent,
+        win = muted,
+        cwin = accent,
         bg = { "#534d4a", "#534d4a" },
       }
     end,
@@ -375,23 +390,26 @@ require("lazy").setup({
       -- mov_suf: "inner" overrides default "outer" for move/swap queries
       -- swap: { next_key, prev_key }, peek: peek definition key
       local ts_objects = {
-        { name = "function",    sel = "f", mode = "V", mov = "f",                    swap = { "f", "F" }, peek = "f" },
-        { name = "class",       sel = "c", mode = "V", mov = "k",                                         peek = "c" },
-        { name = "parameter",   sel = "a", mode = "v", mov = "a", mov_suf = "inner", swap = { "n", "p" } },
+        { name = "function", sel = "f", mode = "V", mov = "f", swap = { "f", "F" }, peek = "f" },
+        { name = "class", sel = "c", mode = "V", mov = "k", peek = "c" },
+        { name = "parameter", sel = "a", mode = "v", mov = "a", mov_suf = "inner", swap = { "n", "p" } },
         { name = "conditional", sel = "i", mode = "V", mov = "i" },
-        { name = "loop",        sel = "l", mode = "V", mov = "l" },
-        { name = "comment",     sel = "/" },
-        { name = "block",       sel = "b", mode = "V" },
-        { name = "statement",   sel = "s",             mov = "z" },
-        { name = "assignment",  sel = "=" },
-        { name = "call",        sel = "F" },
+        { name = "loop", sel = "l", mode = "V", mov = "l" },
+        { name = "comment", sel = "/" },
+        { name = "block", sel = "b", mode = "V" },
+        { name = "statement", sel = "s", mov = "z" },
+        { name = "assignment", sel = "=" },
+        { name = "call", sel = "F" },
       }
 
       local select_keymaps, select_modes = {}, {}
       local move = {
-        enable = true, set_jumps = true,
-        goto_next_start = {}, goto_next_end = {},
-        goto_previous_start = {}, goto_previous_end = {},
+        enable = true,
+        set_jumps = true,
+        goto_next_start = {},
+        goto_next_end = {},
+        goto_previous_start = {},
+        goto_previous_end = {},
       }
       local swap_next, swap_prev = {}, {}
       local peek_defs = {}
@@ -403,7 +421,9 @@ require("lazy").setup({
 
         select_keymaps["a" .. obj.sel] = outer
         select_keymaps["i" .. obj.sel] = inner
-        if obj.mode then select_modes[outer] = obj.mode end
+        if obj.mode then
+          select_modes[outer] = obj.mode
+        end
 
         if obj.mov then
           move.goto_next_start["]" .. obj.mov] = { query = query, desc = "Next " .. obj.name }
@@ -565,7 +585,9 @@ require("lazy").setup({
             local filepath = vim.fn.expand("%:p")
             vim.fn.jobstart({ "ansible-lint", "--fix", filepath }, {
               on_exit = function(_, code)
-                if code ~= 0 then return end
+                if code ~= 0 then
+                  return
+                end
                 vim.schedule(function()
                   if vim.api.nvim_buf_is_valid(bufnr) and not vim.bo[bufnr].modified then
                     vim.api.nvim_buf_call(bufnr, function()
@@ -829,7 +851,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if not client then return end
+    if not client then
+      return
+    end
 
     -- Disable hover for ruff (pyright handles it)
     if client.name == "ruff" then
@@ -919,7 +943,9 @@ vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "CmdlineEn
 vim.api.nvim_create_autocmd("User", {
   group = vim.api.nvim_create_augroup("UserTelescope", { clear = true }),
   pattern = "TelescopePreviewerLoaded",
-  callback = function() vim.wo.wrap = true end,
+  callback = function()
+    vim.wo.wrap = true
+  end,
 })
 
 -- Diagnostics
@@ -989,10 +1015,7 @@ local wk_keymaps = {
   {
     "<leader>ch",
     function()
-      vim.lsp.inlay_hint.enable(
-        not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }),
-        { bufnr = 0 }
-      )
+      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
     end,
     desc = "toggle inlay hints",
   },
@@ -1003,7 +1026,9 @@ local wk_keymaps = {
   },
   {
     "<leader>cf",
-    function() require("conform").format({ lsp_format = "fallback" }) end,
+    function()
+      require("conform").format({ lsp_format = "fallback" })
+    end,
     desc = "format buffer",
   },
 
@@ -1359,15 +1384,41 @@ local wk_keymaps = {
 
 -- Go keymaps (generated)
 local go_keymaps = {
-  { "t", function() return "test " .. vim.fn.expand("%") end, "Run tests in current file" },
-  { "T", function() return "test ./..." end,                  "Run all tests" },
-  { "r", function() return "run " .. vim.fn.expand("%") end,  "Run current file" },
-  { "b", function() return "build" end,                       "Build package" },
+  {
+    "t",
+    function()
+      return "test " .. vim.fn.expand("%")
+    end,
+    "Run tests in current file",
+  },
+  {
+    "T",
+    function()
+      return "test ./..."
+    end,
+    "Run all tests",
+  },
+  {
+    "r",
+    function()
+      return "run " .. vim.fn.expand("%")
+    end,
+    "Run current file",
+  },
+  {
+    "b",
+    function()
+      return "build"
+    end,
+    "Build package",
+  },
 }
 for _, m in ipairs(go_keymaps) do
   wk_keymaps[#wk_keymaps + 1] = {
     "<localleader>g" .. m[1],
-    function() vim.cmd("split | term go " .. m[2]()) end,
+    function()
+      vim.cmd("split | term go " .. m[2]())
+    end,
     desc = m[3],
     ft = "go",
   }
@@ -1375,18 +1426,22 @@ end
 
 -- Rust keymaps (generated)
 local rust_keymaps = {
-  { "r", "runnables",                   "runnables" },
-  { "t", "testables",                   "testables" },
-  { "e", "expandMacro",                 "expand macro" },
-  { "o", "openDocs",                    "open docs" },
-  { "c", "openCargo",                   "open Cargo.toml" },
-  { "p", "parentModule",               "parent module" },
+  { "r", "runnables", "runnables" },
+  { "t", "testables", "testables" },
+  { "e", "expandMacro", "expand macro" },
+  { "o", "openDocs", "open docs" },
+  { "c", "openCargo", "open Cargo.toml" },
+  { "p", "parentModule", "parent module" },
   { "x", { "explainError", "current" }, "explain error" },
 }
 for _, m in ipairs(rust_keymaps) do
   wk_keymaps[#wk_keymaps + 1] = {
     "<localleader>r" .. m[1],
-    function() if vim.fn.exists(":RustLsp") > 0 then vim.cmd.RustLsp(m[2]) end end,
+    function()
+      if vim.fn.exists(":RustLsp") > 0 then
+        vim.cmd.RustLsp(m[2])
+      end
+    end,
     desc = "Rust " .. m[3],
     ft = "rust",
   }
@@ -1394,27 +1449,31 @@ end
 
 -- Diagnostic navigation keymaps (generated)
 local diag_keymaps = {
-  { "]e", 1,  nil,     "Next diagnostic" },
-  { "[e", -1, nil,     "Previous diagnostic" },
-  { "]E", 1,  "ERROR", "Next error" },
+  { "]e", 1, nil, "Next diagnostic" },
+  { "[e", -1, nil, "Previous diagnostic" },
+  { "]E", 1, "ERROR", "Next error" },
   { "[E", -1, "ERROR", "Previous error" },
 }
 for _, m in ipairs(diag_keymaps) do
   local opts = { count = m[2] }
-  if m[3] then opts.severity = vim.diagnostic.severity[m[3]] end
+  if m[3] then
+    opts.severity = vim.diagnostic.severity[m[3]]
+  end
   wk_keymaps[#wk_keymaps + 1] = {
     m[1],
-    function() vim.diagnostic.jump(opts) end,
+    function()
+      vim.diagnostic.jump(opts)
+    end,
     desc = m[4],
   }
 end
 
 -- Navigator keymaps (generated)
 local nav_keymaps = {
-  { "h", "Left",     "left" },
-  { "l", "Right",    "right" },
-  { "k", "Up",       "up" },
-  { "j", "Down",     "down" },
+  { "h", "Left", "left" },
+  { "l", "Right", "right" },
+  { "k", "Up", "up" },
+  { "j", "Down", "down" },
   { "p", "Previous", "previous" },
 }
 for _, m in ipairs(nav_keymaps) do
@@ -1428,15 +1487,17 @@ end
 
 -- Fold keymaps (generated)
 local fold_keymaps = {
-  { "zR", "openAllFolds",         "open all folds" },
-  { "zM", "closeAllFolds",        "close all folds" },
+  { "zR", "openAllFolds", "open all folds" },
+  { "zM", "closeAllFolds", "close all folds" },
   { "zr", "openFoldsExceptKinds", "open folds by level" },
-  { "zm", "closeFoldsWith",       "close folds by level" },
+  { "zm", "closeFoldsWith", "close folds by level" },
 }
 for _, m in ipairs(fold_keymaps) do
   wk_keymaps[#wk_keymaps + 1] = {
     m[1],
-    function() require("ufo")[m[2]]() end,
+    function()
+      require("ufo")[m[2]]()
+    end,
     desc = m[3],
   }
 end
