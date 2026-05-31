@@ -31,8 +31,6 @@
     "cargo-outdated"
     "cargo-vet"
     "cargo-watch"
-    "claude-code"
-    "codex"
     "colima"
     "coreutils"
     "crane"
