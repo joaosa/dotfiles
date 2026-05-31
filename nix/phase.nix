@@ -104,7 +104,6 @@
     "pv"
     "pwgen"
     "python"
-    "python-pip"
     "qrencode"
     "rustup"
     "sccache"

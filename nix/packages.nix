@@ -161,10 +161,6 @@ let
       "go_1_26"
       "go"
     ];
-    python = [
-      "python313"
-      "python3"
-    ];
     dust = [
       "du-dust"
       "dust"
@@ -218,8 +214,10 @@ let
       ])
     ];
 
-    "python-pip" = [
-      pkgs.python313Packages.pip
+    "python" = [
+      (pkgs.python313.withPackages (pythonPackages: [
+        pythonPackages.pip
+      ]))
     ];
 
     "luajit" = [
