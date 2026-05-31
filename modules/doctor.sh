@@ -18,7 +18,8 @@ run() {
   check_binary cargo "Cargo"
   check_binary node "Node.js"
   check_binary go "Go"
-  check_binary asdf "asdf version manager"
+  check_binary python3 "Python"
+  check_binary pip3 "Python package installer"
 
   log_section "3" "3" "ASR"
   check_binary qwen-asr "Qwen ASR CLI"

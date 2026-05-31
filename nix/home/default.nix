@@ -190,19 +190,6 @@ in
     ''
   );
 
-  home.activation.asdfPythonGettextShim = lib.mkIf phase.asdfPythonGettextShim (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      gettext_opt="/opt/homebrew/opt/gettext"
-
-      if [ -e "$gettext_opt" ] && [ ! -L "$gettext_opt" ]; then
-        echo "Skipping $gettext_opt because it exists and is not a symlink"
-      else
-        /bin/mkdir -p /opt/homebrew/opt
-        /bin/ln -sfn "${pkgs.gettext}" "$gettext_opt"
-      fi
-    ''
-  );
-
   home.activation.sauceCodeProNerdFont = lib.mkIf (phase.fonts && sauceCodeProNerdFont != null) (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       font_src="${sauceCodeProNerdFont}/share/fonts/truetype/NerdFonts/SauceCodePro"
@@ -364,20 +351,6 @@ in
           path=($nix_profile_paths $path)
         }
 
-        _prefer_nix_profile_paths
-
-        if command -v asdf >/dev/null 2>&1; then
-          asdf_prefix="$(dirname "$(dirname "$(command -v asdf)")")"
-          if [ -f "$asdf_prefix/etc/profile.d/asdf-prepare.sh" ]; then
-            . "$asdf_prefix/etc/profile.d/asdf-prepare.sh"
-          elif [ -f "$asdf_prefix/share/asdf-vm/asdf.sh" ]; then
-            . "$asdf_prefix/share/asdf-vm/asdf.sh"
-          fi
-        elif [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
-          . /opt/homebrew/opt/asdf/libexec/asdf.sh
-        elif [ -f "$HOME/.asdf/asdf.sh" ]; then
-          . "$HOME/.asdf/asdf.sh"
-        fi
         _prefer_nix_profile_paths
         unfunction _prefer_nix_profile_paths
 

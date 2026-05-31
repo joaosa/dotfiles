@@ -15,7 +15,6 @@
     "ansible"
     "asciinema"
     "asciinema-edit"
-    "asdf-vm"
     "azure-cli"
     "bash"
     "bottom"
@@ -104,6 +103,8 @@
     "procs"
     "pv"
     "pwgen"
+    "python"
+    "python-pip"
     "qrencode"
     "rustup"
     "sccache"
@@ -168,9 +169,6 @@
 
   # Runs the Syncthing GUI TLS config migration.
   syncthingGuiTls = false;
-
-  # Provides Nix gettext at the legacy Homebrew opt path for asdf-built Python.
-  asdfPythonGettextShim = true;
 
   # Home Manager-managed launchd services.
   ollamaService = true;
