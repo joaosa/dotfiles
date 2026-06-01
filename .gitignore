@@ -10,3 +10,6 @@ Session.vim
 # Generated local artifacts
 dotfiles/karabiner/.config/karabiner/automatic_backups/
 dotfiles/hammerspoon/.hammerspoon/Spoons/
+
+# Serena tooling
+.serena/
