@@ -15,6 +15,7 @@ let
 in
 {
   imports = [
+    ./defaults.nix
     ./homebrew.nix
     ./tailscale.nix
   ];
