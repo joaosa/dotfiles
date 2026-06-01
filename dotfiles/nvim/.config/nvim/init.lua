@@ -380,12 +380,68 @@ require("lazy").setup({
   -- language syntax
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
     build = ":TSUpdate",
+    event = { "BufReadPre", "BufNewFile" },
     dependencies = {
-      "nvim-treesitter/nvim-treesitter-textobjects",
+      { "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
     },
     config = function()
-      -- Textobject definitions: single source of truth for select, move, swap, and peek keymaps
+      local ts = require("nvim-treesitter")
+      ts.setup({})
+
+      local ensure_installed = {
+        "rust",
+        "go",
+        "lua",
+        "python",
+        "javascript",
+        "typescript",
+        "sql",
+        "hcl",
+        "terraform",
+        "yaml",
+        "json",
+        "toml",
+        "markdown",
+        "markdown_inline",
+        "diff",
+        "bash",
+      }
+
+      -- Set of installed parsers, scanned once (get_installed hits the filesystem).
+      -- Install any missing parsers (replaces master's ensure_installed + auto_install).
+      local installed = {}
+      for _, parser in ipairs(ts.get_installed("parsers")) do
+        installed[parser] = true
+      end
+      local missing = vim.tbl_filter(function(parser)
+        return not installed[parser]
+      end, ensure_installed)
+      if #missing > 0 then
+        ts.install(missing)
+        for _, parser in ipairs(missing) do
+          installed[parser] = true
+        end
+      end
+
+      vim.treesitter.language.register("diff", "git")
+
+      -- On main, highlighting/indent are enabled per-buffer. Folding is left to nvim-ufo
+      -- (its treesitter provider), so we deliberately do not set foldexpr here.
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),
+        callback = function(ev)
+          local lang = vim.treesitter.language.get_lang(vim.bo[ev.buf].filetype)
+          if not lang or not installed[lang] then
+            return
+          end
+          pcall(vim.treesitter.start, ev.buf, lang)
+          vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end,
+      })
+
+      -- Textobject definitions: single source of truth for select, move, swap, and peek keymaps.
       -- sel: a/i select key, mode: selection mode, mov: ]/[ move key
       -- mov_suf: "inner" overrides default "outer" for move/swap queries
       -- swap: { next_key, prev_key }, peek: peek definition key
@@ -402,106 +458,145 @@ require("lazy").setup({
         { name = "call", sel = "F" },
       }
 
-      local select_keymaps, select_modes = {}, {}
-      local move = {
-        enable = true,
-        set_jumps = true,
-        goto_next_start = {},
-        goto_next_end = {},
-        goto_previous_start = {},
-        goto_previous_end = {},
-      }
-      local swap_next, swap_prev = {}, {}
-      local peek_defs = {}
+      -- Per-query selection modes (keyed by query string), passed into textobjects setup.
+      local selection_modes = {}
+      for _, obj in ipairs(ts_objects) do
+        if obj.mode then
+          selection_modes["@" .. obj.name .. ".outer"] = obj.mode
+        end
+      end
+
+      require("nvim-treesitter-textobjects").setup({
+        select = {
+          lookahead = true,
+          selection_modes = selection_modes,
+        },
+      })
+
+      local sel = require("nvim-treesitter-textobjects.select")
+      local move = require("nvim-treesitter-textobjects.move")
+      local swap = require("nvim-treesitter-textobjects.swap")
+      local rep = require("nvim-treesitter-textobjects.repeatable_move")
+
+      --- Peek a textobject's definition in a floating window (replaces master's lsp_interop).
+      local function peek(query)
+        local range = require("nvim-treesitter-textobjects.shared").textobject_at_point(query, "textobjects", 0)
+        if not range then
+          vim.notify("No " .. query .. " under cursor", vim.log.levels.INFO)
+          return
+        end
+        local lines = vim.api.nvim_buf_get_text(0, range[1], range[2], range[4], range[5], {})
+        vim.lsp.util.open_floating_preview(lines, vim.bo.filetype, { border = "rounded" })
+      end
+
+      local map = function(mode, lhs, rhs, desc)
+        vim.keymap.set(mode, lhs, rhs, { desc = desc, silent = true })
+      end
 
       for _, obj in ipairs(ts_objects) do
         local outer = "@" .. obj.name .. ".outer"
         local inner = "@" .. obj.name .. ".inner"
         local query = obj.mov_suf == "inner" and inner or outer
 
-        select_keymaps["a" .. obj.sel] = outer
-        select_keymaps["i" .. obj.sel] = inner
-        if obj.mode then
-          select_modes[outer] = obj.mode
-        end
+        -- select (operator-pending + visual)
+        map({ "x", "o" }, "a" .. obj.sel, function()
+          sel.select_textobject(outer)
+        end, "Select outer " .. obj.name)
+        map({ "x", "o" }, "i" .. obj.sel, function()
+          sel.select_textobject(inner)
+        end, "Select inner " .. obj.name)
 
+        -- move (goto_* are internally repeatable via ; and ,)
         if obj.mov then
-          move.goto_next_start["]" .. obj.mov] = { query = query, desc = "Next " .. obj.name }
-          move.goto_next_end["]" .. obj.mov:upper()] = { query = query, desc = "Next " .. obj.name .. " end" }
-          move.goto_previous_start["[" .. obj.mov] = { query = query, desc = "Previous " .. obj.name }
-          move.goto_previous_end["[" .. obj.mov:upper()] = { query = query, desc = "Previous " .. obj.name .. " end" }
+          map({ "n", "x", "o" }, "]" .. obj.mov, function()
+            move.goto_next_start(query)
+          end, "Next " .. obj.name)
+          map({ "n", "x", "o" }, "]" .. obj.mov:upper(), function()
+            move.goto_next_end(query)
+          end, "Next " .. obj.name .. " end")
+          map({ "n", "x", "o" }, "[" .. obj.mov, function()
+            move.goto_previous_start(query)
+          end, "Previous " .. obj.name)
+          map({ "n", "x", "o" }, "[" .. obj.mov:upper(), function()
+            move.goto_previous_end(query)
+          end, "Previous " .. obj.name .. " end")
         end
 
+        -- swap
         if obj.swap then
-          swap_next["<leader>s" .. obj.swap[1]] = { query = query, desc = "Swap next " .. obj.name }
-          swap_prev["<leader>s" .. obj.swap[2]] = { query = query, desc = "Swap previous " .. obj.name }
+          map("n", "<leader>s" .. obj.swap[1], function()
+            swap.swap_next(query)
+          end, "Swap next " .. obj.name)
+          map("n", "<leader>s" .. obj.swap[2], function()
+            swap.swap_previous(query)
+          end, "Swap previous " .. obj.name)
         end
 
+        -- peek
         if obj.peek then
-          peek_defs["<leader>p" .. obj.peek] = { query = outer, desc = "Peek " .. obj.name .. " definition" }
+          map("n", "<leader>p" .. obj.peek, function()
+            peek(outer)
+          end, "Peek " .. obj.name .. " definition")
         end
       end
 
-      require("nvim-treesitter.configs").setup({
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = { "markdown" },
-        },
+      -- Repeat the last move with ; and , (like builtin f/t).
+      map({ "n", "x", "o" }, ";", rep.repeat_last_move_next, "Repeat last move forward")
+      map({ "n", "x", "o" }, ",", rep.repeat_last_move_previous, "Repeat last move backward")
 
-        ensure_installed = {
-          "rust",
-          "go",
-          "lua",
-          "python",
-          "javascript",
-          "typescript",
-          "sql",
-          "hcl",
-          "terraform",
-          "yaml",
-          "json",
-          "toml",
-          "markdown",
-          "markdown_inline",
-          "diff",
-          "bash",
-        },
+      -- Incremental selection (removed on main; reimplemented with native treesitter).
+      -- <CR> selects the node under cursor, then grows to the parent on repeat; <BS> shrinks.
+      local incr_stack = {}
 
-        auto_install = true,
+      local function set_visual(range)
+        vim.cmd("normal! \27") -- leave any current visual mode
+        vim.api.nvim_win_set_cursor(0, { range[1] + 1, range[2] })
+        vim.cmd("normal! v")
+        vim.api.nvim_win_set_cursor(0, { range[3] + 1, math.max(range[4] - 1, 0) })
+      end
 
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = "<CR>",
-            node_incremental = "<CR>",
-            scope_incremental = false,
-            node_decremental = "<BS>",
-          },
-        },
+      local function incr_grow()
+        local node = vim.treesitter.get_node()
+        if not node then
+          return
+        end
+        local mode = vim.api.nvim_get_mode().mode
+        if mode == "v" or mode == "V" or mode == "\22" then
+          -- grow: find the smallest ancestor whose range is strictly larger
+          local cur = incr_stack[#incr_stack] or node
+          local csr, csc, cer, cec = cur:range()
+          local parent = cur:parent()
+          while parent do
+            local psr, psc, per, pec = parent:range()
+            if psr ~= csr or psc ~= csc or per ~= cer or pec ~= cec then
+              break
+            end
+            parent = parent:parent()
+          end
+          if not parent then
+            return
+          end
+          node = parent
+        else
+          incr_stack = {}
+        end
+        local sr, sc, er, ec = node:range()
+        incr_stack[#incr_stack + 1] = node
+        set_visual({ sr, sc, er, ec })
+      end
 
-        textobjects = {
-          select = {
-            enable = true,
-            lookahead = true,
-            keymaps = select_keymaps,
-            selection_modes = select_modes,
-          },
-          move = move,
-          swap = {
-            enable = true,
-            swap_next = swap_next,
-            swap_previous = swap_prev,
-          },
-          lsp_interop = {
-            enable = true,
-            border = "none",
-            floating_preview_opts = {},
-            peek_definition_code = peek_defs,
-          },
-        },
-      })
+      local function incr_shrink()
+        if #incr_stack <= 1 then
+          return
+        end
+        incr_stack[#incr_stack] = nil
+        local sr, sc, er, ec = incr_stack[#incr_stack]:range()
+        set_visual({ sr, sc, er, ec })
+      end
 
-      vim.treesitter.language.register("diff", "git")
+      map("n", "<CR>", incr_grow, "Init/grow selection")
+      map("x", "<CR>", incr_grow, "Grow selection")
+      map("x", "<BS>", incr_shrink, "Shrink selection")
     end,
   },
   { "nvim-treesitter/nvim-treesitter-context", event = "BufRead", opts = {} },

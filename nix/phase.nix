@@ -120,6 +120,7 @@
     "tmux"
     "units"
     "tree"
+    "tree-sitter"
     "uv"
     "vegeta"
     "watch"

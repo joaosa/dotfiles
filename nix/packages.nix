@@ -137,6 +137,7 @@ let
     "tokei"
     "tmux"
     "tree"
+    "tree-sitter"
     "uv"
     "vegeta"
     "watch"
