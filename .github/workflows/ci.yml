@@ -10,12 +10,17 @@ on:
 jobs:
   check:
     # aarch64-darwin so the Mac system actually evaluates and builds.
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
-      - uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
+
+      # Pull-only: reads cached paths from the public cache. Add a
+      # CACHIX_AUTH_TOKEN secret and an authToken below to also push builds.
+      - uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
+        with:
+          name: joaosa
 
       - name: Formatting
         run: nix fmt -- --fail-on-change --no-cache
