@@ -23,3 +23,9 @@ nix-build:
 check:
 	$(NIX) flake check
 	$(NIX) fmt -- --fail-on-change
+
+## hooks: Install the prek git hooks (run once per clone)
+.PHONY: hooks
+hooks:
+	$(NIX) develop -c prek install
+	$(NIX) develop -c prek install --hook-type pre-push
