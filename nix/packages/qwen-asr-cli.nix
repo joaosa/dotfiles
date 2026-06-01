@@ -16,7 +16,12 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   cargoHash = "sha256-0E2YWY+qbHP3+TJpEngRauq5Z0I2NyKSeuFIvXF/Jp0=";
 
-  RUSTFLAGS = lib.optionalString stdenv.hostPlatform.isDarwin "-C target-cpu=native";
+  # A fixed Apple Silicon baseline rather than target-cpu=native: native
+  # resolves to the build host's chip (apple-m3 locally, older on CI runners),
+  # which is non-reproducible and breaks ring's build under nix's cc-wrapper on
+  # the runner. apple-m1 is <= any arm64 Mac/runner, so the binary builds
+  # everywhere and still runs on this machine.
+  RUSTFLAGS = lib.optionalString stdenv.hostPlatform.isDarwin "-C target-cpu=apple-m1";
 
   doCheck = false;
 
