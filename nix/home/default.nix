@@ -36,26 +36,26 @@ let
     ];
   };
   allHomeFiles = {
-    ".config/alacritty".source = link "dotfiles/alacritty/.config/alacritty";
-    ".config/karabiner" = {
-      source = link "dotfiles/karabiner/.config/karabiner";
+    ".config/alacritty/alacritty.toml".source = link "config/alacritty/alacritty.toml";
+    ".config/karabiner/karabiner.json" = {
+      source = link "config/karabiner/karabiner.json";
       force = true;
     };
-    ".config/nvim/init.lua".source = link "dotfiles/nvim/.config/nvim/init.lua";
-    ".config/nvim/lua".source = link "dotfiles/nvim/.config/nvim/lua";
-    ".config/ruff".source = link "dotfiles/ruff/.config/ruff";
-    ".config/starship.toml".source = link "dotfiles/starship/.config/starship.toml";
-    ".gitconfig".source = link "dotfiles/git/.gitconfig";
-    ".gitignore_global".source = link "dotfiles/git/.gitignore_global";
-    ".hammerspoon/config".source = link "dotfiles/hammerspoon/.hammerspoon/config";
-    ".hammerspoon/init.lua".source = link "dotfiles/hammerspoon/.hammerspoon/init.lua";
-    ".hammerspoon/lib".source = link "dotfiles/hammerspoon/.hammerspoon/lib";
-    ".hammerspoon/modules".source = link "dotfiles/hammerspoon/.hammerspoon/modules";
+    ".config/nvim/init.lua".source = link "config/nvim/init.lua";
+    ".config/nvim/lua".source = link "config/nvim/lua";
+    ".config/ruff/ruff.toml".source = link "config/ruff/ruff.toml";
+    ".config/starship.toml".source = link "config/starship/starship.toml";
+    ".gitconfig".source = link "config/git/gitconfig";
+    ".gitignore_global".source = link "config/git/gitignore_global";
+    ".hammerspoon/config".source = link "config/hammerspoon/config";
+    ".hammerspoon/init.lua".source = link "config/hammerspoon/init.lua";
+    ".hammerspoon/lib".source = link "config/hammerspoon/lib";
+    ".hammerspoon/modules".source = link "config/hammerspoon/modules";
     ".kubectl_aliases" = {
       source = kubectlAliases;
       force = true;
     };
-    ".lightline.conf".source = link "dotfiles/tmux/.lightline.conf";
+    ".lightline.conf".source = link "config/tmux/lightline.conf";
     ".local/bin/Obsidian" = {
       text = obsidianCli;
       executable = true;
@@ -68,11 +68,11 @@ let
       text = "";
       force = true;
     };
-    ".stylua.toml".source = link "dotfiles/stylua/.stylua.toml";
-    ".tmux.conf".source = link "dotfiles/tmux/.tmux.conf";
-    ".yamllint".source = link "dotfiles/nvim/.yamllint";
+    ".stylua.toml".source = link "config/stylua/stylua.toml";
+    ".tmux.conf".source = link "config/tmux/tmux.conf";
+    ".yamllint".source = link "config/yamllint/yamllint";
     # zsh runcoms (.zshrc/.zshenv/.zprofile/.zpreztorc) and prezto are generated
-    # by programs.zsh below, not linked from dotfiles/zsh.
+    # by programs.zsh below, not linked from config/.
   };
 in
 {

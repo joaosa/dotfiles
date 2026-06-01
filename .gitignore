@@ -8,8 +8,8 @@ Session.vim
 *.log
 
 # Generated local artifacts
-dotfiles/karabiner/.config/karabiner/automatic_backups/
-dotfiles/hammerspoon/.hammerspoon/Spoons/
+config/karabiner/automatic_backups/
+config/hammerspoon/Spoons/
 
 # Serena tooling
 .serena/
