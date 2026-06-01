@@ -189,6 +189,9 @@ local lsp_servers = {
   sqlls = {
     mason_name = "sqls",
   },
+  nix = {
+    mason_name = "alejandra",
+  },
 }
 
 -- Formatter config (defined before lazy.setup so plugin config functions can reference it)
@@ -391,6 +394,7 @@ require("lazy").setup({
       ts.setup({})
 
       local ensure_installed = {
+        "nix",
         "rust",
         "go",
         "lua",
