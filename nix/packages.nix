@@ -135,7 +135,6 @@ let
     pkgs.libheif.dev
 
     # Local derivations for tools missing from nixpkgs at the version we want.
-    (pkgs.callPackage ./packages/asciinema-edit.nix { })
     (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
     (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
 
