@@ -1,0 +1,29 @@
+# Local hooks run via `prek` (a faster pre-commit runner, installed by Nix).
+# They shell out to the tools from the dev shell (`nix develop`) / the flake,
+# so versions track flake.lock rather than separately pinned hook repos.
+#
+# Install once:  prek install
+repos:
+  - repo: local
+    hooks:
+      - id: nixfmt
+        name: nixfmt (treefmt)
+        entry: nix fmt --
+        language: system
+        files: \.nix$
+        pass_filenames: false
+
+      - id: deadnix
+        name: deadnix
+        entry: nix develop -c deadnix --fail
+        language: system
+        files: \.nix$
+        pass_filenames: false
+
+      - id: flake-check
+        name: nix flake check
+        entry: nix flake check
+        language: system
+        files: \.(nix|lock)$
+        pass_filenames: false
+        stages: [pre-push]
