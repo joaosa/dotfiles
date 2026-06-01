@@ -42,7 +42,9 @@ in
 
   environment.pathsToLink = [ "/share/zsh" ];
   environment.shells = [ pkgs.zsh ];
-  programs.zsh.enable = true;
+  # System zsh integration left off so nix-darwin does not manage /etc/zshrc;
+  # Home Manager owns the user-level zsh config (~/.zshrc, prezto, starship).
+  programs.zsh.enable = false;
 
   fonts.packages = sauceCodeProNerdFont;
 }
