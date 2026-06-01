@@ -27,53 +27,102 @@
       ...
     }:
     let
-      username = "joao-sousa-andrade";
-      hostname = "Mac";
-      system = "aarch64-darwin";
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
+      # One entry per machine. Adding a host is adding an attrset here.
+      hosts = {
+        Mac = {
+          username = "joao-sousa-andrade";
+          system = "aarch64-darwin";
+        };
       };
-      specialArgs = {
-        inherit
-          inputs
-          username
-          hostname
-          system
-          ;
-      };
-    in
-    {
-      darwinConfigurations.${hostname} = nix-darwin.lib.darwinSystem {
-        inherit specialArgs;
-        modules = [
-          ./nix/darwin
-          nix-homebrew.darwinModules.nix-homebrew
-          home-manager.darwinModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              backupFileExtension = "hm-backup";
-              extraSpecialArgs = specialArgs;
-              users.${username} = import ./nix/home;
+
+      # Build a nix-darwin system from a host entry.
+      mkDarwinHost =
+        hostname:
+        { username, system }:
+        nix-darwin.lib.darwinSystem {
+          specialArgs = {
+            inherit
+              inputs
+              username
+              hostname
+              system
+              ;
+          };
+          modules = [
+            ./nix/hosts/${hostname}.nix
+            ./nix/darwin
+            nix-homebrew.darwinModules.nix-homebrew
+            home-manager.darwinModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                backupFileExtension = "hm-backup";
+                extraSpecialArgs = {
+                  inherit
+                    inputs
+                    username
+                    hostname
+                    system
+                    ;
+                };
+                users.${username} = import ./nix/home;
+              };
+            }
+          ];
+        };
+
+      # Systems we produce per-system outputs (checks, devShells, packages,
+      # formatter) for. Derived from the hosts above so a new platform is free.
+      systems = nixpkgs.lib.unique (map (h: h.system) (builtins.attrValues hosts));
+      forAllSystems =
+        f:
+        nixpkgs.lib.genAttrs systems (
+          system:
+          f {
+            inherit system;
+            pkgs = import nixpkgs {
+              inherit system;
+              config.allowUnfree = true;
             };
           }
-        ];
-      };
+        );
+    in
+    {
+      darwinConfigurations = nixpkgs.lib.mapAttrs mkDarwinHost hosts;
 
-      homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        extraSpecialArgs = specialArgs;
-        modules = [ ./nix/home ];
-      };
+      checks = forAllSystems (
+        { ... }:
+        nixpkgs.lib.optionalAttrs (self.darwinConfigurations ? Mac) {
+          # `nix flake check` evaluates and builds the whole Mac system,
+          # catching eval breakage and missing/renamed packages before activation.
+          darwin-build = self.darwinConfigurations.Mac.system;
+        }
+      );
 
-      packages.${system} = {
-        darwin-rebuild = nix-darwin.packages.${system}.darwin-rebuild;
-        home-manager = home-manager.packages.${system}.home-manager;
-        ripgrep = pkgs.ripgrep;
-      };
+      devShells = forAllSystems (
+        { pkgs, ... }:
+        {
+          default = pkgs.mkShell {
+            packages = [
+              pkgs.nixfmt
+              pkgs.statix
+              pkgs.deadnix
+              pkgs.prek
+            ];
+          };
+        }
+      );
 
-      formatter.${system} = pkgs.nixfmt-tree;
+      packages = forAllSystems (
+        { pkgs, system }:
+        {
+          darwin-rebuild = nix-darwin.packages.${system}.darwin-rebuild;
+          home-manager = home-manager.packages.${system}.home-manager;
+          ripgrep = pkgs.ripgrep;
+        }
+      );
+
+      formatter = forAllSystems ({ pkgs, ... }: pkgs.nixfmt-tree);
     };
 }
