@@ -10,7 +10,7 @@ This repo installs software and modifies your system. Before running:
 
 1. **Review the code** - Read [`flake.nix`](./flake.nix) and [`nix/`](./nix/) to understand what will be installed
 2. **Verify integrity** - Nix uses fixed-output hashes for fetched files, including model data
-3. **Preview changes** - Use `make nix-build` before activation
+3. **Preview changes** - Use `make build` before activation
 
 ## Installation
 
@@ -23,7 +23,7 @@ cd ~/ghq/github.com/joaosa/dotfiles
 
 # Install Nix or Lix first, then review the config and build
 $EDITOR nix/packages.nix
-make nix-build
+make build
 
 # First activation (before darwin-rebuild exists on the system)
 nix flake lock
@@ -31,7 +31,7 @@ sudo -H nix --extra-experimental-features "nix-command flakes" \
   run .#darwin-rebuild -- switch --flake .#Mac
 
 # Later changes use the pinned darwin-rebuild from this flake
-make nix-switch
+make switch
 ```
 
 This flake is currently configured for:
@@ -47,8 +47,8 @@ Homebrew module.
 ### Configuration
 
 Add or remove a package by editing the list in
-[`nix/packages.nix`](./nix/packages.nix), then `make nix-build` and
-`make nix-switch`. Packages are direct references (`pkgs.ripgrep`), so one
+[`nix/packages.nix`](./nix/packages.nix), then `make build` and
+`make switch`. Packages are direct references (`pkgs.ripgrep`), so one
 dropped or renamed in nixpkgs is a `nix flake check` error rather than a tool
 that silently disappears.
 
@@ -60,11 +60,11 @@ Homebrew casks are configured in [`nix/home`](./nix/home) and
 ## Usage
 
 ```bash
-make nix-switch         # Apply the nix-darwin + Home Manager flake
-make nix-build          # Build the system without activating
-make check              # nix flake check + formatting check
-make hooks              # install the prek git hooks (run once per clone)
-make                    # list recipes
+make switch         # Apply the nix-darwin + Home Manager flake
+make build          # Build the system without activating
+make check          # nix flake check + formatting check
+make hooks          # install the prek git hooks (run once per clone)
+make                # list recipes
 ```
 
 For development, `nix develop` drops you into a shell with `nixfmt`, `statix`,
