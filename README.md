@@ -63,11 +63,12 @@ Homebrew casks are configured in [`nix/home`](./nix/home) and
 make nix-switch         # Apply the nix-darwin + Home Manager flake
 make nix-build          # Build the system without activating
 make check              # nix flake check + formatting check
+make hooks              # install the prek git hooks (run once per clone)
 make                    # list recipes
 ```
 
 For development, `nix develop` drops you into a shell with `nixfmt`, `statix`,
-`deadnix`, and `prek`. `prek install` wires the hooks in
+`deadnix`, and `prek`. `make hooks` wires the hooks in
 [`.pre-commit-config.yaml`](./.pre-commit-config.yaml). CI
 ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) runs the formatting
 check and `nix flake check` (which builds the Mac system) on every push and PR.
