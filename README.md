@@ -10,7 +10,7 @@ This repo installs software and modifies your system. Before running:
 
 1. **Review the code** - Read [`flake.nix`](./flake.nix) and [`nix/`](./nix/) to understand what will be installed
 2. **Verify integrity** - Nix uses fixed-output hashes for fetched files, including model data
-3. **Preview changes** - Use `just nix-build` before activation
+3. **Preview changes** - Use `make nix-build` before activation
 
 ## Installation
 
@@ -23,7 +23,7 @@ cd ~/ghq/github.com/joaosa/dotfiles
 
 # Install Nix or Lix first, then review the config and build
 $EDITOR nix/packages.nix
-just nix-build
+make nix-build
 
 # First activation (before darwin-rebuild exists on the system)
 nix flake lock
@@ -31,7 +31,7 @@ sudo -H nix --extra-experimental-features "nix-command flakes" \
   run .#darwin-rebuild -- switch --flake .#Mac
 
 # Later changes use the pinned darwin-rebuild from this flake
-just nix-switch
+make nix-switch
 ```
 
 This flake is currently configured for:
@@ -46,22 +46,31 @@ Homebrew module.
 
 ### Configuration
 
-The installed package set is the single list in
-[`nix/packages.nix`](./nix/packages.nix) (`packageNames`, plus `alternatives`
-for nixpkgs naming variants and `extraPackages` for local derivations). Add or
-remove a package by editing that one list, then `just nix-build` and
-`just nix-switch`.
+Add or remove a package by editing the list in
+[`nix/packages.nix`](./nix/packages.nix), then `make nix-build` and
+`make nix-switch`. Packages are direct references (`pkgs.ripgrep`), so one
+dropped or renamed in nixpkgs is a `nix flake check` error rather than a tool
+that silently disappears.
 
-User files, services, fonts, and Homebrew casks are configured directly in the
-[`nix/home`](./nix/home) and [`nix/darwin`](./nix/darwin) modules — there are no
-separate enable/disable gates.
+Each machine is one `hosts` entry in [`flake.nix`](./flake.nix); host-specific
+overrides go in `nix/hosts/<name>.nix`. User files, services, fonts, and
+Homebrew casks are configured in [`nix/home`](./nix/home) and
+[`nix/darwin`](./nix/darwin).
 
 ## Usage
 
 ```bash
-just nix-switch         # Apply the nix-darwin + Home Manager flake
-just nix-build          # Build the system without activating
+make nix-switch         # Apply the nix-darwin + Home Manager flake
+make nix-build          # Build the system without activating
+make check              # nix flake check + formatting check
+make                    # list recipes
 ```
+
+For development, `nix develop` drops you into a shell with `nixfmt`, `statix`,
+`deadnix`, and `prek`. `prek install` wires the hooks in
+[`.pre-commit-config.yaml`](./.pre-commit-config.yaml). CI
+([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) runs the formatting
+check and `nix flake check` (which builds the Mac system) on every push and PR.
 
 Run the underlying `nix` commands directly for the rarer operations:
 `nix flake check` (validate outputs) and `nix flake update` (update inputs).
@@ -71,8 +80,8 @@ Run the underlying `nix` commands directly for the rarer operations:
 `node` and `npm` are Nix-managed, while global npm packages install into
 `~/.local` through the Home Manager-managed `.npmrc`. `claude` and `codex` are
 intentionally installed with npm for now because their upstream CLIs move faster
-than nixpkgs; they are left out of `packageNames` in `nix/packages.nix` (add
-their names there to install via Nix instead).
+than nixpkgs; add `pkgs.claude-code` / `pkgs.codex` to `nix/packages.nix` to
+install them via Nix instead.
 
 Project-local Rust CLIs are intentionally managed by their own dev symlink flow
 rather than Cargo's install registry or this flake. Those symlinks live in
@@ -82,18 +91,23 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 
 ```
 .
-├── flake.nix              # Nix flake entry point
+├── flake.nix              # Nix flake entry point (hosts attrset + mkHost)
 ├── nix/
 │   ├── packages.nix       # nixpkgs package inventory (the installed list)
 │   ├── packages/          # Local package definitions missing from nixpkgs
+│   ├── hosts/
+│   │   └── Mac.nix        # Per-host overrides (one file per machine)
 │   ├── darwin/
 │   │   ├── default.nix    # nix-darwin system configuration
 │   │   ├── homebrew.nix   # nix-homebrew + declarative casks/formulae
 │   │   └── tailscale.nix  # Tailscale launchd daemon
 │   └── home/
-│       ├── default.nix    # Home Manager user configuration (files, shell, services)
+│       ├── default.nix    # Home Manager composer (platform-aware homeDir)
+│       ├── common.nix     # Cross-platform files, shell, packages, services
+│       ├── darwin.nix     # macOS-only files, fonts, packages (guarded)
+│       ├── linux.nix      # Linux-only home config (stub)
 │       └── qwen3-asr.nix  # Fixed-output ASR model fetches
-├── Justfile               # Task runner
+├── Makefile               # Task runner
 └── config/                # Dotfile source tree linked by Home Manager
     ├── alacritty/alacritty.toml
     ├── git/                  # gitconfig, gitignore_global
@@ -124,7 +138,7 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 
 ### Modularity
 
-- Nix configuration is split into package, system, Homebrew, and home modules
+- Per-host (`mkHost` + `nix/hosts/`) and per-platform (`home/{common,darwin,linux}`) splits keep a second host cheap to add
 - Local package derivations live under `nix/packages/` when nixpkgs does not provide the exact tool/version needed
 
 ## Version Management
