@@ -1,258 +1,180 @@
 {
-  lib,
   pkgs,
 }:
 
 let
-  packageIfAvailable =
-    name:
-    if builtins.hasAttr name pkgs then
-      let
-        pkg = builtins.tryEval (builtins.getAttr name pkgs);
-        available =
-          if pkg.success then
-            builtins.tryEval (
-              lib.meta.availableOn pkgs.stdenv.hostPlatform pkg.value && !(pkg.value.meta.broken or false)
-            )
-          else
-            {
-              success = false;
-              value = false;
-            };
-      in
-      lib.optional (available.success && available.value) pkg.value
-    else
-      [ ];
-
-  packagesFrom = names: lib.concatMap packageIfAvailable names;
-
-  firstAvailable =
-    names:
-    let
-      found = packagesFrom names;
-    in
-    lib.optional (found != [ ]) (builtins.head found);
-
-  packageNames = [
-    "age"
-    "ansible"
-    "asciinema"
-    "bash"
-    "bat"
-    "bottom"
-    "cargo-audit"
-    "cargo-bloat"
-    "cargo-cyclonedx"
-    "cargo-deny"
-    "cargo-expand"
-    "cargo-geiger"
-    "cargo-insta"
-    "cargo-llvm-cov"
-    "cargo-machete"
-    "cargo-nextest"
-    "cargo-outdated"
-    "cargo-vet"
-    "cargo-watch"
+  # The installed inventory. These are direct references, so a package renamed
+  # or dropped in nixpkgs is a hard eval error (surfaced by `nix flake check`)
+  # rather than a tool that silently disappears from the environment. Packages
+  # whose nixpkgs attribute name varies by version are pinned to the preferred
+  # alias here (e.g. go_1_26, nodejs_22); if that alias is dropped the error
+  # tells us to bump it, instead of silently falling back to a different one.
+  packages = [
+    pkgs.age
+    pkgs.ansible
+    pkgs.asciinema
+    pkgs.asciinema-agg
+    pkgs.azure-cli
+    pkgs.bash
+    pkgs.bat
+    pkgs.bottom
+    pkgs.cargo-audit
+    pkgs.cargo-bloat
+    pkgs.cargo-cyclonedx
+    pkgs.cargo-deny
+    pkgs.cargo-expand
+    pkgs.cargo-geiger
+    pkgs.cargo-insta
+    pkgs.cargo-llvm-cov
+    pkgs.cargo-machete
+    pkgs.cargo-nextest
+    pkgs.cargo-outdated
+    pkgs.cargo-vet
+    pkgs.cargo-watch
     # claude-code and codex are installed via npm for faster upstream cadence;
-    # add their names here to install them via Nix instead.
-    "colima"
-    "coreutils"
-    "crane"
-    "delve"
-    "delta"
-    "direnv"
-    "dive"
-    "docker"
-    "docker-buildx"
-    "fd"
-    "findutils"
-    "fluxcd"
-    "fortune"
-    "fswatch"
-    "fzf"
-    "gawk"
-    "gettext"
-    "gh"
-    "ghq"
-    "git"
-    "git-crypt"
-    "git-extras"
-    "git-filter-repo"
-    "git-secret"
-    "gitmux"
-    "gitleaks"
-    "gnugrep"
-    "gnupg"
-    "gnused"
-    "gore"
-    "htop"
-    "hyperfine"
-    "iftop"
-    "imagemagick"
-    "inetutils"
-    "jless"
-    "jq"
-    "just"
-    "k3d"
-    "k9s"
-    "kubectl"
-    "kubectx"
-    "kubeseal"
-    "leptonica"
-    "libheif"
-    "lima"
-    "lua"
-    "luarocks"
-    "miller"
-    "mitmproxy"
-    "mkcert"
-    "mtr"
-    "neovim"
-    "nmap"
-    "opencode"
-    "openpgp-card-tools"
-    "parallel"
-    "pkg-config"
-    "pngquant"
-    "prek"
-    "procs"
-    "pv"
-    "pwgen"
-    "qrencode"
-    "ripgrep"
-    "rustup"
-    "sccache"
-    "shellcheck"
-    "sesh"
-    "sops"
-    "sox"
-    "starship"
-    "tailscale"
-    "tesseract"
-    "tcptraceroute"
-    "terminal-notifier"
-    "tokei"
-    "tmux"
-    "tree"
-    "tree-sitter"
-    "uv"
-    "vegeta"
-    "watch"
-    "wasm-pack"
-    "websocat"
-    "wireguard-go"
-    "wireguard-tools"
-    "yq-go"
-    "zoxide"
-    "zsh"
-  ];
+    # add them here (pkgs.claude-code, pkgs.codex) to install them via Nix instead.
+    pkgs.colima
+    pkgs.coreutils
+    pkgs.crane
+    pkgs.delve
+    pkgs.delta
+    pkgs.direnv
+    pkgs.dive
+    pkgs.docker
+    pkgs.docker-buildx
+    pkgs.dust
+    pkgs.fd
+    pkgs.findutils
+    pkgs.fluxcd
+    pkgs.fortune
+    pkgs.fswatch
+    pkgs.fzf
+    pkgs.gawk
+    pkgs.gettext
+    pkgs.gh
+    pkgs.ghq
+    pkgs.git
+    pkgs.git-crypt
+    pkgs.git-extras
+    pkgs.git-filter-repo
+    pkgs.git-secret
+    pkgs.gitmux
+    pkgs.gitleaks
+    pkgs.gnugrep
+    pkgs.gnupg
+    pkgs.gnused
+    pkgs.go_1_26
+    pkgs.gore
+    pkgs.htop
+    pkgs.hyperfine
+    pkgs.iftop
+    pkgs.imagemagick
+    pkgs.inetutils
+    pkgs.jless
+    pkgs.jq
+    pkgs.just
+    pkgs.k3d
+    pkgs.k9s
+    pkgs.kubectl
+    pkgs.kubectx
+    pkgs.kubernetes-helm
+    pkgs.kubeseal
+    pkgs.leptonica
+    pkgs.libheif
+    pkgs.lima
+    pkgs.lua
+    pkgs.luarocks
+    pkgs.miller
+    pkgs.mitmproxy
+    pkgs.mkcert
+    pkgs.mtr
+    pkgs.neovim
+    pkgs.nmap
+    pkgs.nodejs_22
+    pkgs.opencode
+    pkgs.openpgp-card-tools
+    pkgs.parallel
+    pkgs.pkg-config
+    pkgs.pngquant
+    pkgs.poppler-utils
+    pkgs.prek
+    pkgs.procs
+    pkgs.pv
+    pkgs.pwgen
+    pkgs.qrencode
+    pkgs.ripgrep
+    pkgs.rustup
+    pkgs.sccache
+    pkgs.shellcheck
+    pkgs.sesh
+    pkgs.sops
+    pkgs.sox
+    pkgs.starship
+    pkgs.tailscale
+    pkgs.tesseract
+    pkgs.tcptraceroute
+    pkgs.terminal-notifier
+    pkgs.tokei
+    pkgs.tmux
+    pkgs.tree
+    pkgs.tree-sitter
+    pkgs.units
+    pkgs.uv
+    pkgs.vegeta
+    pkgs.watch
+    pkgs.wasm-pack
+    pkgs.websocat
+    pkgs.wireguard-go
+    pkgs.wireguard-tools
+    pkgs.yq-go
+    pkgs.yubikey-manager
+    pkgs.zoxide
+    pkgs.zsh
 
-  alternatives = {
-    agg = [
-      "asciinema-agg"
-    ];
-    nodejs = [
-      "nodejs_22"
-      "nodejs"
-    ];
-    go = [
-      "go_1_26"
-      "go"
-    ];
-    dust = [
-      "du-dust"
-      "dust"
-    ];
-    poppler = [
-      "poppler-utils"
-      "poppler"
-    ];
-    pinentry-mac = [
-      "pinentry_mac"
-    ];
-    ykman = [
-      "yubikey-manager"
-    ];
-    helm = [
-      "kubernetes-helm"
-      "helm"
-    ];
-    units = [
-      "gnu-units"
-      "units"
-    ];
-    azure-cli = [
-      "azure-cli"
-      "azurecli"
-    ];
-  };
+    # Headers needed by tools that build against libheif.
+    pkgs.libheif.dev
 
-  extraOutputs = {
-    libheif = [
-      pkgs.libheif.dev
-    ];
-  };
+    # Local derivations for tools missing from nixpkgs at the version we want.
+    (pkgs.callPackage ./packages/asciinema-edit.nix { })
+    (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
+    (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
 
-  extraPackages = {
-    "asciinema-edit" = [
-      (pkgs.callPackage ./packages/asciinema-edit.nix { })
-    ];
+    (pkgs.google-cloud-sdk.withExtraComponents [
+      pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
+    ])
 
-    "openpgp-card-tool-git" = [
-      (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
-    ];
+    (pkgs.python313.withPackages (pythonPackages: [
+      pythonPackages.pip
+    ]))
 
-    "qwen-asr-cli" = [
-      (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
-    ];
+    (pkgs.runCommand "luajit-bin" { } ''
+              mkdir -p "$out/bin"
+              cat > "$out/bin/luajit" <<EOF
+      #!${pkgs.runtimeShell}
+      exec "${pkgs.luajit}/bin/luajit" "\$@"
+      EOF
+              chmod +x "$out/bin/luajit"
+    '')
 
-    "google-cloud-sdk" = [
-      (pkgs.google-cloud-sdk.withExtraComponents [
-        pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
-      ])
-    ];
+    (pkgs.runCommand "gnu-prefixed-tools" { } ''
+              mkdir -p "$out/bin"
 
-    "python" = [
-      (pkgs.python313.withPackages (pythonPackages: [
-        pythonPackages.pip
-      ]))
-    ];
-
-    "luajit" = [
-      (pkgs.runCommand "luajit-bin" { } ''
-                mkdir -p "$out/bin"
-                cat > "$out/bin/luajit" <<EOF
-        #!${pkgs.runtimeShell}
-        exec "${pkgs.luajit}/bin/luajit" "\$@"
-        EOF
-                chmod +x "$out/bin/luajit"
-      '')
-    ];
-
-    "gnu-prefixed-tools" = [
-      (pkgs.runCommand "gnu-prefixed-tools" { } ''
-                mkdir -p "$out/bin"
-
-                for dir in \
-                  ${pkgs.coreutils}/bin \
-                  ${pkgs.findutils}/bin \
-                  ${pkgs.gnugrep}/bin \
-                  ${pkgs.gnused}/bin
-                do
-                  for tool in "$dir"/*; do
-                    name="$(basename "$tool")"
-                    cat > "$out/bin/g$name" <<EOF
-        #!${pkgs.runtimeShell}
-        exec "$tool" "\$@"
-        EOF
-                    chmod +x "$out/bin/g$name"
-                  done
+              for dir in \
+                ${pkgs.coreutils}/bin \
+                ${pkgs.findutils}/bin \
+                ${pkgs.gnugrep}/bin \
+                ${pkgs.gnused}/bin
+              do
+                for tool in "$dir"/*; do
+                  name="$(basename "$tool")"
+                  cat > "$out/bin/g$name" <<EOF
+      #!${pkgs.runtimeShell}
+      exec "$tool" "\$@"
+      EOF
+                  chmod +x "$out/bin/g$name"
                 done
-      '')
-    ];
-  };
+              done
+    '')
+  ];
 in
-packagesFrom packageNames
-++ lib.concatMap firstAvailable (lib.attrValues alternatives)
-++ lib.concatMap (key: extraOutputs.${key}) (builtins.attrNames extraOutputs)
-++ lib.concatMap (key: extraPackages.${key}) (builtins.attrNames extraPackages)
+packages
