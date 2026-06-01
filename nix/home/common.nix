@@ -164,8 +164,8 @@ in
       vim = "nvim";
       gcod = "git branch | grep dev | xargs git checkout";
       gcom = "git branch | grep main | xargs git checkout";
-      gbpm = "git branch --merged | grep -v \"*\" | grep -v develop | grep -v master | xargs -n 1 git branch -d";
-      gSp = "git submodule foreach --recursive git checkout master && git submodule foreach --recursive git pull origin master";
+      gbpm = "git branch --merged | grep -v \"*\" | grep -v develop | grep -v main | grep -v master | xargs -n 1 git branch -d";
+      gSp = "git submodule foreach --recursive git checkout main && git submodule foreach --recursive git pull origin main";
       gtx = "git tag -l | xargs git tag -d && git fetch -t";
     };
 
