@@ -1,5 +1,7 @@
 # dotfiles
 
+[![ci](https://github.com/joaosa/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/joaosa/dotfiles/actions/workflows/ci.yml)
+
 Declarative macOS development environment using Nix, nix-darwin, Home Manager,
 and nix-homebrew. Nix owns the primary package inventory, selected Homebrew
 formulae/casks, Home Manager files, fonts, services, and fixed-output assets.
