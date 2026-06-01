@@ -1,8 +1,9 @@
 # Dotfiles tasks - run `just` to see all recipes
 nix := "/nix/var/nix/profiles/default/bin/nix"
 
-# Default health check
-default: doctor
+# List available recipes
+default:
+    @just --list
 
 # Apply the nix-darwin + Home Manager flake
 nix-switch:
@@ -11,13 +12,3 @@ nix-switch:
 # Build the system without activating it
 nix-build:
     {{nix}} build .#darwinConfigurations.Mac.system --no-link
-
-# Verify setup health
-[group('utils')]
-doctor:
-    ./bootstrap doctor
-
-# Lint all shell scripts with shellcheck
-[group('utils')]
-lint:
-    shellcheck -x lib/*.sh modules/*.sh bootstrap

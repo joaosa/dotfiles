@@ -8,7 +8,7 @@ formulae/casks, Home Manager files, fonts, services, and fixed-output assets.
 
 This repo installs software and modifies your system. Before running:
 
-1. **Review the code** - Read [`flake.nix`](./flake.nix) and [`nix/`](./nix/) to understand what will be installed; [`modules/doctor.sh`](./modules/doctor.sh) is read-only
+1. **Review the code** - Read [`flake.nix`](./flake.nix) and [`nix/`](./nix/) to understand what will be installed
 2. **Verify integrity** - Nix uses fixed-output hashes for fetched files, including model data
 3. **Preview changes** - Use `just nix-build` before activation
 
@@ -61,15 +61,10 @@ separate enable/disable gates.
 ```bash
 just nix-switch         # Apply the nix-darwin + Home Manager flake
 just nix-build          # Build the system without activating
-just doctor             # Verify expected tools and local assets
-just lint               # Run shellcheck over bootstrap and doctor scripts
 ```
 
 Run the underlying `nix` commands directly for the rarer operations:
 `nix flake check` (validate outputs) and `nix flake update` (update inputs).
-
-The bootstrap script remains curl-friendly, but it now only runs the read-only
-doctor checks. Declarative setup lives in Nix.
 
 ### Tool Ownership Exceptions
 
@@ -98,13 +93,7 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 │   └── home/
 │       ├── default.nix    # Home Manager user configuration (files, shell, services)
 │       └── qwen3-asr.nix  # Fixed-output ASR model fetches
-├── bootstrap              # Curl-friendly doctor wrapper
 ├── Justfile               # Task runner
-├── lib/
-│   ├── logging.sh         # Color-coded logging with counters
-│   └── packages.sh        # Doctor check helpers
-├── modules/
-│   └── doctor.sh          # Local setup health checks
 └── dotfiles/              # Dotfile source tree linked by Home Manager
     ├── alacritty/
     ├── git/
@@ -129,13 +118,11 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 
 - Nix activations are declarative and safe to re-run
 - Home Manager owns user-level symlinks and backs up replaced files with `.hm-backup`
-- Doctor checks can be re-run without changing the system
 
 ### Modularity
 
 - Nix configuration is split into package, system, Homebrew, and home modules
 - Local package derivations live under `nix/packages/` when nixpkgs does not provide the exact tool/version needed
-- Bootstrap is intentionally limited to read-only doctor checks
 
 ## Version Management
 
