@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  phase,
   pkgs,
   username,
   ...
@@ -26,7 +25,6 @@ let
   '';
   homePackages = import ../packages.nix {
     inherit lib pkgs;
-    enabledKeys = phase.homePackageKeys;
   };
   qwen3AsrModel = import ./qwen3-asr.nix { inherit pkgs; };
   pkgConfigEnv = pkgs.buildEnv {
@@ -73,14 +71,8 @@ let
     ".stylua.toml".source = link "dotfiles/stylua/.stylua.toml";
     ".tmux.conf".source = link "dotfiles/tmux/.tmux.conf";
     ".yamllint".source = link "dotfiles/nvim/.yamllint";
-    ".zprofile".source = link "dotfiles/zsh/.zprofile";
-    ".zpreztorc".source = link "dotfiles/zsh/.zpreztorc";
-    ".zprezto".source = "${pkgs.zsh-prezto}/share/zsh-prezto";
-    ".zshenv" = {
-      source = link "dotfiles/zsh/.zshenv";
-      force = true;
-    };
-    ".zshrc".source = link "dotfiles/zsh/.zshrc";
+    # zsh runcoms (.zshrc/.zshenv/.zprofile/.zpreztorc) and prezto are generated
+    # by programs.zsh below, not linked from dotfiles/zsh.
   };
 in
 {
@@ -93,7 +85,7 @@ in
 
   home.packages = homePackages;
 
-  home.sessionPath = lib.mkIf phase.homeShell [
+  home.sessionPath = [
     "${homeDir}/.local/bin"
     "${homeDir}/.cargo/bin"
     "${homeDir}/.go/bin"
@@ -112,8 +104,6 @@ in
       "/run/current-system/sw/lib/pkgconfig"
       "/run/current-system/sw/share/pkgconfig"
     ];
-  }
-  // lib.optionalAttrs phase.homeShell {
     BROWSER = "open";
     EDITOR = "nvim";
     VISUAL = "nvim";
@@ -123,27 +113,21 @@ in
     LESS = "-F -g -i -M -R -S -w -X -z-4";
   };
 
-  home.file =
-    lib.filterAttrs (target: _: builtins.elem target phase.homeFileTargets) allHomeFiles
-    // lib.optionalAttrs (builtins.elem "nodejs" phase.homePackageKeys) {
-      ".npmrc".text = ''
-        prefix=${homeDir}/.local
-      '';
-    }
-    // lib.optionalAttrs (builtins.elem "docker-buildx" phase.homePackageKeys) {
-      ".docker/cli-plugins/docker-buildx" = {
-        source = "${pkgs.docker-buildx}/bin/docker-buildx";
-        force = true;
-      };
-    }
-    // lib.optionalAttrs phase.qwen3AsrModel {
-      ".local/share/qwen3-asr/Qwen3-ASR-0.6B" = {
-        source = qwen3AsrModel;
-        force = true;
-      };
+  home.file = allHomeFiles // {
+    ".npmrc".text = ''
+      prefix=${homeDir}/.local
+    '';
+    ".docker/cli-plugins/docker-buildx" = {
+      source = "${pkgs.docker-buildx}/bin/docker-buildx";
+      force = true;
     };
+    ".local/share/qwen3-asr/Qwen3-ASR-0.6B" = {
+      source = qwen3AsrModel;
+      force = true;
+    };
+  };
 
-  services.ollama = lib.mkIf phase.ollamaService {
+  services.ollama = {
     enable = true;
     environmentVariables = {
       OLLAMA_FLASH_ATTENTION = "1";
@@ -151,45 +135,31 @@ in
     };
   };
 
-  services.syncthing = lib.mkIf phase.syncthingService {
+  services.syncthing = {
     enable = true;
     overrideDevices = false;
     overrideFolders = false;
   };
 
-  home.activation.npmPrefix = lib.mkIf (builtins.elem "nodejs" phase.homePackageKeys) (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      /bin/mkdir -p "${homeDir}/.local/bin" "${homeDir}/.local/lib/node_modules"
-    ''
-  );
+  home.activation.npmPrefix = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    /bin/mkdir -p "${homeDir}/.local/bin" "${homeDir}/.local/lib/node_modules"
+  '';
 
-  home.activation.qwen3AsrModelPath = lib.mkIf phase.qwen3AsrModel (
-    lib.hm.dag.entryBefore [ "linkGeneration" ] ''
-      target="${homeDir}/.local/share/qwen3-asr/Qwen3-ASR-0.6B"
-      backup="$target.before-nix"
+  home.activation.qwen3AsrModelPath = lib.hm.dag.entryBefore [ "linkGeneration" ] ''
+    target="${homeDir}/.local/share/qwen3-asr/Qwen3-ASR-0.6B"
+    backup="$target.before-nix"
 
-      if [ -e "$target" ] && [ ! -L "$target" ]; then
-        if [ -e "$backup" ]; then
-          echo "Refusing to replace $target because $backup already exists"
-          exit 1
-        fi
-
-        /bin/mv "$target" "$backup"
+    if [ -e "$target" ] && [ ! -L "$target" ]; then
+      if [ -e "$backup" ]; then
+        echo "Refusing to replace $target because $backup already exists"
+        exit 1
       fi
-    ''
-  );
 
-  home.activation.syncthingGuiTls = lib.mkIf phase.syncthingGuiTls (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      syncthing_config="${homeDir}/Library/Application Support/Syncthing/config.xml"
-      if [ -f "$syncthing_config" ] && ${pkgs.gnugrep}/bin/grep -q '<gui enabled="true" tls="false"' "$syncthing_config"; then
-        /usr/bin/sed -i.bak 's/<gui enabled="true" tls="false"/<gui enabled="true" tls="true"/' "$syncthing_config"
-        /bin/rm -f "$syncthing_config.bak"
-      fi
-    ''
-  );
+      /bin/mv "$target" "$backup"
+    fi
+  '';
 
-  home.activation.sauceCodeProNerdFont = lib.mkIf (phase.fonts && sauceCodeProNerdFont != null) (
+  home.activation.sauceCodeProNerdFont = lib.mkIf (sauceCodeProNerdFont != null) (
     lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       font_src="${sauceCodeProNerdFont}/share/fonts/truetype/NerdFonts/SauceCodePro"
       font_dst="${homeDir}/Library/Fonts"
@@ -200,7 +170,7 @@ in
     ''
   );
 
-  programs.fzf = lib.mkIf phase.homeShell {
+  programs.fzf = {
     enable = true;
     enableZshIntegration = true;
     defaultCommand = "fd --type f --hidden --follow --exclude .git";
@@ -220,7 +190,7 @@ in
     changeDirWidgetOptions = [ "--preview 'ls -1 {}'" ];
   };
 
-  programs.zsh = lib.mkIf phase.homeShell {
+  programs.zsh = {
     enable = true;
     dotDir = config.home.homeDirectory;
     enableCompletion = true;
@@ -272,6 +242,8 @@ in
       ];
       editor.keymap = "vi";
       gnuUtility.prefix = "g";
+      # No prezto prompt; starship owns the prompt (see initContent below).
+      prompt.theme = "off";
       ssh.identities = [ "id_ecdsa" ];
       syntaxHighlighting.highlighters = [
         "main"

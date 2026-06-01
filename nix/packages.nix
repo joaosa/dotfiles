@@ -1,12 +1,9 @@
 {
-  enabledKeys ? null,
   lib,
   pkgs,
 }:
 
 let
-  enabled = key: enabledKeys == null || builtins.elem key enabledKeys;
-
   packageIfAvailable =
     name:
     if builtins.hasAttr name pkgs then
@@ -56,8 +53,8 @@ let
     "cargo-outdated"
     "cargo-vet"
     "cargo-watch"
-    "claude-code"
-    "codex"
+    # claude-code and codex are installed via npm for faster upstream cadence;
+    # add their names here to install them via Nix instead.
     "colima"
     "coreutils"
     "crane"
@@ -255,13 +252,7 @@ let
     ];
   };
 in
-packagesFrom (builtins.filter enabled packageNames)
-++ lib.concatMap firstAvailable (
-  lib.attrValues (lib.filterAttrs (key: _: enabled key) alternatives)
-)
-++ lib.concatMap (key: extraOutputs.${key}) (
-  builtins.filter enabled (builtins.attrNames extraOutputs)
-)
-++ lib.concatMap (key: extraPackages.${key}) (
-  builtins.filter enabled (builtins.attrNames extraPackages)
-)
+packagesFrom packageNames
+++ lib.concatMap firstAvailable (lib.attrValues alternatives)
+++ lib.concatMap (key: extraOutputs.${key}) (builtins.attrNames extraOutputs)
+++ lib.concatMap (key: extraPackages.${key}) (builtins.attrNames extraPackages)

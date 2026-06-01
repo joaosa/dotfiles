@@ -1,13 +1,23 @@
 {
-  lib,
-  phase,
   pkgs,
   username,
   ...
 }:
 
 let
-  homebrewEnabled = phase.homebrewBrews != [ ] || phase.homebrewCasks != [ ];
+  brews = [ ];
+  casks = [
+    "karabiner-elements"
+    "hammerspoon"
+    "alacritty"
+    "obsidian"
+    "slack"
+    "orcaslicer"
+    "spotify"
+    "firefox@developer-edition"
+    "google-drive"
+  ];
+  homebrewEnabled = brews != [ ] || casks != [ ];
 in
 {
   nix-homebrew = {
@@ -23,11 +33,7 @@ in
     user = username;
     enableZshIntegration = true;
 
-    taps = lib.optional (builtins.elem "fluxcd/tap/flux" phase.homebrewBrews) "fluxcd/tap";
-
-    brews = phase.homebrewBrews;
-
-    casks = phase.homebrewCasks;
+    inherit brews casks;
 
     global.autoUpdate = false;
     onActivation = {

@@ -1,7 +1,5 @@
 {
   inputs,
-  lib,
-  phase,
   pkgs,
   username,
   system,
@@ -14,9 +12,6 @@ let
       [ pkgs.nerd-fonts.sauce-code-pro ]
     else
       [ ];
-  systemPackagesByKey = {
-    inherit (pkgs) git zsh;
-  };
 in
 {
   imports = [
@@ -45,10 +40,9 @@ in
     home = "/Users/${username}";
   };
 
-  environment.systemPackages = lib.attrVals phase.systemPackageKeys systemPackagesByKey;
-  environment.pathsToLink = lib.mkIf phase.systemShell [ "/share/zsh" ];
-  environment.shells = lib.mkIf phase.systemShell [ pkgs.zsh ];
-  programs.zsh.enable = phase.systemShell;
+  environment.pathsToLink = [ "/share/zsh" ];
+  environment.shells = [ pkgs.zsh ];
+  programs.zsh.enable = true;
 
-  fonts.packages = lib.mkIf phase.fonts sauceCodeProNerdFont;
+  fonts.packages = sauceCodeProNerdFont;
 }

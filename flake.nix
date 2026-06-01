@@ -34,11 +34,9 @@
         inherit system;
         config.allowUnfree = true;
       };
-      phase = import ./nix/phase.nix;
       specialArgs = {
         inherit
           inputs
-          phase
           username
           hostname
           system
