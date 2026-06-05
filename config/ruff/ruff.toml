@@ -4,9 +4,6 @@
 # Enable preview/experimental rules
 preview = true
 
-# Line length to match Black's default
-line-length = 88
-
 # Python version target
 target-version = "py311"
 
@@ -75,16 +72,3 @@ unfixable = []
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py
 "tests/**" = ["S101"]     # Allow assert statements in tests
-
-[format]
-# Use double quotes for strings
-quote-style = "double"
-
-# Indent with spaces
-indent-style = "space"
-
-# Respect magic trailing comma
-skip-magic-trailing-comma = false
-
-# Auto-detect line ending
-line-ending = "auto"
