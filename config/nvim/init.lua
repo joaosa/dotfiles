@@ -242,13 +242,14 @@ local health_linters = vim.tbl_keys(linter_fts)
 vim.g._health_tools = { lsp = lsp_mason_names, formatters = health_formatters, linters = health_linters }
 
 -- Setup lazy.nvim
+local second_brain_nvim_dir = "~/ghq/github.com/joaosa/second-brain-tools/extensions/nvim"
 require("lazy").setup({
   -- my work
   {
-    dir = "~/ghq/github.com/joaosa/second-brain-tools/nvim",
+    dir = second_brain_nvim_dir,
     name = "second-brain",
     cond = function()
-      return vim.uv.fs_stat(vim.fn.expand("~/ghq/github.com/joaosa/second-brain-tools/nvim")) ~= nil
+      return vim.uv.fs_stat(vim.fn.expand(second_brain_nvim_dir)) ~= nil
     end,
     build = "cargo build -p second-brain-nvim",
     init = function()
