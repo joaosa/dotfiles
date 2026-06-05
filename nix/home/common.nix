@@ -33,7 +33,6 @@ let
     ".config/nvim/init.lua".source = link "config/nvim/init.lua";
     ".config/nvim/lua".source = link "config/nvim/lua";
     ".config/ruff/ruff.toml".source = link "config/ruff/ruff.toml";
-    ".config/starship.toml".source = link "config/starship/starship.toml";
     ".gitconfig".source = link "config/git/gitconfig";
     ".gitignore_global".source = link "config/git/gitignore_global";
     ".kubectl_aliases" = {
@@ -147,6 +146,22 @@ in
     changeDirWidgetOptions = [ "--preview 'ls -1 {}'" ];
   };
 
+  programs.direnv = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    settings = builtins.fromTOML (builtins.readFile ../../config/starship/starship.toml);
+  };
+
   programs.zsh = {
     enable = true;
     dotDir = config.home.homeDirectory;
@@ -197,7 +212,7 @@ in
       ];
       editor.keymap = "vi";
       gnuUtility.prefix = "g";
-      # No prezto prompt; starship owns the prompt (see initContent below).
+      # No prezto prompt; starship owns the prompt (see programs.starship above).
       prompt.theme = "off";
       ssh.identities = [ "id_ecdsa" ];
       syntaxHighlighting.highlighters = [
@@ -259,8 +274,6 @@ in
           bindkey -M viins '^f' sesh-sessions
         fi
 
-        command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
-
         _prefer_nix_profile_paths() {
           typeset -gU path
           local -a nix_profile_paths
@@ -274,9 +287,6 @@ in
 
         _prefer_nix_profile_paths
         unfunction _prefer_nix_profile_paths
-
-        command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
-        command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
 
         [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
         function kubectl() { echo "+ kubectl $@">&2; command kubectl "$@"; }
