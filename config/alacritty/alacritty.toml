@@ -42,7 +42,7 @@ family = "SauceCodePro Nerd Font"
 style = "ExtraLight"
 
 [cursor]
-vi_mode_style = { shape = "Block" }
+vi_mode_style = { shape = "Beam" }
 
 [cursor.style]
 shape = "Block"
