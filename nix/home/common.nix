@@ -162,11 +162,10 @@ in
     shellAliases = {
       vi = "nvim";
       vim = "nvim";
-      gcod = "git branch | grep dev | xargs git checkout";
-      gcom = "git branch | grep main | xargs git checkout";
+      gcom = "git checkout main";
       gbpm = "git fetch -p; git branch --merged main | grep -vE '^[*+]| (main|master)$' | xargs -r git branch -d; git branch -vv | awk '/\\[gone\\]/ {print $1}' | grep -vE '^(main|master)$' | xargs -r git branch -D";
-      gSp = "git submodule foreach --recursive git checkout main && git submodule foreach --recursive git pull origin main";
-      gtx = "git tag -l | xargs git tag -d && git fetch -t";
+      gSp = "git submodule update --remote --recursive";
+      gtx = "git fetch --prune --prune-tags --tags";
     };
 
     prezto = {
