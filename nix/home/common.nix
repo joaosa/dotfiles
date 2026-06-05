@@ -32,6 +32,7 @@ let
     ".config/alacritty/alacritty.toml".source = link "config/alacritty/alacritty.toml";
     ".config/nvim/init.lua".source = link "config/nvim/init.lua";
     ".config/nvim/lua".source = link "config/nvim/lua";
+    ".config/git/allowed_signers".source = link "config/git/allowed_signers";
     ".config/ruff/ruff.toml".source = link "config/ruff/ruff.toml";
     ".gitconfig".source = link "config/git/gitconfig";
     ".gitignore_global".source = link "config/git/gitignore_global";

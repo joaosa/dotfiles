@@ -1,6 +1,15 @@
 [user]
 	name = João Andrade
 	email = sousa.andrade.joao@gmail.com
+	signingkey = ~/.ssh/id_ed25519.pub
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	allowedSignersFile = ~/.config/git/allowed_signers
 [core]
 	excludesfile = ~/.gitignore_global
 	pager = delta
