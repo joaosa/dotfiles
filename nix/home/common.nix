@@ -162,6 +162,48 @@ in
     settings = builtins.fromTOML (builtins.readFile ../../config/starship/starship.toml);
   };
 
+  programs.gh = {
+    enable = true;
+    settings = {
+      git_protocol = "https";
+      aliases.co = "pr checkout";
+    };
+  };
+
+  programs.gh-dash = {
+    enable = true;
+    settings = {
+      prSections = [
+        {
+          title = "My Pull Requests";
+          filters = "is:pr (author:@me OR (author:@copilot assignee:@me)) state:open archived:false sort:updated-desc";
+        }
+        {
+          title = "Needs My Review";
+          filters = "is:open review-requested:@me";
+        }
+        {
+          title = "Merged";
+          filters = "is:pr author:@me state:merged archived:false sort:updated-desc";
+        }
+        {
+          title = "Involved";
+          filters = "is:open involves:@me -author:@me";
+        }
+      ];
+      issuesSections = [
+        {
+          title = "My Issues";
+          filters = "is:open author:@me";
+        }
+        {
+          title = "Assigned";
+          filters = "is:open assignee:@me";
+        }
+      ];
+    };
+  };
+
   programs.zsh = {
     enable = true;
     dotDir = config.home.homeDirectory;

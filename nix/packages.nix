@@ -51,7 +51,6 @@ let
     pkgs.fzf
     pkgs.gawk
     pkgs.gettext
-    pkgs.gh
     pkgs.ghq
     pkgs.git
     pkgs.git-crypt
