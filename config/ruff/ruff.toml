@@ -1,4 +1,3 @@
-# Ruff configuration for Python linting and formatting
 # See: https://docs.astral.sh/ruff/configuration/
 
 # Enable preview/experimental rules

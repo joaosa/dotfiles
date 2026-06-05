@@ -226,7 +226,6 @@ in
     };
 
     profileExtra = ''
-      # BROWSER, LESS and GOPATH are set via home.sessionVariables.
       if (( $#commands[(i)lesspipe(|.sh)] )); then
         export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
       fi

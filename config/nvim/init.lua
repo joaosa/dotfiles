@@ -241,7 +241,6 @@ end
 local health_linters = vim.tbl_keys(linter_fts)
 vim.g._health_tools = { lsp = lsp_mason_names, formatters = health_formatters, linters = health_linters }
 
--- Setup lazy.nvim
 local second_brain_nvim_dir = "~/ghq/github.com/joaosa/second-brain-tools/extensions/nvim"
 require("lazy").setup({
   -- my work
