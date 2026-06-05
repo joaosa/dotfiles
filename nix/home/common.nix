@@ -164,7 +164,6 @@ in
       vim = "nvim";
       gcom = "git checkout main";
       gbpm = "git fetch -p; git branch --merged main | grep -vE '^[*+]| (main|master)$' | xargs -r git branch -d; git branch -vv | awk '/\\[gone\\]/ {print $1}' | grep -vE '^(main|master)$' | xargs -r git branch -D";
-      gSp = "git submodule update --remote --recursive";
       gtx = "git fetch --prune --prune-tags --tags";
     };
 
@@ -212,16 +211,11 @@ in
     };
 
     profileExtra = ''
-      if [[ "$OSTYPE" == darwin* ]]; then
-        export BROWSER='open'
-      fi
-
-      export LESS='-F -g -i -M -R -S -w -X -z-4'
+      # BROWSER, LESS and GOPATH are set via home.sessionVariables.
       if (( $#commands[(i)lesspipe(|.sh)] )); then
         export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
       fi
 
-      export GOPATH="${homeDir}/.go"
       export PATH="$PATH:''${GOPATH//://bin:}/bin"
     '';
 
