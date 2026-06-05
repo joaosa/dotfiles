@@ -177,7 +177,7 @@ in
       prSections = [
         {
           title = "My Pull Requests";
-          filters = "is:pr (author:@me OR (author:@copilot assignee:@me)) state:open archived:false sort:updated-desc";
+          filters = "is:pr author:@me state:open archived:false sort:updated-desc";
         }
         {
           title = "Needs My Review";
