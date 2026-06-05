@@ -164,7 +164,7 @@ in
       vim = "nvim";
       gcod = "git branch | grep dev | xargs git checkout";
       gcom = "git branch | grep main | xargs git checkout";
-      gbpm = "git branch --merged | grep -v \"*\" | grep -v develop | grep -v main | grep -v master | xargs -n 1 git branch -d";
+      gbpm = "git fetch -p; git branch --merged main | grep -vE '^[*+]| (main|master)$' | xargs -r git branch -d; git branch -vv | awk '/\\[gone\\]/ {print $1}' | grep -vE '^(main|master)$' | xargs -r git branch -D";
       gSp = "git submodule foreach --recursive git checkout main && git submodule foreach --recursive git pull origin main";
       gtx = "git tag -l | xargs git tag -d && git fetch -t";
     };
