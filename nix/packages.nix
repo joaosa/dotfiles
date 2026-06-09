@@ -35,6 +35,10 @@ let
     # add them here (pkgs.claude-code, pkgs.codex) to install them via Nix instead.
     pkgs.colima
     pkgs.coreutils
+    # g-prefixed coreutils (gls, gdate, ...) for non-zsh contexts; prezto's
+    # gnu-utility aliases only cover interactive zsh. The remaining GNU tools
+    # without a prefixed nixpkgs variant get wrappers below.
+    pkgs.coreutils-prefixed
     pkgs.crane
     pkgs.delve
     pkgs.delta
@@ -158,7 +162,6 @@ let
               mkdir -p "$out/bin"
 
               for dir in \
-                ${pkgs.coreutils}/bin \
                 ${pkgs.findutils}/bin \
                 ${pkgs.gnugrep}/bin \
                 ${pkgs.gnused}/bin
