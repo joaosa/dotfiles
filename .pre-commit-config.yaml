@@ -19,19 +19,16 @@ repos:
         files: \.nix$
         pass_filenames: false
 
-      - id: deadnix
-        name: deadnix
-        entry: nix develop -c deadnix --fail
+      # One hook for both linters so the dev shell is realized once per
+      # commit; pre-commit only, since the pre-push flake check (and CI)
+      # already runs them as flake checks.
+      - id: nix-lints
+        name: statix + deadnix
+        entry: nix develop -c sh -c "statix check . && deadnix --fail ."
         language: system
         files: \.nix$
         pass_filenames: false
-
-      - id: statix
-        name: statix
-        entry: nix develop -c statix check .
-        language: system
-        files: \.nix$
-        pass_filenames: false
+        stages: [pre-commit]
 
       - id: flake-check
         name: nix flake check
