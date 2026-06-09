@@ -69,11 +69,17 @@ make hooks          # install the prek git hooks (run once per clone)
 make                # list recipes
 ```
 
+Recipes target the `Mac` host entry by default; pass `HOST=<name>` to build
+another `hosts` entry.
+
 For development, `nix develop` drops you into a shell with `nixfmt`, `statix`,
 `deadnix`, and `prek`. `make hooks` wires the hooks in
 [`.pre-commit-config.yaml`](./.pre-commit-config.yaml). CI
 ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) runs the formatting
-check and `nix flake check` (which builds the Mac system) on every push and PR.
+check and `nix flake check` — which builds every host system and runs the
+`statix`/`deadnix` lint checks — on every push and PR. A scheduled workflow
+([`.github/workflows/update-flake-lock.yml`](./.github/workflows/update-flake-lock.yml))
+opens a weekly PR bumping `flake.lock`.
 
 Run the underlying `nix` commands directly for the rarer operations:
 `nix flake check` (validate outputs) and `nix flake update` (update inputs).
@@ -102,12 +108,12 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 │   │   └── Mac.nix        # Per-host overrides (one file per machine)
 │   ├── darwin/
 │   │   ├── default.nix    # nix-darwin system configuration
-│   │   ├── homebrew.nix   # nix-homebrew + declarative casks/formulae
+│   │   ├── homebrew.nix   # nix-homebrew with pinned taps + declarative casks
 │   │   └── tailscale.nix  # Tailscale launchd daemon
 │   └── home/
 │       ├── default.nix    # Home Manager composer (platform-aware homeDir)
 │       ├── common.nix     # Cross-platform files, shell, packages, services
-│       ├── darwin.nix     # macOS-only files, fonts, packages (guarded)
+│       ├── darwin.nix     # macOS-only files and packages (guarded)
 │       ├── linux.nix      # Linux-only home config (stub)
 │       └── qwen3-asr.nix  # Fixed-output ASR model fetches
 ├── Makefile               # Task runner
@@ -132,6 +138,7 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 
 - Fixed-output hashes for downloaded assets and model data
 - Flake-pinned Nix inputs via `flake.lock`
+- Homebrew taps pinned as flake inputs (`brew tap` and API installs disabled)
 - Homebrew auto-update and activation upgrades disabled under nix-darwin
 
 ### Idempotency
