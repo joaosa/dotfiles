@@ -1,0 +1,27 @@
+name: update-flake-lock
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+# Actions are pinned to commit SHAs (with the resolved tag in a comment) so a
+# moved tag cannot change what runs. Bump by re-resolving the tag to a SHA.
+#
+# Note: PRs opened with the default GITHUB_TOKEN do not trigger the ci
+# workflow. Until a PAT/GitHub App token is wired in, kick CI on the update PR
+# by closing and reopening it (or pushing to its branch).
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+
+      - uses: DeterminateSystems/update-flake-lock@834c491b2ece4de0bbd00d85214bb5e83b4da5c6 # v28
+        with:
+          pr-title: "nix: update flake.lock"
