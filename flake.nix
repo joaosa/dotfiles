@@ -37,6 +37,8 @@
       ...
     }:
     let
+      inherit (nixpkgs) lib;
+
       # One entry per machine. Adding a host is adding an attrset here.
       hosts = {
         Mac = {
@@ -84,10 +86,10 @@
 
       # Systems we produce per-system outputs (checks, devShells, packages,
       # formatter) for. Derived from the hosts above so a new platform is free.
-      systems = nixpkgs.lib.unique (map (h: h.system) (builtins.attrValues hosts));
+      systems = lib.unique (map (h: h.system) (builtins.attrValues hosts));
       forAllSystems =
         f:
-        nixpkgs.lib.genAttrs systems (
+        lib.genAttrs systems (
           system:
           f {
             inherit system;
@@ -97,28 +99,36 @@
             };
           }
         );
+      # Just the .nix files, so the lint checks below only rebuild when one of
+      # them changes, not on every commit.
+      nixSrc = lib.fileset.toSource {
+        root = ./.;
+        fileset = lib.fileset.fileFilter (file: file.hasExt "nix") ./.;
+      };
     in
     {
-      darwinConfigurations = nixpkgs.lib.mapAttrs mkDarwinHost hosts;
+      darwinConfigurations = lib.mapAttrs mkDarwinHost hosts;
 
       checks = forAllSystems (
         { system, pkgs }:
         # `nix flake check` evaluates and builds every host system for this
         # platform, catching eval breakage and missing/renamed packages before
         # activation. Derived from `hosts`, so a new host is checked for free.
-        nixpkgs.lib.mapAttrs' (
-          hostname: _:
-          nixpkgs.lib.nameValuePair "darwin-build-${hostname}" self.darwinConfigurations.${hostname}.system
-        ) (nixpkgs.lib.filterAttrs (_: host: host.system == system) hosts)
+        lib.concatMapAttrs (
+          hostname: host:
+          lib.optionalAttrs (host.system == system) {
+            "darwin-build-${hostname}" = self.darwinConfigurations.${hostname}.system;
+          }
+        ) hosts
         // {
           # Same linters as the dev shell and git hooks, so CI and `make check`
           # enforce them too.
           statix = pkgs.runCommand "statix" { nativeBuildInputs = [ pkgs.statix ]; } ''
-            statix check ${self}
+            statix check ${nixSrc}
             touch $out
           '';
           deadnix = pkgs.runCommand "deadnix" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
-            deadnix --fail ${self}
+            deadnix --fail ${nixSrc}
             touch $out
           '';
         }
