@@ -7,14 +7,13 @@
 }:
 
 let
-  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   link = relativePath: config.lib.file.mkOutOfStoreSymlink "${dotfilesPath}/${relativePath}";
   obsidianCli = ''
     #!${pkgs.bash}/bin/bash
     exec /Applications/Obsidian.app/Contents/MacOS/Obsidian "$@"
   '';
 in
-lib.mkIf isDarwin {
+lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   home = {
     # macOS-only packages (e.g. the pinentry that talks to the macOS keychain).
     packages = [
