@@ -1,6 +1,5 @@
 # Declarative macOS prefs.
-{ ... }:
-{
+_: {
   system.defaults = {
     dock = {
       autohide = true; # auto-hide the Dock

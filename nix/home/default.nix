@@ -16,9 +16,11 @@ in
     ./linux.nix
   ];
 
-  home.username = username;
-  home.homeDirectory = homeDir;
-  home.stateVersion = "25.11";
+  home = {
+    inherit username;
+    homeDirectory = homeDir;
+    stateVersion = "25.11";
+  };
 
   # Shared facts the split modules read via `config`.
   _module.args = { inherit homeDir dotfilesPath; };

@@ -16,26 +16,32 @@
   nixpkgs.hostPlatform = system;
   nixpkgs.config.allowUnfree = true;
 
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
-  nix.settings.trusted-users = [
-    "@admin"
-    username
-  ];
+  nix = {
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      trusted-users = [
+        "@admin"
+        username
+      ];
+    };
 
-  # Tracking unstable grows the store quickly; prune old generations weekly
-  # (launchd schedule from the module defaults) and deduplicate the store.
-  nix.gc = {
-    automatic = true;
-    options = "--delete-older-than 30d";
+    # Tracking unstable grows the store quickly; prune old generations weekly
+    # (launchd schedule from the module defaults) and deduplicate the store.
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 30d";
+    };
+    optimise.automatic = true;
   };
-  nix.optimise.automatic = true;
 
-  system.primaryUser = username;
-  system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
-  system.stateVersion = 6;
+  system = {
+    primaryUser = username;
+    configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+    stateVersion = 6;
+  };
 
   users.users.${username} = {
     name = username;

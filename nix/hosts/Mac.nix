@@ -5,6 +5,5 @@
 # lives there. This file holds only what is specific to *this* machine —
 # e.g. host-only Homebrew casks, networking, or one-off overrides. It is the
 # seam that keeps a second host cheap to add without touching the shared base.
-{ ... }:
-{
+_: {
 }
