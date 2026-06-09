@@ -5,9 +5,6 @@ on:
     - cron: "0 6 * * 1" # Mondays 06:00 UTC
   workflow_dispatch:
 
-# Actions are pinned to commit SHAs (with the resolved tag in a comment) so a
-# moved tag cannot change what runs. Bump by re-resolving the tag to a SHA.
-#
 # Note: PRs opened with the default GITHUB_TOKEN do not trigger the ci
 # workflow. Until a PAT/GitHub App token is wired in, kick CI on the update PR
 # by closing and reopening it (or pushing to its branch).
