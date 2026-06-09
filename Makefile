@@ -1,5 +1,7 @@
 # Dotfiles tasks - run `make` or `make help` to see all recipes
 NIX := /nix/var/nix/profiles/default/bin/nix
+# Host entry from flake.nix to build/switch; override with `make switch HOST=...`
+HOST ?= Mac
 
 .DEFAULT_GOAL := help
 
@@ -11,12 +13,12 @@ help:
 ## switch: Apply the nix-darwin + Home Manager flake
 .PHONY: switch
 switch:
-	sudo -H $(NIX) --extra-experimental-features "nix-command flakes" run .#darwin-rebuild -- switch --flake .#Mac
+	sudo -H $(NIX) --extra-experimental-features "nix-command flakes" run .#darwin-rebuild -- switch --flake .#$(HOST)
 
 ## build: Build the system without activating it
 .PHONY: build
 build:
-	$(NIX) build .#darwinConfigurations.Mac.system --no-link
+	$(NIX) build .#darwinConfigurations.$(HOST).system --no-link
 
 ## check: Run flake checks and formatting check
 .PHONY: check

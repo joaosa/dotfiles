@@ -92,12 +92,14 @@
       darwinConfigurations = nixpkgs.lib.mapAttrs mkDarwinHost hosts;
 
       checks = forAllSystems (
-        { ... }:
-        nixpkgs.lib.optionalAttrs (self.darwinConfigurations ? Mac) {
-          # `nix flake check` evaluates and builds the whole Mac system,
-          # catching eval breakage and missing/renamed packages before activation.
-          darwin-build = self.darwinConfigurations.Mac.system;
-        }
+        { system, ... }:
+        # `nix flake check` evaluates and builds every host system for this
+        # platform, catching eval breakage and missing/renamed packages before
+        # activation. Derived from `hosts`, so a new host is checked for free.
+        nixpkgs.lib.mapAttrs' (
+          hostname: _:
+          nixpkgs.lib.nameValuePair "darwin-build-${hostname}" self.darwinConfigurations.${hostname}.system
+        ) (nixpkgs.lib.filterAttrs (_: host: host.system == system) hosts)
       );
 
       devShells = forAllSystems (
