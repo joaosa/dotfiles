@@ -26,6 +26,13 @@ repos:
         files: \.nix$
         pass_filenames: false
 
+      - id: statix
+        name: statix
+        entry: nix develop -c statix check .
+        language: system
+        files: \.nix$
+        pass_filenames: false
+
       - id: flake-check
         name: nix flake check
         entry: nix flake check

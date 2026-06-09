@@ -102,7 +102,7 @@
       darwinConfigurations = nixpkgs.lib.mapAttrs mkDarwinHost hosts;
 
       checks = forAllSystems (
-        { system, ... }:
+        { system, pkgs }:
         # `nix flake check` evaluates and builds every host system for this
         # platform, catching eval breakage and missing/renamed packages before
         # activation. Derived from `hosts`, so a new host is checked for free.
@@ -110,6 +110,18 @@
           hostname: _:
           nixpkgs.lib.nameValuePair "darwin-build-${hostname}" self.darwinConfigurations.${hostname}.system
         ) (nixpkgs.lib.filterAttrs (_: host: host.system == system) hosts)
+        // {
+          # Same linters as the dev shell and git hooks, so CI and `make check`
+          # enforce them too.
+          statix = pkgs.runCommand "statix" { nativeBuildInputs = [ pkgs.statix ]; } ''
+            statix check ${self}
+            touch $out
+          '';
+          deadnix = pkgs.runCommand "deadnix" { nativeBuildInputs = [ pkgs.deadnix ]; } ''
+            deadnix --fail ${self}
+            touch $out
+          '';
+        }
       );
 
       devShells = forAllSystems (
