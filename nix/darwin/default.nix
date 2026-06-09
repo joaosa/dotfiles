@@ -32,6 +32,14 @@ in
     username
   ];
 
+  # Tracking unstable grows the store quickly; prune old generations weekly
+  # (launchd schedule from the module defaults) and deduplicate the store.
+  nix.gc = {
+    automatic = true;
+    options = "--delete-older-than 30d";
+  };
+  nix.optimise.automatic = true;
+
   system.primaryUser = username;
   system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
   system.stateVersion = 6;
