@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  homeDir,
   dotfilesPath,
   ...
 }:
@@ -10,11 +9,6 @@
 let
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   link = relativePath: config.lib.file.mkOutOfStoreSymlink "${dotfilesPath}/${relativePath}";
-  sauceCodeProNerdFont =
-    if builtins.hasAttr "nerd-fonts" pkgs && builtins.hasAttr "sauce-code-pro" pkgs.nerd-fonts then
-      pkgs.nerd-fonts.sauce-code-pro
-    else
-      null;
   obsidianCli = ''
     #!${pkgs.bash}/bin/bash
     exec /Applications/Obsidian.app/Contents/MacOS/Obsidian "$@"
@@ -61,15 +55,4 @@ lib.mkIf isDarwin {
       executable = true;
     };
   };
-
-  home.activation.sauceCodeProNerdFont = lib.mkIf (sauceCodeProNerdFont != null) (
-    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      font_src="${sauceCodeProNerdFont}/share/fonts/truetype/NerdFonts/SauceCodePro"
-      font_dst="${homeDir}/Library/Fonts"
-
-      /bin/mkdir -p "$font_dst"
-      /usr/bin/find "$font_dst" -maxdepth 1 -type f -name 'SauceCodeProNerdFont*.ttf' -delete
-      ${pkgs.rsync}/bin/rsync -acL --chmod=u+w "$font_src"/SauceCodeProNerdFont*.ttf "$font_dst"/
-    ''
-  );
 }

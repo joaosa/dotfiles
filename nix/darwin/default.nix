@@ -6,13 +6,6 @@
   ...
 }:
 
-let
-  sauceCodeProNerdFont =
-    if builtins.hasAttr "nerd-fonts" pkgs && builtins.hasAttr "sauce-code-pro" pkgs.nerd-fonts then
-      [ pkgs.nerd-fonts.sauce-code-pro ]
-    else
-      [ ];
-in
 {
   imports = [
     ./defaults.nix
@@ -55,5 +48,5 @@ in
   # Home Manager owns the user-level zsh config (~/.zshrc, prezto, starship).
   programs.zsh.enable = false;
 
-  fonts.packages = sauceCodeProNerdFont;
+  fonts.packages = [ pkgs.nerd-fonts.sauce-code-pro ];
 }
