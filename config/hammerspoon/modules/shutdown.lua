@@ -9,6 +9,8 @@ local POLL_INTERVAL = 10
 local SLEEP_DELAY = 3
 
 local sleepTimer = nil
+-- Module-level reference so the poll timer is not garbage-collected
+local pollTimer = nil
 
 local function isSleepFocusActive()
     local home = os.getenv("HOME")
@@ -62,7 +64,8 @@ local function checkSleepFocus()
 end
 
 local function setup()
-    hs.timer.new(POLL_INTERVAL, checkSleepFocus):start()
+    pollTimer = hs.timer.new(POLL_INTERVAL, checkSleepFocus)
+    pollTimer:start()
     checkSleepFocus()
     hs.hotkey.bind(hyper, "p", cancelSleep)
 end

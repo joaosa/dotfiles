@@ -21,6 +21,9 @@ local log = hs.logger.new('terminal', 'info')
 
 local launching = false
 
+-- Module-level reference so the watcher is not garbage-collected
+local screenWatcher = nil
+
 -- Terminal window configurations
 local terminalConfigs = {
     pulldown = {
@@ -245,7 +248,7 @@ local function setup()
 
     -- Auto-resize on screen changes
     local debouncedResizeTerminals = debounce(resizeTerminals, 0.5)
-    local screenWatcher = hs.screen.watcher.new(debouncedResizeTerminals)
+    screenWatcher = hs.screen.watcher.new(debouncedResizeTerminals)
     screenWatcher:start()
 end
 
