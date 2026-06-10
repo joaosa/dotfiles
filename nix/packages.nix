@@ -92,6 +92,10 @@ let
     pkgs.mkcert
     pkgs.mtr
     pkgs.neovim
+    # Nix LSP and formatter, used by the neovim config (mason only manages
+    # tools it can download itself; these come from nixpkgs).
+    pkgs.nil
+    pkgs.nixfmt
     pkgs.nmap
     pkgs.nodejs_22
     pkgs.opencode

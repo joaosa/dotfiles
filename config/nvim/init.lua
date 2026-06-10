@@ -186,8 +186,11 @@ local lsp_servers = {
     mason_name = "bash-language-server",
   },
   sqlls = {},
-  nix = {
-    mason_name = "alejandra",
+  -- Installed via Nix (nix/packages.nix), not mason; bin names the executable
+  -- for :checkhealth.
+  nil_ls = {
+    mason_name = false,
+    bin = "nil",
   },
 }
 
@@ -206,6 +209,7 @@ local formatter_fts = {
   },
   stylua = { "lua" },
   goimports = { "go" },
+  nixfmt = { "nix" },
   sqlfluff = { "sql" },
   ruff_format = { "python" },
   shfmt = { "sh", "bash" },
@@ -224,10 +228,16 @@ local linter_fts = {
 
 local linters_by_ft = invert_tool_fts(linter_fts)
 
--- Shared LSP mason names (used by health + mason-tool-installer)
+-- Shared LSP mason names (used by health + mason-tool-installer).
+-- mason_name = false marks Nix-installed servers: skipped for mason, still
+-- health-checked via their bin name.
 local lsp_mason_names = {}
+local health_lsps = {}
 for name, opts in pairs(lsp_servers) do
-  lsp_mason_names[#lsp_mason_names + 1] = opts.mason_name or name
+  if opts.mason_name ~= false then
+    lsp_mason_names[#lsp_mason_names + 1] = opts.mason_name or name
+  end
+  health_lsps[#health_lsps + 1] = opts.bin or opts.mason_name or name
 end
 
 -- Expose tool lists for :checkhealth config
@@ -236,7 +246,7 @@ for name in pairs(formatter_fts) do
   health_formatters[#health_formatters + 1] = name == "ruff_format" and "ruff" or name
 end
 local health_linters = vim.tbl_keys(linter_fts)
-vim.g._health_tools = { lsp = lsp_mason_names, formatters = health_formatters, linters = health_linters }
+vim.g._health_tools = { lsp = health_lsps, formatters = health_formatters, linters = health_linters }
 
 local second_brain_nvim_dir = "~/ghq/github.com/joaosa/second-brain-tools/extensions/nvim"
 require("lazy").setup({
@@ -618,8 +628,9 @@ require("lazy").setup({
     dependencies = { "williamboman/mason.nvim" },
     config = function()
       local ensure_installed = vim.list_extend({}, lsp_mason_names)
-      -- Derive formatter tools from formatter_fts (skip ruff_format — already installed as ruff LSP)
-      local formatter_skip = { ruff_format = true }
+      -- Derive formatter tools from formatter_fts (skip ruff_format — already
+      -- installed as ruff LSP — and nixfmt, which comes from Nix)
+      local formatter_skip = { ruff_format = true, nixfmt = true }
       for formatter in pairs(formatter_fts) do
         if not formatter_skip[formatter] then
           ensure_installed[#ensure_installed + 1] = formatter
@@ -938,6 +949,7 @@ vim.lsp.config("*", { capabilities = require("blink.cmp").get_lsp_capabilities()
 for server_name, opts in pairs(lsp_servers) do
   local lsp_opts = vim.tbl_extend("force", {}, opts)
   lsp_opts.mason_name = nil
+  lsp_opts.bin = nil
   vim.lsp.config(server_name, lsp_opts)
 end
 vim.lsp.enable(vim.tbl_keys(lsp_servers))
