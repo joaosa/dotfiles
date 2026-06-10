@@ -216,12 +216,12 @@ in
       # No implicit Host * defaults from the module; everything is explicit.
       enableDefaultConfig = false;
       includes = [ "${homeDir}/.colima/ssh_config" ];
-      matchBlocks."*" = {
-        user = "root";
+      settings."*" = {
+        User = "root";
         # Load keys into the agent lazily on first use, instead of ssh-add
         # at shell startup. No IdentityFile: ssh tries its default identity
         # list, so keys aren't pinned by name here.
-        addKeysToAgent = "yes";
+        AddKeysToAgent = "yes";
       };
     };
 

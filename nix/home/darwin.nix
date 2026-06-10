@@ -15,8 +15,8 @@ let
 in
 lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   # Store/retrieve key passphrases in the macOS keychain when the agent
-  # loads keys (pairs with addKeysToAgent in common.nix).
-  programs.ssh.matchBlocks."*".extraOptions.UseKeychain = "yes";
+  # loads keys (pairs with AddKeysToAgent in common.nix).
+  programs.ssh.settings."*".UseKeychain = "yes";
 
   home = {
     # macOS-only packages (e.g. the pinentry that talks to the macOS keychain).
