@@ -211,6 +211,20 @@ in
       };
     };
 
+    ssh = {
+      enable = true;
+      # No implicit Host * defaults from the module; everything is explicit.
+      enableDefaultConfig = false;
+      includes = [ "${homeDir}/.colima/ssh_config" ];
+      matchBlocks."*" = {
+        user = "root";
+        # Load keys into the agent lazily on first use, instead of ssh-add
+        # at shell startup. No IdentityFile: ssh tries its default identity
+        # list, so keys aren't pinned by name here.
+        addKeysToAgent = "yes";
+      };
+    };
+
     zsh = {
       enable = true;
       dotDir = config.home.homeDirectory;
@@ -324,11 +338,6 @@ in
           bindkey -M vicmd 'j' history-substring-search-down
 
           export GPG_TTY=$TTY
-
-          # Load default ssh identities once per agent, as prezto's ssh module did.
-          if ! ssh-add -l >/dev/null 2>&1; then
-            ssh-add 2>/dev/null
-          fi
 
           export KEYTIMEOUT=1
 
