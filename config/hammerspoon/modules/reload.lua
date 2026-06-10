@@ -49,7 +49,10 @@ local function reloadConfig(files)
 end
 
 local function resolveRealPath(path)
-    local output, status = hs.execute(string.format("readlink %s 2>/dev/null", string.format("%q", path)))
+    -- readlink -f follows the whole chain: home-manager links pass through an
+    -- intermediate /nix/store path before reaching this repo, and FSEvents on
+    -- the immutable store directory would never fire.
+    local output, status = hs.execute(string.format("readlink -f %s 2>/dev/null", string.format("%q", path)))
     if status and output and output ~= "" then
         return output:gsub("\n", "")
     end
