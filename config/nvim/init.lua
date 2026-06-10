@@ -607,6 +607,9 @@ require("lazy").setup({
   { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
 
   -- lsp
+  -- Data-only on 0.11+: supplies each server's base config (cmd, filetypes,
+  -- root markers) through its lsp/ runtime directory for vim.lsp.enable.
+  { "neovim/nvim-lspconfig", lazy = false },
   {
     "williamboman/mason.nvim",
     lazy = false,
@@ -932,13 +935,13 @@ require("lazy").setup({
 })
 
 -- LSP configuration
-local capabilities = require("blink.cmp").get_lsp_capabilities()
+-- vim.lsp.config() merges these into nvim-lspconfig's base configs; assigning
+-- vim.lsp.config[name] would replace them wholesale (dropping cmd/filetypes).
+vim.lsp.config("*", { capabilities = require("blink.cmp").get_lsp_capabilities() })
 for server_name, opts in pairs(lsp_servers) do
-  local lsp_opts = vim.tbl_extend("force", {
-    capabilities = capabilities,
-  }, opts)
+  local lsp_opts = vim.tbl_extend("force", {}, opts)
   lsp_opts.mason_name = nil
-  vim.lsp.config[server_name] = lsp_opts
+  vim.lsp.config(server_name, lsp_opts)
 end
 vim.lsp.enable(vim.tbl_keys(lsp_servers))
 
