@@ -310,9 +310,8 @@ in
           fpath=(${homeDir}/.local/share/zsh/site-functions ${dotfilesPath}/config/zsh/git/functions $fpath)
         '')
         ''
-          # Modules and zle helpers prezto used to provide.
+          # zle helpers prezto used to provide.
           autoload -Uz zargs zmv
-          zmodload zsh/attr zsh/stat
 
           # Completion behavior (case-sensitive, menus, caching).
           zstyle ':completion:*' menu select
