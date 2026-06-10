@@ -418,6 +418,12 @@ require("lazy").setup({
         "markdown_inline",
         "diff",
         "bash",
+        "make",
+        "dockerfile",
+        "gitcommit",
+        "git_rebase",
+        "vim",
+        "vimdoc",
       }
 
       -- Set of installed parsers, scanned once (get_installed hits the filesystem).
