@@ -88,14 +88,25 @@ local function stopRecordingAndTranscribe()
 end
 
 local function setup()
-    -- Find and cache binaries on load
-    asr.binary = findBinary("qwen-asr",
-        { os.getenv("HOME") .. "/.cargo/bin/qwen-asr" }
-    )
+    -- Find and cache binaries on load. Both are installed via Nix (see
+    -- nix/packages.nix); hammerspoon does not inherit the shell PATH, so the
+    -- profile bin dirs are searched explicitly.
+    local home = os.getenv("HOME")
+    local perUserBin = "/etc/profiles/per-user/" .. (os.getenv("USER") or "") .. "/bin/"
+    local nixProfileBin = home .. "/.nix-profile/bin/"
 
-    asr.sox = findBinary("sox",
-        { "/opt/homebrew/bin/sox", "/usr/local/bin/sox" }
-    )
+    asr.binary = findBinary("qwen-asr", {
+        perUserBin .. "qwen-asr",
+        nixProfileBin .. "qwen-asr",
+        home .. "/.cargo/bin/qwen-asr",
+    })
+
+    asr.sox = findBinary("sox", {
+        perUserBin .. "sox",
+        nixProfileBin .. "sox",
+        "/opt/homebrew/bin/sox",
+        "/usr/local/bin/sox",
+    })
 
     -- Validate dependencies
     local missing = missingDeps({
