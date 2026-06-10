@@ -13,8 +13,10 @@ local function setup()
 
     local vim = VimMode:new()
 
-    -- Apps with native vim bindings, same exclusions the old karabiner
-    -- vim_mode rules had.
+    -- Apps with native vim bindings. Keep in sync with the caps_lock rule in
+    -- config/karabiner/karabiner.json, which skips the f17 trigger for these
+    -- (VimMode unbinds f17 in disabled apps, so it would leak into them as a
+    -- raw keypress - e.g. a "~" escape sequence in terminals).
     vim:disableForApp("Alacritty")
     vim:disableForApp("Obsidian")
     vim:disableForApp("Firefox Developer Edition")
