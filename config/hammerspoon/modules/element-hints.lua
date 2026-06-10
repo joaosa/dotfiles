@@ -40,7 +40,7 @@ end
 -- Fixed-length labels (no label is a prefix of another)
 local function makeLabels(n)
     local len = 1
-    while #HINT_CHARS ^ len < n do
+    while (#HINT_CHARS) ^ len < n do
         len = len + 1
     end
     local labels = {}
