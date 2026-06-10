@@ -185,9 +185,7 @@ local lsp_servers = {
   bashls = {
     mason_name = "bash-language-server",
   },
-  sqlls = {
-    mason_name = "sqls",
-  },
+  sqlls = {},
   nix = {
     mason_name = "alejandra",
   },
