@@ -16,6 +16,9 @@ package.path = configDir .. '/?.lua;' ..
 hs.window.animationDuration = 0
 hs.window.setFrameCorrectness = true
 
+-- Local CLI control via `hs` (used to verify config changes from the shell)
+require("hs.ipc")
+
 -- Load all modules (see modules/ directory for individual module descriptions)
 -- Note: window-management must load before terminal (dependency on frames export)
 local modules = {
