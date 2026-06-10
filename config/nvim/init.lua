@@ -618,14 +618,14 @@ require("lazy").setup({
   -- root markers) through its lsp/ runtime directory for vim.lsp.enable.
   { "neovim/nvim-lspconfig", lazy = false },
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     lazy = false,
     opts = {},
   },
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     lazy = false,
-    dependencies = { "williamboman/mason.nvim" },
+    dependencies = { "mason-org/mason.nvim" },
     config = function()
       local ensure_installed = vim.list_extend({}, lsp_mason_names)
       -- Derive formatter tools from formatter_fts (skip ruff_format — already
