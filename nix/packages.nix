@@ -15,6 +15,7 @@ let
     pkgs.asciinema
     pkgs.asciinema-agg
     pkgs.azure-cli
+    pkgs.bacon
     pkgs.bash
     pkgs.bat
     pkgs.bottom
@@ -30,14 +31,14 @@ let
     pkgs.cargo-nextest
     pkgs.cargo-outdated
     pkgs.cargo-vet
-    pkgs.cargo-watch
     # claude-code and codex are installed via npm for faster upstream cadence;
     # add them here (pkgs.claude-code, pkgs.codex) to install them via Nix instead.
     pkgs.colima
     pkgs.coreutils
-    # g-prefixed coreutils (gls, gdate, ...) for non-zsh contexts; prezto's
-    # gnu-utility aliases only cover interactive zsh. The remaining GNU tools
-    # without a prefixed nixpkgs variant get wrappers below.
+    # g-prefixed coreutils (gls, gdate, ...) for scripts that expect the
+    # Homebrew-style names; the unprefixed GNU tools above already come first
+    # on PATH. The remaining GNU tools without a prefixed nixpkgs variant get
+    # wrappers below.
     pkgs.coreutils-prefixed
     pkgs.crane
     pkgs.delve
@@ -84,7 +85,6 @@ let
     pkgs.kubeseal
     pkgs.leptonica
     pkgs.libheif
-    pkgs.lima
     pkgs.lua
     pkgs.luarocks
     pkgs.miller
@@ -107,6 +107,7 @@ let
     pkgs.qrencode
     pkgs.ripgrep
     pkgs.rustup
+    pkgs.scc
     pkgs.sccache
     pkgs.shellcheck
     pkgs.sesh
@@ -117,7 +118,6 @@ let
     pkgs.tesseract
     pkgs.tcptraceroute
     pkgs.terminal-notifier
-    pkgs.tokei
     pkgs.tmux
     pkgs.tree
     pkgs.tree-sitter
