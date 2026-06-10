@@ -10,6 +10,10 @@
 
 let
   link = relativePath: config.lib.file.mkOutOfStoreSymlink "${dotfilesPath}/${relativePath}";
+  # Prezto's git module is sourced standalone for its aliases and helper
+  # functions; the framework itself is not loaded (stock home-manager options
+  # below cover what its other modules provided).
+  preztoGitModule = "${pkgs.zsh-prezto}/share/zsh-prezto/modules/git";
   kubectlAliases = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/ahmetb/kubectl-aliases/7549fa45bbde7499b927c74cae13bfb9169c9497/.kubectl_aliases";
     hash = "sha256-Kqb6kk2EZjoX55flZqiuNRLJQDfC2XMgO+F3tyCEnqk=";
@@ -216,62 +220,54 @@ in
       dotDir = config.home.homeDirectory;
       enableCompletion = true;
       autocd = false;
+      defaultKeymap = "viins";
 
       history = {
         size = 1000000;
         save = 1000000;
         path = "${homeDir}/.zsh_history";
+        extended = true;
+        expireDuplicatesFirst = true;
+        ignoreAllDups = true;
+        findNoDups = true;
+        saveNoDups = true;
       };
 
-      shellAliases = {
-        vi = "nvim";
-        vim = "nvim";
-        gcom = "git checkout main";
-        gbpm = "git fetch -p; git branch --merged main | grep -vE '^[*+]| (main|master)$' | xargs -r git branch -d; git branch -vv | awk '/\\[gone\\]/ {print $1}' | grep -vE '^(main|master)$' | xargs -r git branch -D";
-        gtx = "git fetch --prune --prune-tags --tags";
-      };
-
-      prezto = {
+      syntaxHighlighting = {
         enable = true;
-        caseSensitive = true;
-        color = true;
-        extraModules = [
-          "attr"
-          "stat"
-        ];
-        extraFunctions = [
-          "zargs"
-          "zmv"
-        ];
-        pmodules = [
-          "environment"
-          "terminal"
-          "editor"
-          "history"
-          "tmux"
-          "ssh"
-          "gnu-utility"
-          "utility"
-          "completion"
-          "docker"
-          "gpg"
-          "git"
-          "history-substring-search"
-          "syntax-highlighting"
-        ];
-        editor.keymap = "vi";
-        gnuUtility.prefix = "g";
-        # No prezto prompt; starship owns the prompt (see programs.starship above).
-        prompt.theme = "off";
-        ssh.identities = [ "id_ecdsa" ];
-        syntaxHighlighting.highlighters = [
-          "main"
+        # "main" is included by default.
+        highlighters = [
           "brackets"
           "pattern"
           "line"
           "root"
         ];
-        tmux.autoStartLocal = false;
+      };
+
+      historySubstringSearch = {
+        enable = true;
+        # No main-keymap bindings; arrows are deliberate noops (see
+        # initContent), search is bound to k/j in vi normal mode instead.
+        searchUpKey = [ ];
+        searchDownKey = [ ];
+      };
+
+      shellAliases = {
+        vi = "nvim";
+        vim = "nvim";
+        ls = "ls --color=auto --group-directories-first";
+        grep = "grep --color=auto";
+        l = "ls -1A";
+        ll = "ls -lh";
+        la = "ls -lhA";
+        # Interactive-by-default file ops, as prezto's utility safe-ops gave us.
+        rm = "rm -i";
+        mv = "mv -i";
+        cp = "cp -i";
+        ln = "ln -i";
+        gcom = "git checkout main";
+        gbpm = "git fetch -p; git branch --merged main | grep -vE '^[*+]| (main|master)$' | xargs -r git branch -d; git branch -vv | awk '/\\[gone\\]/ {print $1}' | grep -vE '^(main|master)$' | xargs -r git branch -D";
+        gtx = "git fetch --prune --prune-tags --tags";
       };
 
       profileExtra = ''
@@ -284,9 +280,51 @@ in
 
       initContent = lib.mkMerge [
         (lib.mkOrder 550 ''
-          fpath=(${homeDir}/.local/share/zsh/site-functions $fpath)
+          fpath=(${homeDir}/.local/share/zsh/site-functions ${preztoGitModule}/functions $fpath)
         '')
         ''
+          # Modules, zle helpers, and shell options prezto used to provide.
+          autoload -Uz zargs zmv
+          zmodload zsh/attr zsh/stat
+
+          setopt COMBINING_CHARS INTERACTIVE_COMMENTS RC_QUOTES
+          setopt LONG_LIST_JOBS AUTO_RESUME NOTIFY
+          unsetopt BG_NICE HUP CHECK_JOBS MAIL_WARNING
+          setopt HIST_VERIFY
+          unsetopt HIST_BEEP
+
+          # Completion behavior (case-sensitive, menus, caching).
+          setopt COMPLETE_IN_WORD ALWAYS_TO_END AUTO_LIST AUTO_MENU AUTO_PARAM_SLASH PATH_DIRS
+          unsetopt MENU_COMPLETE FLOW_CONTROL
+          zstyle ':completion:*' menu select
+          zstyle ':completion:*' use-cache on
+          zstyle ':completion:*' cache-path "''${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
+          zstyle ':completion:*' group-name '''
+          zstyle ':completion:*' squeeze-slashes true
+          zstyle ':completion:*:matches' group 'yes'
+          zstyle ':completion:*:options' description 'yes'
+          zstyle ':completion:*:options' auto-description '%d'
+          zstyle ':completion:*:default' list-colors ''${(s.:.)LS_COLORS}
+          zstyle ':completion:*:descriptions' format ' -- %d --'
+          zstyle ':completion:*:warnings' format ' -- no matches found --'
+
+          # Git aliases and helpers from prezto's git module, sans framework.
+          for func in ${preztoGitModule}/functions/[^_]*(N.:t); do
+            autoload -Uz "$func"
+          done
+          source ${preztoGitModule}/alias.zsh
+
+          # History search from vi normal mode with k/j.
+          bindkey -M vicmd 'k' history-substring-search-up
+          bindkey -M vicmd 'j' history-substring-search-down
+
+          export GPG_TTY=$TTY
+
+          # Load default ssh identities once per agent, as prezto's ssh module did.
+          if ! ssh-add -l >/dev/null 2>&1; then
+            ssh-add 2>/dev/null
+          fi
+
           export KEYTIMEOUT=1
 
           noop () { }
