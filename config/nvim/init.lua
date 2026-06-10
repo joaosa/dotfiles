@@ -7,8 +7,6 @@ vim.g.maplocalleader = "\\"
 vim.opt.clipboard = "unnamedplus"
 -- do not confuse crontab. see :help crontab
 vim.opt.backupcopy = "yes"
--- do not store swap files on the current dir (remove .)
-vim.opt.directory:remove(".")
 
 -- Display settings
 -- show trailing whitespace
