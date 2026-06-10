@@ -86,24 +86,23 @@ local function close_keymaps(action)
   return t
 end
 
--- Filetype detection
+-- Filetype detection. Keys are Lua patterns matched against the full path;
+-- the positive priority makes them win over plain extension lookup (which
+-- would otherwise resolve *.yml to yaml first). $ anchors don't work here.
 local ansible_patterns = {}
-for _, base in ipairs({
-  "*/playbooks/.*",
-  ".*playbook.*",
-  "*/roles/*/tasks/.*",
-  "*/roles/*/handlers/.*",
+for _, pat in ipairs({
+  ".*/playbooks/.*%.ya?ml",
+  ".*playbook.*%.ya?ml",
+  ".*/roles/.*/tasks/.*%.ya?ml",
+  ".*/roles/.*/handlers/.*%.ya?ml",
+  ".*/site%.ya?ml",
+  ".*/group_vars/.*",
+  ".*/host_vars/.*",
+  ".*/inventory",
+  ".*/ansible%.cfg",
 }) do
-  for _, ext in ipairs({ "yml", "yaml" }) do
-    ansible_patterns[base .. "%." .. ext] = FT_ANSIBLE
-  end
+  ansible_patterns[pat] = { FT_ANSIBLE, { priority = 10 } }
 end
-ansible_patterns["*/group_vars/.*"] = FT_ANSIBLE
-ansible_patterns["*/host_vars/.*"] = FT_ANSIBLE
-ansible_patterns["*/inventory"] = FT_ANSIBLE
-ansible_patterns["*/ansible%.cfg"] = FT_ANSIBLE
-ansible_patterns["site%.yml"] = FT_ANSIBLE
-ansible_patterns["site%.yaml"] = FT_ANSIBLE
 
 vim.filetype.add({
   extension = { tftpl = "yaml" },
