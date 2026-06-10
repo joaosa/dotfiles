@@ -30,6 +30,7 @@ local modules = {
     "app-chooser",
     "caffeine",
     "shutdown",
+    "vim",
 }
 
 for _, moduleName in ipairs(modules) do

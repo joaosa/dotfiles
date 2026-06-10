@@ -48,6 +48,9 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       ".hammerspoon/init.lua".source = link "config/hammerspoon/init.lua";
       ".hammerspoon/lib".source = link "config/hammerspoon/lib";
       ".hammerspoon/modules".source = link "config/hammerspoon/modules";
+      # Audited third-party spoon, pinned and stripped of binary blobs (see
+      # the derivation); loaded by modules/vim.lua.
+      ".hammerspoon/Spoons/VimMode.spoon".source = pkgs.callPackage ../packages/vimmode-spoon.nix { };
       ".local/bin/Obsidian" = {
         text = obsidianCli;
         executable = true;
