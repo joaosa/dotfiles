@@ -10,10 +10,6 @@
 
 let
   link = relativePath: config.lib.file.mkOutOfStoreSymlink "${dotfilesPath}/${relativePath}";
-  # Prezto's git module is sourced standalone for its aliases and helper
-  # functions; the framework itself is not loaded (stock home-manager options
-  # below cover what its other modules provided).
-  preztoGitModule = "${pkgs.zsh-prezto}/share/zsh-prezto/modules/git";
   kubectlAliases = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/ahmetb/kubectl-aliases/7549fa45bbde7499b927c74cae13bfb9169c9497/.kubectl_aliases";
     hash = "sha256-Kqb6kk2EZjoX55flZqiuNRLJQDfC2XMgO+F3tyCEnqk=";
@@ -297,7 +293,7 @@ in
 
       initContent = lib.mkMerge [
         (lib.mkOrder 550 ''
-          fpath=(${homeDir}/.local/share/zsh/site-functions ${preztoGitModule}/functions $fpath)
+          fpath=(${homeDir}/.local/share/zsh/site-functions ${dotfilesPath}/config/zsh/git/functions $fpath)
         '')
         ''
           # Modules and zle helpers prezto used to provide.
@@ -317,9 +313,11 @@ in
           zstyle ':completion:*:descriptions' format ' -- %d --'
           zstyle ':completion:*:warnings' format ' -- no matches found --'
 
-          # Git aliases and helpers from prezto's git module, sans framework.
-          autoload -Uz ${preztoGitModule}/functions/[^_]*(N.:t)
-          source ${preztoGitModule}/alias.zsh
+          # Git aliases and helpers vendored from prezto's git module; see
+          # config/zsh/git/README.md. Out-of-store paths, like config/ symlinks,
+          # so edits take effect in new shells without a rebuild.
+          autoload -Uz ${dotfilesPath}/config/zsh/git/functions/[^_]*(N.:t)
+          source ${dotfilesPath}/config/zsh/git/alias.zsh
 
           # History search from vi normal mode with k/j.
           bindkey -M vicmd 'k' history-substring-search-up
