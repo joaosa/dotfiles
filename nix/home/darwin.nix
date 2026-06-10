@@ -18,12 +18,10 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   # loads keys (pairs with AddKeysToAgent in common.nix).
   programs.ssh.settings."*".UseKeychain = "yes";
 
-  home = {
-    # macOS-only packages (e.g. the pinentry that talks to the macOS keychain).
-    packages = [
-      pkgs.pinentry_mac
-    ];
+  # Native macOS pinentry dialog (with keychain support) for gpg-agent.
+  services.gpg-agent.pinentry.package = pkgs.pinentry_mac;
 
+  home = {
     # `open` is the macOS URL handler; set for all sessions, not just login zsh.
     sessionVariables.BROWSER = "open";
 
