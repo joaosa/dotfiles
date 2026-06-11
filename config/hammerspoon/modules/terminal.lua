@@ -5,7 +5,6 @@
 local keys = require("config.keybindings")
 local config = require("config.constants")
 local utils = require("lib.utils")
-local windowLib = require("lib.window")
 local windowMgmt = require("modules.window-management")
 
 local altCmd = keys.altCmd
@@ -13,7 +12,13 @@ local TIMING = config.TIMING
 local pluralize = utils.pluralize
 local debounce = utils.debounce
 local frames = windowMgmt.frames
-local focusAndSleep = windowLib.focusAndSleep
+
+-- Focus window and sleep briefly so the frame change that follows applies
+-- to the right window
+local function focusAndSleep(window)
+    window:focus()
+    hs.timer.usleep(50000)
+end
 
 
 -- Logger for debugging
@@ -78,14 +83,7 @@ end
 -- the window invisible on another space.
 local function placeWindow(window, targetScreen, frame, raise)
     hs.spaces.moveWindowToSpace(window, hs.spaces.activeSpaceOnScreen(targetScreen))
-    local screenFrame = targetScreen:frame()
-    local unit = hs.geometry(frame)
-    window:setFrame({
-        x = screenFrame.x + (unit.x * screenFrame.w),
-        y = screenFrame.y + (unit.y * screenFrame.h),
-        w = unit.w * screenFrame.w,
-        h = unit.h * screenFrame.h,
-    })
+    window:setFrame(targetScreen:fromUnitRect(hs.geometry(frame)))
     hs.timer.doAfter(0.1, function()
         focusWindow(window, raise)
     end)

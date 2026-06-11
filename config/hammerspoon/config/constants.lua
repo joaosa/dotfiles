@@ -12,7 +12,6 @@ local TIMING = {
     -- Common operation timings
     WINDOW_FOCUS_DELAY = 0.15,
     PASTE_DELAY = 0.1,
-    WINDOW_OPERATION_SLEEP = 50000, -- microseconds
 }
 
 return {

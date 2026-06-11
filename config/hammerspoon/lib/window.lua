@@ -22,12 +22,6 @@ local function bindWindowOp(mods, key, operation, errorMsg)
     end)
 end
 
--- Focus window and sleep for proper event handling
-local function focusAndSleep(window)
-    window:focus()
-    hs.timer.usleep(TIMING.WINDOW_OPERATION_SLEEP)
-end
-
 -- Restore window context and execute action
 local function withWindowRestore(app, window, action)
     if app then app:activate() end
@@ -40,6 +34,5 @@ end
 return {
     safeWindowOperation = safeWindowOperation,
     bindWindowOp = bindWindowOp,
-    focusAndSleep = focusAndSleep,
     withWindowRestore = withWindowRestore,
 }
