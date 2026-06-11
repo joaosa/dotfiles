@@ -3,15 +3,6 @@
 -- Main entry point - loads all modules
 -----------------------------------------------
 
--- Standard Hammerspoon package.path configuration
--- hs.configdir should resolve to the real path when init.lua is symlinked
-local configDir = hs.configdir
-
--- Set package.path to include config directory subdirectories
-package.path = configDir .. '/?.lua;' ..
-               configDir .. '/?/init.lua;' ..
-               package.path
-
 -- Performance settings
 hs.window.animationDuration = 0
 hs.window.setFrameCorrectness = true
