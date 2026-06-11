@@ -12,9 +12,19 @@ local function pluralize(count, singular, plural)
     return count == 1 and singular or (plural or singular .. "s")
 end
 
--- Find binary in common paths or via fallback command
+-- Find a binary in the nix profile dirs, module-specific extra paths, or via
+-- a fallback command. Hammerspoon does not inherit the shell PATH, so the
+-- profile bin dirs (where this repo installs tools) are searched first.
 local function findBinary(name, paths, fallbackCmd)
-    for _, path in ipairs(paths) do
+    local searchPaths = {
+        "/etc/profiles/per-user/" .. (os.getenv("USER") or "") .. "/bin/" .. name,
+        os.getenv("HOME") .. "/.nix-profile/bin/" .. name,
+    }
+    for _, path in ipairs(paths or {}) do
+        searchPaths[#searchPaths + 1] = path
+    end
+
+    for _, path in ipairs(searchPaths) do
         if hs.fs.attributes(path) then
             return path
         end
