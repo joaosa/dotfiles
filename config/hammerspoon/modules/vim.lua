@@ -6,7 +6,7 @@ local log = hs.logger.new('vim', 'info')
 
 local function setup()
     local ok, VimMode = pcall(hs.loadSpoon, "VimMode")
-    if not ok or not VimMode then
+    if not ok then
         log.e("VimMode.spoon not installed - run make switch")
         return
     end
