@@ -72,17 +72,19 @@ local function focusWindow(window, raise)
     window:focus()
 end
 
--- Move window to screen and resize
-local function moveWindowToScreen(window, targetScreen, frame, raise)
-    local targetSpaceID = hs.spaces.activeSpaceOnScreen(targetScreen)
-    hs.spaces.moveWindowToSpace(window, targetSpaceID)
+-- Place a window on a screen's active space at the given unit frame, then
+-- focus it. Used by both the toggle and screen-change paths; a plain
+-- moveToScreen targets the screen but not its active space, which can leave
+-- the window invisible on another space.
+local function placeWindow(window, targetScreen, frame, raise)
+    hs.spaces.moveWindowToSpace(window, hs.spaces.activeSpaceOnScreen(targetScreen))
     local screenFrame = targetScreen:frame()
-    local targetGeom = hs.geometry(frame)
+    local unit = hs.geometry(frame)
     window:setFrame({
-        x = screenFrame.x + (targetGeom.x * screenFrame.w),
-        y = screenFrame.y + (targetGeom.y * screenFrame.h),
-        w = targetGeom.w * screenFrame.w,
-        h = targetGeom.h * screenFrame.h,
+        x = screenFrame.x + (unit.x * screenFrame.w),
+        y = screenFrame.y + (unit.y * screenFrame.h),
+        w = unit.w * screenFrame.w,
+        h = unit.h * screenFrame.h,
     })
     hs.timer.doAfter(0.1, function()
         focusWindow(window, raise)
@@ -104,7 +106,7 @@ local function toggleTerminal(type)
         if existingWindow then
             -- Move existing window to current screen
             log.i("Moving", type, "window to screen", currentScreen:name())
-            moveWindowToScreen(existingWindow, currentScreen, cfg.frame, cfg.raise)
+            placeWindow(existingWindow, currentScreen, cfg.frame, cfg.raise)
             return
         end
     end
@@ -133,7 +135,7 @@ local function toggleTerminal(type)
                 local wins = getAllTerminalWindows()
                 local newest = wins[#wins]
                 if newest then
-                    moveWindowToScreen(newest, currentScreen, cfg.frame, cfg.raise)
+                    placeWindow(newest, currentScreen, cfg.frame, cfg.raise)
                 end
             end,
             0.05
@@ -161,27 +163,13 @@ end
 
 -- Find matching terminal config for a window
 local function findMatchedTerminalConfig(window, windowScreen)
-    local windowScreenFrame = windowScreen:frame()
-    local oldFrame = window:frame()
+    local unit = window:frame():toUnitRect(windowScreen:frame())
     for configName, config in pairs(terminalConfigs) do
-        local unit = oldFrame:toUnitRect(windowScreenFrame)
         if unit:equals(hs.geometry(config.frame)) then
             return { name = configName, config = config }
         end
     end
     return nil
-end
-
--- Resize managed terminal window
-local function resizeManagedWindow(window, matchedConfig, currentScreen, windowScreen, i)
-    if windowScreen:id() ~= currentScreen:id() then
-        log.i("Window", i, "is managed", matchedConfig.name, "- moving to main screen")
-        window:moveToScreen(currentScreen, false, true)
-        hs.timer.usleep(TIMING.WINDOW_OPERATION_SLEEP)
-    end
-    log.i("Window", i, "ensuring correct", matchedConfig.name, "size")
-    focusAndSleep(window)
-    window:moveToUnit(matchedConfig.config.frame)
 end
 
 -- Proportionally resize unmanaged window
@@ -221,7 +209,8 @@ local function resizeTerminals()
             local matchedConfig = findMatchedTerminalConfig(window, windowScreen)
 
             if matchedConfig then
-                resizeManagedWindow(window, matchedConfig, currentScreen, windowScreen, i)
+                log.i("Window", i, "ensuring", matchedConfig.name, "placement on", currentScreen:name())
+                placeWindow(window, currentScreen, matchedConfig.config.frame, false)
                 resizedCount = resizedCount + 1
             elseif windowScreen:id() ~= currentScreen:id() then
                 local windowScreenFrame = windowScreen:frame()
