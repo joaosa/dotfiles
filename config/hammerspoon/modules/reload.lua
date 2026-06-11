@@ -5,15 +5,11 @@
 local config = require("config.constants")
 local TIMING = config.TIMING
 
-local ALERTS = {
-    CONFIG_LOADED = "🔨 Hammerspoon Config Loaded",
-}
-
 -- Logger for debugging
 local log = hs.logger.new('reload', 'info')
 
--- Store pathwatcher references to prevent garbage collection
-local watchers = {}
+-- Module-level reference so the watcher is not garbage-collected
+local watcher = nil
 
 -- Debounce timer to prevent rapid successive reloads
 local reloadTimer = nil
@@ -62,25 +58,6 @@ local function resolveRealPath(path)
     return nil
 end
 
-local function isDirectory(path)
-    return hs.fs.attributes(path, "mode") == "directory"
-end
-
-local function discoverSubdirectories(baseDir)
-    local subdirs = {}
-    local iter, dir_obj = hs.fs.dir(baseDir)
-    if not iter then return subdirs end
-    for entry in iter, dir_obj do
-        if entry ~= "." and entry ~= ".." then
-            local fullPath = baseDir .. "/" .. entry
-            if isDirectory(fullPath) then
-                table.insert(subdirs, fullPath)
-            end
-        end
-    end
-    return subdirs
-end
-
 local function setup()
     -- Resolve config directory to real path
     local configPath = hs.configdir .. "/init.lua"
@@ -94,32 +71,19 @@ local function setup()
     local configDir = realInitPath:match("(.*/)")
     log.i("Resolved config directory:", configDir)
 
-    -- Watch root config directory (for init.lua and top-level files)
-    if isDirectory(configDir) then
-        log.i("Watching root config directory:", configDir)
-        watchers.root = hs.pathwatcher.new(configDir, reloadConfig)
-        watchers.root:start()
-    else
+    if hs.fs.attributes(configDir, "mode") ~= "directory" then
         log.e("Config directory does not exist:", configDir)
         return
     end
 
-    -- Auto-discover and watch all subdirectories
-    local subdirs = discoverSubdirectories(configDir)
-    log.i("Discovered subdirectories:", #subdirs)
+    -- FSEvents (hs.pathwatcher) is recursive, and configDir resolves to the
+    -- real repo directory whose subdirectories are real directories, so one
+    -- watcher covers the whole tree.
+    log.i("Watching config directory:", configDir)
+    watcher = hs.pathwatcher.new(configDir, reloadConfig)
+    watcher:start()
 
-    for i, subdirPath in ipairs(subdirs) do
-        if isDirectory(subdirPath) then
-            local subdirName = subdirPath:match("([^/]+)$")
-            log.i("Watching subdirectory:", subdirName, "->", subdirPath)
-            watchers["subdir_" .. i] = hs.pathwatcher.new(subdirPath, reloadConfig)
-            watchers["subdir_" .. i]:start()
-        else
-            log.w("Skipping non-directory:", subdirPath)
-        end
-    end
-
-    hs.alert.show(ALERTS.CONFIG_LOADED, {}, TIMING.ALERT_MEDIUM)
+    hs.alert.show("🔨 Hammerspoon Config Loaded", {}, TIMING.ALERT_MEDIUM)
 end
 
 return {
