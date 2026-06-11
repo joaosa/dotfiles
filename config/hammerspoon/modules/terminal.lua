@@ -82,7 +82,12 @@ end
 -- moveToScreen targets the screen but not its active space, which can leave
 -- the window invisible on another space.
 local function placeWindow(window, targetScreen, frame, raise)
-    hs.spaces.moveWindowToSpace(window, hs.spaces.activeSpaceOnScreen(targetScreen))
+    -- Move across spaces only when needed: the move is the slow/flaky
+    -- private-API call, checking membership is a read.
+    local targetSpace = hs.spaces.activeSpaceOnScreen(targetScreen)
+    if not hs.fnutils.contains(hs.spaces.windowSpaces(window) or {}, targetSpace) then
+        hs.spaces.moveWindowToSpace(window, targetSpace)
+    end
     window:setFrame(targetScreen:fromUnitRect(hs.geometry(frame)))
     hs.timer.doAfter(0.1, function()
         focusWindow(window, raise)
