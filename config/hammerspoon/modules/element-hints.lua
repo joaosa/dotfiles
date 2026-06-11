@@ -1,7 +1,8 @@
 -----------------------------------------------
 -- Element Hints (vimium-style click targets)
 -- altCmd+. labels every clickable element in the focused window; type the
--- label to AXPress it (mouse-click fallback). esc cancels, backspace edits.
+-- label to AXPress it (mouse-click fallback). esc or a mouse click cancels,
+-- backspace edits.
 -----------------------------------------------
 
 local keys = require("config.keybindings")
@@ -11,9 +12,8 @@ local ax = require("hs.axuielement")
 local log = hs.logger.new('element-hints', 'info')
 
 local HINT_CHARS = "asdfghjklqwertyuiopzxcvbnm"
--- Traversal budgets so huge accessibility trees (Electron) stay responsive
+-- Traversal budget so huge accessibility trees (Electron) stay responsive
 local MAX_VISITED = 2500
-local MAX_DEPTH = 60
 
 -- Module-level state; also keeps the canvas and eventtap referenced so they
 -- are not garbage-collected while active.
@@ -22,6 +22,7 @@ local state = {
     tap = nil,
     hints = {},
     typed = "",
+    screenFrame = nil,
 }
 
 local function cancel()
@@ -35,136 +36,130 @@ local function cancel()
     end
     state.hints = {}
     state.typed = ""
+    state.screenFrame = nil
 end
 
--- Fixed-length labels (no label is a prefix of another)
+-- Fixed-length labels (no label is a prefix of another): each index encoded
+-- as `len` base-#HINT_CHARS digits.
 local function makeLabels(n)
+    local base = #HINT_CHARS
     local len = 1
-    while (#HINT_CHARS) ^ len < n do
+    while base ^ len < n do
         len = len + 1
     end
     local labels = {}
-    local function gen(prefix)
-        if #labels >= n then return end
-        if #prefix == len then
-            labels[#labels + 1] = prefix
-            return
+    for i = 0, n - 1 do
+        local label, v = "", i
+        for _ = 1, len do
+            label = HINT_CHARS:sub(v % base + 1, v % base + 1) .. label
+            v = math.floor(v / base)
         end
-        for i = 1, #HINT_CHARS do
-            gen(prefix .. HINT_CHARS:sub(i, i))
-        end
+        labels[i + 1] = label
     end
-    gen("")
     return labels
 end
 
 local function isPressable(el)
     local ok, actions = pcall(function() return el:actionNames() end)
-    if not ok or not actions then return false end
-    for _, action in ipairs(actions) do
-        if action == "AXPress" then return true end
-    end
-    return false
+    return ok and actions ~= nil and hs.fnutils.contains(actions, "AXPress")
 end
 
 local function collectClickable(winEl, winFrame)
     local found = {}
     local visited = 0
-    local function walk(el, depth)
-        if visited >= MAX_VISITED or depth > MAX_DEPTH then return end
+    local function walk(el)
+        if visited >= MAX_VISITED then return end
         visited = visited + 1
 
-        local frame = el:attributeValue("AXFrame")
+        -- One IPC round-trip per node instead of one per attribute
+        local ok, attrs = pcall(function() return el:allAttributeValues() end)
+        if not ok or not attrs then return end
+
+        local frame = attrs.AXFrame
         local visible = frame and frame.w > 2 and frame.h > 2
             and hs.geometry(frame):intersect(winFrame).area > 0
         if visible and isPressable(el) then
             found[#found + 1] = { element = el, frame = frame }
         end
 
-        local children = el:attributeValue("AXChildren")
-        if children then
-            for _, child in ipairs(children) do
-                walk(child, depth + 1)
-            end
+        for _, child in ipairs(attrs.AXChildren or {}) do
+            walk(child)
         end
     end
-    walk(winEl, 0)
+    walk(winEl)
     return found, visited
 end
 
 local function press(hint)
     local pressed = pcall(function() return hint.element:performAction("AXPress") end)
     if not pressed then
-        local f = hint.frame
-        hs.eventtap.leftClick({ x = f.x + f.w / 2, y = f.y + f.h / 2 })
+        hs.eventtap.leftClick(hs.geometry(hint.frame).center)
     end
 end
 
-local function canvasElements(screenFrame)
+-- Hints whose labels start with the typed prefix
+local function matching()
+    return hs.fnutils.filter(state.hints, function(hint)
+        return hint.label:sub(1, #state.typed) == state.typed
+    end)
+end
+
+local function canvasElements(hints)
     local elements = {}
-    for _, hint in ipairs(state.hints) do
-        if hint.label:sub(1, #state.typed) == state.typed then
-            local x = hint.frame.x - screenFrame.x
-            local y = hint.frame.y - screenFrame.y
-            local w = 8 + 9 * #hint.label
-            elements[#elements + 1] = {
-                type = "rectangle",
-                action = "fill",
-                fillColor = { red = 1, green = 0.85, blue = 0.3, alpha = 0.95 },
-                roundedRectRadii = { xRadius = 3, yRadius = 3 },
-                frame = { x = x, y = y, w = w, h = 16 },
-            }
-            elements[#elements + 1] = {
-                type = "text",
-                text = hint.label:upper(),
-                textColor = { black = 1 },
-                textSize = 11,
-                textAlignment = "center",
-                frame = { x = x, y = y + 1, w = w, h = 14 },
-            }
-        end
+    for _, hint in ipairs(hints) do
+        local x = hint.frame.x - state.screenFrame.x
+        local y = hint.frame.y - state.screenFrame.y
+        local w = 8 + 9 * #hint.label
+        elements[#elements + 1] = {
+            type = "rectangle",
+            action = "fill",
+            fillColor = { red = 1, green = 0.85, blue = 0.3, alpha = 0.95 },
+            roundedRectRadii = { xRadius = 3, yRadius = 3 },
+            frame = { x = x, y = y, w = w, h = 16 },
+        }
+        elements[#elements + 1] = {
+            type = "text",
+            text = hint.label:upper(),
+            textColor = { black = 1 },
+            textSize = 11,
+            textAlignment = "center",
+            frame = { x = x, y = y + 1, w = w, h = 14 },
+        }
     end
     return elements
 end
 
-local function render(screenFrame)
-    state.canvas:replaceElements(canvasElements(screenFrame))
+local function render(hints)
+    state.canvas:replaceElements(canvasElements(hints))
 end
 
-local function matchingCount()
-    local count = 0
-    for _, hint in ipairs(state.hints) do
-        if hint.label:sub(1, #state.typed) == state.typed then
-            count = count + 1
+local function startTap()
+    local types = hs.eventtap.event.types
+    state.tap = hs.eventtap.new({ types.keyDown, types.leftMouseDown }, function(ev)
+        if ev:getType() == types.leftMouseDown then
+            cancel()
+            return false -- let the click through
         end
-    end
-    return count
-end
 
-local function startTap(screenFrame)
-    state.tap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(ev)
         local key = hs.keycodes.map[ev:getKeyCode()]
         if key == "escape" then
             cancel()
         elseif key == "delete" then
             state.typed = state.typed:sub(1, -2)
-            render(screenFrame)
+            render(matching())
         elseif type(key) == "string" and #key == 1 and HINT_CHARS:find(key, 1, true) then
             state.typed = state.typed .. key
-            for _, hint in ipairs(state.hints) do
-                if hint.label == state.typed then
-                    cancel()
-                    press(hint)
-                    return true
-                end
-            end
-            if matchingCount() == 0 then
+            local m = matching()
+            if #m == 0 then
                 cancel()
+            elseif #m == 1 and m[1].label == state.typed then
+                cancel()
+                press(m[1])
             else
-                render(screenFrame)
+                render(m)
             end
         end
-        return true -- consume everything while hints are up
+        return true -- consume keys while hints are up
     end)
     state.tap:start()
 end
@@ -200,11 +195,11 @@ local function show()
         hint.label = labels[i]
     end
 
-    local screenFrame = win:screen():frame()
-    state.canvas = hs.canvas.new(screenFrame)
-    render(screenFrame)
+    state.screenFrame = win:screen():frame()
+    state.canvas = hs.canvas.new(state.screenFrame)
+    render(state.hints)
     state.canvas:show()
-    startTap(screenFrame)
+    startTap()
     return #found
 end
 
