@@ -5,14 +5,13 @@
 local keys = require("config.keybindings")
 local utils = require("lib.utils")
 local windowLib = require("lib.window")
-local paste = require("lib.paste")
 
 local altCmd = keys.altCmd
 local trim = utils.trim
 local findBinary = utils.findBinary
 local missingDeps = utils.missingDeps
 local withWindowRestore = windowLib.withWindowRestore
-local pasteString = paste.pasteString
+local pasteString = utils.pasteString
 
 -- Logger for debugging
 local log = hs.logger.new('asr', 'info')

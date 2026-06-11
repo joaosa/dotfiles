@@ -51,6 +51,16 @@ local function missingDeps(deps)
     return #missing > 0 and table.concat(missing, " ") or nil
 end
 
+-- Type a string into the focused window
+local function pasteString(str)
+    if not str or str == "" then
+        return false
+    end
+
+    hs.eventtap.keyStrokes(str)
+    return true
+end
+
 -- Create a debounced version of a function
 local function debounce(fn, delay)
     local timer = nil
@@ -65,5 +75,6 @@ return {
     pluralize = pluralize,
     findBinary = findBinary,
     missingDeps = missingDeps,
+    pasteString = pasteString,
     debounce = debounce,
 }

@@ -3,10 +3,10 @@
 -----------------------------------------------
 
 local keys = require("config.keybindings")
-local paste = require("lib.paste")
 local hotkey = require("lib.hotkey")
+local utils = require("lib.utils")
 local altCmd = keys.altCmd
-local pasteString = paste.pasteString
+local pasteString = utils.pasteString
 
 local function setup()
     hotkey.bindHotkeys(altCmd, {
