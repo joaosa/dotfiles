@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  config,
   username,
   ...
 }:
@@ -20,8 +21,8 @@
       ];
       RunAtLoad = true;
       KeepAlive = true;
-      StandardOutPath = "/Users/${username}/Library/Logs/ollama.log";
-      StandardErrorPath = "/Users/${username}/Library/Logs/ollama.log";
+      StandardOutPath = "${config.users.users.${username}.home}/Library/Logs/ollama.log";
+      StandardErrorPath = "${config.users.users.${username}.home}/Library/Logs/ollama.log";
     };
   };
 }

@@ -369,9 +369,7 @@ in
           # because ollmcp hands "env" to the MCP SDK as the entire subprocess
           # environment, which would strip PATH from under uvx.
           ollmcp-here() {
-            local config ret
-            config="$(mktemp -t ollmcp-servers)" || return
-            jq -n --arg dir "$PWD" '{
+            ollmcp --servers-json =(jq -n --arg dir "$PWD" '{
               mcpServers: {
                 filesystem: {command: "mcp-server-filesystem", args: [$dir]},
                 serena: {
@@ -380,11 +378,7 @@ in
                          "serena", "start-mcp-server", "--project", $dir]
                 }
               }
-            }' > "$config"
-            ollmcp --servers-json "$config" "$@"
-            ret=$?
-            rm -f "$config"
-            return $ret
+            }') "$@"
           }
 
           function sesh-sessions() {
