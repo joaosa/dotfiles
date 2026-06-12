@@ -10,6 +10,7 @@
   imports = [
     ./defaults.nix
     ./homebrew.nix
+    ./ollama.nix
     ./tailscale.nix
   ];
 
