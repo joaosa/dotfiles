@@ -88,6 +88,7 @@ let
     pkgs.libheif
     pkgs.lua
     pkgs.luarocks
+    pkgs.mcp-server-filesystem
     pkgs.miller
     pkgs.mitmproxy
     pkgs.mkcert

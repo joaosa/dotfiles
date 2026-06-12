@@ -363,6 +363,30 @@ in
             echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
           }
 
+          # Launch ollmcp with filesystem and serena MCP tools scoped to the
+          # current directory; extra args (e.g. --model) pass through. Serena
+          # is project-scoped via --project rather than SERENA_PROJECT_ROOT
+          # because ollmcp hands "env" to the MCP SDK as the entire subprocess
+          # environment, which would strip PATH from under uvx.
+          ollmcp-here() {
+            local config ret
+            config="$(mktemp -t ollmcp-servers)" || return
+            jq -n --arg dir "$PWD" '{
+              mcpServers: {
+                filesystem: {command: "mcp-server-filesystem", args: [$dir]},
+                serena: {
+                  command: "uvx",
+                  args: ["--from", "git+https://github.com/oraios/serena@v1.5.3",
+                         "serena", "start-mcp-server", "--project", $dir]
+                }
+              }
+            }' > "$config"
+            ollmcp --servers-json "$config" "$@"
+            ret=$?
+            rm -f "$config"
+            return $ret
+          }
+
           function sesh-sessions() {
             {
               exec </dev/tty
