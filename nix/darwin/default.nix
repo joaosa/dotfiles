@@ -54,5 +54,9 @@
   # Home Manager owns the user-level zsh config (~/.zshrc, plugins, starship).
   programs.zsh.enable = false;
 
-  fonts.packages = [ pkgs.nerd-fonts.sauce-code-pro ];
+  # Stock SauceCodePro patched with the Legacy Computing glyphs chafa needs;
+  # see the derivation for why a separate fallback font cannot work here.
+  fonts.packages = [
+    (pkgs.callPackage ../packages/sauce-code-pro-legacy-glyphs.nix { })
+  ];
 }

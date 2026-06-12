@@ -296,6 +296,11 @@ in
         mv = "mv -i";
         cp = "cp -i";
         ln = "ln -i";
+        # Force character rendering: tmux advertises sixel support, so chafa
+        # auto-picks it, but Alacritty can't display the resulting graphics.
+        # Sextants/wedges come from the JuliaMono glyphs grafted into the
+        # SauceCodePro font package; the stock font lacks them.
+        chafa = "chafa -f symbols --symbols +sextant+wedge -w 9";
         gcom = "git checkout main";
         gbpm = "git fetch -p; git branch --merged main | grep -vE '^[*+]| (main|master)$' | xargs -r git branch -d; git branch -vv | awk '/\\[gone\\]/ {print $1}' | grep -vE '^(main|master)$' | xargs -r git branch -D";
         gtx = "git fetch --prune --prune-tags --tags";

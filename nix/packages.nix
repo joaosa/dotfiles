@@ -31,6 +31,7 @@ let
     pkgs.cargo-nextest
     pkgs.cargo-outdated
     pkgs.cargo-vet
+    pkgs.chafa
     # claude-code and codex are installed via npm for faster upstream cadence;
     # add them here (pkgs.claude-code, pkgs.codex) to install them via Nix instead.
     pkgs.colima
