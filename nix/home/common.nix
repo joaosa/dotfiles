@@ -372,22 +372,19 @@ in
           # SERENA_PROJECT_ROOT because ollmcp hands "env" to the MCP SDK as the
           # entire subprocess environment, which would strip PATH from serena.
           ollmcp() {
-            local arg
-            for arg in "$@"; do
-              case "$arg" in
-                --servers-json|-j|--mcp-server|-s|--mcp-server-url|-u|--auto-discovery|-a)
-                  command ollmcp "$@"; return ;;
-              esac
-            done
-            command ollmcp --servers-json =(jq -n --arg dir "$PWD" '{
-              mcpServers: {
-                filesystem: {command: "mcp-server-filesystem", args: [$dir]},
-                serena: {
-                  command: "serena",
-                  args: ["start-mcp-server", "--project", $dir]
+            if (( ''${@[(I)(--servers-json|-j|--mcp-server|-s|--mcp-server-url|-u|--auto-discovery|-a)]} )); then
+              command ollmcp "$@"
+            else
+              command ollmcp --servers-json =(jq -n --arg dir "$PWD" '{
+                mcpServers: {
+                  filesystem: {command: "mcp-server-filesystem", args: [$dir]},
+                  serena: {
+                    command: "serena",
+                    args: ["start-mcp-server", "--project", $dir]
+                  }
                 }
-              }
-            }') "$@"
+              }') "$@"
+            fi
           }
 
           function sesh-sessions() {
