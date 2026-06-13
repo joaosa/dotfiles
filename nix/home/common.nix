@@ -367,15 +367,14 @@ in
           # current directory; extra args (e.g. --model) pass through. Serena
           # is project-scoped via --project rather than SERENA_PROJECT_ROOT
           # because ollmcp hands "env" to the MCP SDK as the entire subprocess
-          # environment, which would strip PATH from under uvx.
+          # environment, which would strip PATH from under serena.
           ollmcp-here() {
             ollmcp --servers-json =(jq -n --arg dir "$PWD" '{
               mcpServers: {
                 filesystem: {command: "mcp-server-filesystem", args: [$dir]},
                 serena: {
-                  command: "uvx",
-                  args: ["--from", "git+https://github.com/oraios/serena@v1.5.3",
-                         "serena", "start-mcp-server", "--project", $dir]
+                  command: "serena",
+                  args: ["start-mcp-server", "--project", $dir]
                 }
               }
             }') "$@"

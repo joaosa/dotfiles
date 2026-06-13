@@ -147,6 +147,7 @@ let
     (pkgs.callPackage ./packages/ollmcp.nix { })
     (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
     (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
+    (pkgs.callPackage ./packages/serena.nix { })
 
     (pkgs.google-cloud-sdk.withExtraComponents [
       pkgs.google-cloud-sdk.components.gke-gcloud-auth-plugin
