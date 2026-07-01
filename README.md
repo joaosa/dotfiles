@@ -96,6 +96,49 @@ Project-local Rust CLIs are intentionally managed by their own dev symlink flow
 rather than Cargo's install registry or this flake. Those symlinks live in
 `~/.cargo/bin` and point at the relevant workspace `target` directory.
 
+### Claude Code sandbox
+
+Trail of Bits'
+[claude-code-devcontainer](https://github.com/trailofbits/claude-code-devcontainer)
+runs Claude Code in a Docker container so `bypassPermissions` can't touch the
+host. The `devc` CLI is pinned and repackaged in
+[`nix/packages/devc.nix`](./nix/packages/devc.nix) (bump `rev`/`hash` there and
+`make switch` to update — no `devc self-install`/`update`). Two zsh wrappers
+drive it:
+
+```bash
+claude-fleet <org>                 # shared container over ~/ghq/github.com/<org>;
+                                   # all repos at /workspace/<repo>, one Claude/gh login
+claude-audit <repo-path-or-url>    # isolated container + volumes for untrusted code
+```
+
+`claude-fleet` stamps the org dir with
+[`config/claude-devcontainer/fleet.devcontainer.json`](./config/claude-devcontainer/fleet.devcontainer.json)
+(the base template minus its per-repo `.git` mounts, which don't exist at the
+org root; the read-only `.devcontainer` overlay is kept). Signing material is
+mounted from resolved paths, not `~` symlinks — colima only shares `$HOME`, so
+a mount whose source resolves into `/nix/store` would dangle in the VM. Colima
+itself is configured by the repo-managed
+[`config/colima/colima.yaml`](./config/colima/colima.yaml) — agent forwarding
+on for in-container commit signing, with `COLIMA_SAVE_CONFIG=false` (exported
+from `.zshenv`) keeping colima from rewriting the linked file.
+
+First run needs a Claude token. It lives in the login keychain (encrypted at
+rest, never in a dotfile or the ambient environment); the `devc` wrapper reads
+it from the keychain on every invocation and forwards it into the container via
+`localEnv`, so login works from `claude-fleet`, `devc up`, or `devc shell`
+alike:
+
+```bash
+claude setup-token   # once — interactive; copy the sk-ant-oat01-… token it shows
+security add-generic-password -a "$USER" -s claude-code-oauth -w
+                     # paste the copied token at the (hidden) password prompt
+```
+
+Re-store a rotated/mispasted token by deleting first
+(`security delete-generic-password -a "$USER" -s claude-code-oauth`) then adding
+again; `claude-fleet` warns if the stored value is missing or too short.
+
 ## Structure
 
 ```

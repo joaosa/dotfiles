@@ -18,6 +18,9 @@ let
     inherit pkgs;
   };
   qwen3AsrModel = import ./qwen3-asr.nix { inherit pkgs; };
+  # Same derivation that puts `devc` on PATH; used below to locate its bundled
+  # container templates (Dockerfile/post_install.py/.zshrc) by store path.
+  devc = pkgs.callPackage ../packages/devc.nix { };
   pkgConfigEnv = pkgs.buildEnv {
     name = "home-pkg-config-path";
     paths = homePackages;
@@ -29,9 +32,17 @@ let
   # Config files for cross-platform tools, symlinked out-of-store from this repo
   # so edits take effect without a rebuild. macOS-app configs live in darwin.nix.
   commonFiles = {
+    ".colima/default/colima.yaml" = {
+      source = link "config/colima/colima.yaml";
+      # colima writes this file itself; force past any real file / stale backup
+      # so activation never aborts on a clobber collision.
+      force = true;
+    };
     ".config/alacritty/alacritty.toml".source = link "config/alacritty/alacritty.toml";
     ".config/nvim/init.lua".source = link "config/nvim/init.lua";
     ".config/nvim/lua".source = link "config/nvim/lua";
+    ".config/claude-devcontainer/fleet.devcontainer.json".source =
+      link "config/claude-devcontainer/fleet.devcontainer.json";
     ".config/git/allowed_signers".source = link "config/git/allowed_signers";
     ".config/ruff/ruff.toml".source = link "config/ruff/ruff.toml";
     ".gitconfig".source = link "config/git/gitconfig";
@@ -73,6 +84,9 @@ in
         "/run/current-system/sw/lib/pkgconfig"
         "/run/current-system/sw/share/pkgconfig"
       ];
+      # colima.yaml is repo-managed (see commonFiles); stop `colima start`
+      # writing its effective config back through the symlink.
+      COLIMA_SAVE_CONFIG = "false";
       EDITOR = "nvim";
       VISUAL = "nvim";
       PAGER = "less";
@@ -306,6 +320,13 @@ in
         gtx = "git fetch --prune --prune-tags --tags";
       };
 
+      # .zshenv is re-sourced by every zsh (even inside a stale tmux server whose
+      # inherited hm-session-vars guard skips sessionVariables), so anything a
+      # `colima start` from an interactive shell must see goes here, not there.
+      envExtra = ''
+        export COLIMA_SAVE_CONFIG=false
+      '';
+
       profileExtra = ''
         if (( $#commands[(i)lesspipe(|.sh)] )); then
           export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
@@ -361,6 +382,101 @@ in
             ecr_repo="$(aws-vault exec "$vault_user" -- aws ecr get-authorization-token --output text --query 'authorizationData[].proxyEndpoint')"
             login="$(aws-vault exec "$vault_user" -- aws ecr get-login-password)"
             echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
+          }
+
+          # Trail of Bits' devc sandbox (github.com/trailofbits/claude-code-devcontainer),
+          # driven from the terminal. `_devc_preflight` requires devc and makes
+          # sure the Docker runtime is up; the two wrappers cover the shared-fleet
+          # and per-repo-audit modes.
+          _devc_preflight() {
+            command -v devc &>/dev/null || { echo "devc not installed (run make switch)" >&2; return 1; }
+            # --ssh-agent forces lima's forwardAgent on this boot (the colima.yaml
+            # field alone doesn't reliably reach the lima instance); the socket it
+            # sets up at /run/host-services/ssh-auth.sock is what the fleet
+            # container mounts for commit signing. No-op if colima is already up —
+            # a stale VM is caught by claude-fleet's socket check.
+            colima status &>/dev/null || colima start --ssh-agent
+          }
+
+          # Stamp devc's three static templates plus a devcontainer.json into
+          # $1/.devcontainer, then bring the container up and open a shell.
+          # install (not cp) so a re-run overwrites the prior files with a
+          # writable mode; the nix-store sources are 0444 and `cp` would prompt
+          # or fail on the read-only destinations left by an earlier run.
+          # The devc wrapper sources CLAUDE_CODE_OAUTH_TOKEN from the keychain,
+          # so container login works from any devc entry point; warn (don't
+          # block) when the item is missing so a locked keychain isn't silent.
+          _devc_stamp_and_launch() {
+            local dir="$1" devcontainer_json="$2" dc="$1/.devcontainer"
+            mkdir -p "$dc"
+            install -m0644 ${devc}/share/claude-devcontainer/Dockerfile "$dc/Dockerfile"
+            install -m0644 ${devc}/share/claude-devcontainer/post_install.py "$dc/post_install.py"
+            install -m0644 ${devc}/share/claude-devcontainer/.zshrc "$dc/.zshrc"
+            install -m0644 "$devcontainer_json" "$dc/devcontainer.json"
+            # Warn if the keychain token is missing or implausibly short (a
+            # mispasted token stores a few bytes and 401s in-container). Piped
+            # to wc so the value is never printed, stored, or echoed.
+            local token_bytes; token_bytes=$(security find-generic-password -a "$USER" -s claude-code-oauth -w 2>/dev/null | wc -c)
+            [[ "$token_bytes" -ge 20 ]] \
+              || echo "keychain token (claude-code-oauth) missing or malformed ($token_bytes bytes); container will need interactive /login. Re-store: security delete-generic-password -a \"\$USER\" -s claude-code-oauth; security add-generic-password -a \"\$USER\" -s claude-code-oauth -w" >&2
+            ( cd "$dir" && devc up . && devc shell )
+          }
+
+          # Shared container over one trusted org's fleet: every repo under the
+          # org dir is visible at /workspace/<repo>, sharing one Claude login and
+          # one gh login. The fleet devcontainer.json drops devc's per-repo .git
+          # mounts (no .git at the org root) but keeps its read-only .devcontainer
+          # overlay. Only run this over orgs you trust.
+          claude-fleet() {
+            local org="$1"
+            [[ -n "$org" ]] || { echo "usage: claude-fleet <org>" >&2; return 1; }
+            # A single path component only: a slash or .. would escape the ghq
+            # root and mount other orgs (or $HOME) into the shared container.
+            [[ "$org" != */* && "$org" != *..* ]] || { echo "org must be a single name, not a path: $org" >&2; return 1; }
+            _devc_preflight || return 1
+            # Commit signing inside the container uses the forwarded agent, but
+            # gh uses https so nothing otherwise loads the signing key. Load it
+            # from the keychain, then add it directly (a no-op if already there).
+            local signing_key="${homeDir}/.ssh/id_ed25519"
+            ssh-add --apple-load-keychain 2>/dev/null
+            ssh-add "$signing_key" 2>/dev/null
+            colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
+              || { echo "colima VM has no forwarded SSH agent socket; run: colima stop && claude-fleet $org" >&2; return 1; }
+            local fleet_dir="${homeDir}/ghq/github.com/$org"
+            [[ -d "$fleet_dir" ]] || { echo "no such org dir: $fleet_dir" >&2; return 1; }
+            _devc_stamp_and_launch "$fleet_dir" "${dotfilesPath}/config/claude-devcontainer/fleet.devcontainer.json"
+          }
+
+          # Isolated container for untrusted / third-party code: a distinct
+          # container and volumes, so a compromised repo can't see the fleet. A
+          # URL is cloned under ~/sandbox/audit/<host>/<org>/<repo> (keyed on the
+          # full path so same-named repos don't collide); a path is used in place.
+          claude-audit() {
+            local target="$1"
+            [[ -n "$target" ]] || { echo "usage: claude-audit <repo-path-or-url>" >&2; return 1; }
+            _devc_preflight || return 1
+            local dir
+            if [[ "$target" == *://* || "$target" == git@* ]]; then
+              # Normalize scheme/user prefix and .git suffix to host/org/repo.
+              local slug="''${target%/}"; slug="''${slug%.git}"
+              slug="''${slug#*://}"; slug="''${slug#*@}"; slug="''${slug/://}"
+              [[ "$slug" == */*/* ]] || { echo "can't derive host/org/repo from: $target" >&2; return 1; }
+              dir="${homeDir}/sandbox/audit/$slug"
+              [[ -d "$dir" ]] || git clone "$target" "$dir" || return 1
+            else
+              dir="''${target:A}"
+              [[ -d "$dir" ]] || { echo "no such directory: $dir" >&2; return 1; }
+            fi
+            # Keep devc's stamped .devcontainer out of the repo's own history,
+            # but only when the target actually has a git dir to exclude in.
+            if [[ -d "$dir/.git/info" ]]; then
+              grep -qxF '.devcontainer/' "$dir/.git/info/exclude" 2>/dev/null \
+                || echo '.devcontainer/' >> "$dir/.git/info/exclude"
+            fi
+            # Stamp the upstream template non-interactively (like claude-fleet) so
+            # a re-run doesn't hit devc's "Overwrite? [y/N]" prompt or fail cp-ing
+            # onto the read-only 0444 files a prior run left behind.
+            _devc_stamp_and_launch "$dir" ${devc}/share/claude-devcontainer/devcontainer.json
           }
 
           # Default a bare `ollmcp` to filesystem and serena MCP tools scoped to

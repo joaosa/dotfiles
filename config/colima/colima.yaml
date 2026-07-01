@@ -1,0 +1,20 @@
+# Lean colima profile, linked to ~/.colima/default/colima.yaml (see common.nix).
+# colima does NOT merge over its embedded defaults: it unmarshals this file and,
+# for an existing VM, reuses cpu/memory/disk unguarded — so a missing numeric
+# would boot a 0-resource VM. Keep those three plus the real deviations from
+# colima's defaults; everything else stays at colima's default and is omitted.
+# COLIMA_SAVE_CONFIG=false (from .zshenv) stops `colima start` rewriting this.
+
+cpu: 4
+memory: 8
+disk: 100
+
+vmType: vz
+rosetta: true
+mountType: virtiofs
+mountInotify: true
+
+# Forward the host SSH agent into the VM; lima pins it at
+# /run/host-services/ssh-auth.sock, which the fleet devcontainer mounts for
+# in-container commit signing.
+forwardAgent: true

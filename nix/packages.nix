@@ -44,6 +44,8 @@ let
     pkgs.crane
     pkgs.delve
     pkgs.delta
+    # devcontainer CLI, driven by the pinned `devc` wrapper below.
+    pkgs.devcontainer
     pkgs.direnv
     pkgs.dive
     pkgs.docker
@@ -144,6 +146,7 @@ let
     pkgs.libheif.dev
 
     # Local derivations for tools missing from nixpkgs at the version we want.
+    (pkgs.callPackage ./packages/devc.nix { })
     (pkgs.callPackage ./packages/ollmcp.nix { })
     (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
     (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
