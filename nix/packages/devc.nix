@@ -1,33 +1,20 @@
 {
   lib,
   stdenvNoCC,
-  fetchFromGitHub,
-  makeWrapper,
-  bash,
-  coreutils,
-  devcontainer,
-  docker,
-  jq,
-  git,
   python3,
 }:
 
-# Trail of Bits' `devc` CLI, paired with repo-owned Claude Code + Codex
-# templates. Upstream ships a self-installing checkout; this derivation pins the
-# CLI, installs the audited templates into the store, and makes `make switch`
-# the only install/update path.
+# Repo-owned Claude Code + Codex devcontainer templates, adapted from Trail of
+# Bits' claude-code-devcontainer. Upstream's self-installing `devc` CLI is not
+# shipped: its subcommands read a repo's own .devcontainer and escape the pin,
+# and the agent-fleet/agent-audit wrappers use the templates directly. This
+# derivation only stages the audited templates and helpers into the store and
+# installs a guard as `devc`, making `make switch` the only install/update path.
 stdenvNoCC.mkDerivation {
   pname = "agent-devcontainer";
   version = "0-unstable-2026-07-10";
 
-  src = fetchFromGitHub {
-    owner = "trailofbits";
-    repo = "claude-code-devcontainer";
-    rev = "6750a78849dcb6f1477c5162a6d2185afcdbefd7";
-    hash = "sha256-rGNvisG4YnyWY6X+hjEEVJ+cazzJ2PZWxpeNFjX6EvM=";
-  };
-
-  nativeBuildInputs = [ makeWrapper ];
+  dontUnpack = true;
 
   installPhase = ''
     runHook preInstall
@@ -49,33 +36,14 @@ stdenvNoCC.mkDerivation {
       --replace-fail '#!/usr/bin/env python3' '#!${python3}/bin/python3'
     chmod 0755 "$out/libexec/devc-audit-slug"
 
-    # Add the two repo-owned runtime helpers to upstream's template copier, then
-    # rewrite all template lookups from the script directory to the store.
-    substituteInPlace install.sh \
-      --replace-fail \
-        'cp "$SCRIPT_DIR/.zshrc" "$devcontainer_dir/"' \
-        'cp "$SCRIPT_DIR/.zshrc" "$devcontainer_dir/"
-    cp "$SCRIPT_DIR/init-firewall.sh" "$devcontainer_dir/"
-    cp "$SCRIPT_DIR/post-start.sh" "$devcontainer_dir/"'
-    substituteInPlace install.sh \
-      --replace-fail 'cp "$SCRIPT_DIR/' "cp \"$templates/"
-
-    install -Dm0755 install.sh "$out/bin/devc"
-
-    # Ensure devc finds all helpers regardless of the caller's PATH. Credentials
-    # are deliberately not injected here: only the trusted fleet wrapper reads
-    # the Claude token, while audit containers receive no host AI credentials.
-    wrapProgram "$out/bin/devc" \
-      --prefix PATH : ${
-        lib.makeBinPath [
-          bash
-          coreutils
-          devcontainer
-          docker
-          jq
-          git
-        ]
-      }
+    # Deliberately do NOT ship upstream's install.sh as `devc`. Its up/./template
+    # subcommands read a repository's own .devcontainer (executing its
+    # initializeCommand on the host and honoring attacker-supplied mounts), and
+    # its self-install/update paths escape this pin. The agent-fleet/agent-audit
+    # wrappers never use it; they stage the audited templates and call the
+    # devcontainer CLI directly. This guard replaces it so a stray `devc ...`
+    # fails loudly instead of taking an unsafe path.
+    install -Dm0755 ${./devc-guard.sh} "$out/bin/devc"
 
     runHook postInstall
   '';

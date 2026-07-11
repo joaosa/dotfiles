@@ -30,6 +30,7 @@
     "source=${localWorkspaceFolder}/.git/hooks,target=/workspace/.git/hooks,type=bind,readonly"
   ],
   "containerEnv": {
+    "AGENT_CODEX_EXTERNAL_SANDBOX": "1",
     "AGENT_ENABLE_FIREWALL": "0",
     "CLAUDE_BYPASS_PERMISSIONS": "0",
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",

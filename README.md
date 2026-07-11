@@ -147,10 +147,13 @@ or reviewing requested approvals. Extend `AGENT_ALLOWED_DOMAINS` in
 [`audit.devcontainer.json`](./config/agent-devcontainer/audit.devcontainer.json)
 when an audited project legitimately needs another package registry.
 
-The CLI package lives in [`nix/packages/devc.nix`](./nix/packages/devc.nix).
-Bump its upstream `rev`/`hash` there; update the pinned `CODEX_VERSION` in the
-three devcontainer JSON profiles and Dockerfile together. Use `make switch` to
-install updates—do not use `devc self-install` or `devc update`.
+The package that stages these templates lives in
+[`nix/packages/devc.nix`](./nix/packages/devc.nix). Update the pinned
+`CODEX_VERSION` in the three devcontainer JSON profiles and Dockerfile together.
+Use `make switch` to install updates. The `agent-fleet` and `agent-audit`
+wrappers are the only entry points; a bare `devc` is a guard that refuses to run
+so upstream's unsafe `up` / `template` / `self-install` / `update` subcommands
+cannot be invoked.
 
 ## Structure
 

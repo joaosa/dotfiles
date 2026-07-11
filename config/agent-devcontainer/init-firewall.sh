@@ -42,14 +42,18 @@ add_ipv4_cidr() {
 }
 
 configure_ipv6_default_deny() {
-  command -v ip6tables >/dev/null 2>&1 || {
-    echo "ERROR: ip6tables is required" >&2
-    exit 1
-  }
-  ip6tables -F
-  ip6tables -X
-  ip6tables -t mangle -F
-  ip6tables -t mangle -X
+  # A host with IPv6 disabled has no v6 egress to secure, so skip rather than
+  # bricking the container. If ip6tables IS present we must reach default-deny;
+  # the flushes are best-effort but the DROP policies below are mandatory.
+  if ! command -v ip6tables >/dev/null 2>&1 \
+    || ! ip6tables -L >/dev/null 2>&1; then
+    echo "[devcontainer] IPv6 stack unavailable; skipping IPv6 deny" >&2
+    return 0
+  fi
+  ip6tables -F 2>/dev/null || true
+  ip6tables -X 2>/dev/null || true
+  ip6tables -t mangle -F 2>/dev/null || true
+  ip6tables -t mangle -X 2>/dev/null || true
   ip6tables -t nat -F 2>/dev/null || true
   ip6tables -t nat -X 2>/dev/null || true
   ip6tables -A INPUT -i lo -j ACCEPT
@@ -139,20 +143,33 @@ iptables -A OUTPUT -j REJECT --reject-with icmp-admin-prohibited
 iptables -A FORWARD -j REJECT --reject-with icmp-admin-prohibited
 configure_ipv6_default_deny
 
+# Negative checks are the security-critical assertions: a non-allowlisted host
+# and any IPv6 egress must be blocked. These fail the firewall hard.
 if curl --connect-timeout 5 https://example.com >/dev/null 2>&1; then
   echo "ERROR: firewall allowed a non-allowlisted domain" >&2
   exit 1
 fi
-if ! curl --connect-timeout 5 https://api.openai.com >/dev/null 2>&1; then
-  echo "ERROR: firewall blocked api.openai.com" >&2
-  exit 1
-fi
-if ! curl --connect-timeout 5 https://api.anthropic.com >/dev/null 2>&1; then
-  echo "ERROR: firewall blocked api.anthropic.com" >&2
-  exit 1
-fi
 if curl --connect-timeout 5 -6 https://example.com >/dev/null 2>&1; then
   echo "ERROR: firewall allowed IPv6 egress" >&2
+  exit 1
+fi
+
+# Positive check: confirm at least one configured domain is reachable, drawn
+# from the allowlist rather than hardcoded endpoints. A single domain whose CDN
+# rotated its IP away from the snapshot must not brick startup, so only a total
+# failure (every probed domain unreachable) is fatal; partial misses warn.
+reachable=0
+probed=0
+for domain in "${allowed_domains[@]}"; do
+  [ "$probed" -ge 5 ] && break
+  probed=$((probed + 1))
+  if curl --connect-timeout 5 "https://$domain" >/dev/null 2>&1; then
+    reachable=1
+    break
+  fi
+done
+if [ "$probed" -gt 0 ] && [ "$reachable" -ne 1 ]; then
+  echo "ERROR: firewall blocked every probed allowlisted domain" >&2
   exit 1
 fi
 

@@ -43,7 +43,9 @@ def split_url(value: str) -> tuple[str, str]:
 
 def audit_slug(value: str) -> str:
     host, path = split_url(value.strip())
-    path = path.removesuffix(".git").rstrip("/")
+    # Strip the trailing slash first: a URL like `.../repo.git/` would otherwise
+    # keep its `.git` suffix and slug to a different directory than `.../repo`.
+    path = path.rstrip("/").removesuffix(".git")
     components = [host, *path.split("/")]
 
     if len(components) < 3:
