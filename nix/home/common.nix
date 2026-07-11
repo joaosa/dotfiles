@@ -41,8 +41,6 @@ let
     ".config/alacritty/alacritty.toml".source = link "config/alacritty/alacritty.toml";
     ".config/nvim/init.lua".source = link "config/nvim/init.lua";
     ".config/nvim/lua".source = link "config/nvim/lua";
-    ".config/claude-devcontainer/fleet.devcontainer.json".source =
-      link "config/claude-devcontainer/fleet.devcontainer.json";
     ".config/git/allowed_signers".source = link "config/git/allowed_signers";
     ".config/ruff/ruff.toml".source = link "config/ruff/ruff.toml";
     ".gitconfig".source = link "config/git/gitconfig";
@@ -384,100 +382,138 @@ in
             echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
           }
 
-          # Trail of Bits' devc sandbox (github.com/trailofbits/claude-code-devcontainer),
-          # driven from the terminal. `_devc_preflight` requires devc and makes
-          # sure the Docker runtime is up; the two wrappers cover the shared-fleet
-          # and per-repo-audit modes.
-          _devc_preflight() {
-            command -v devc &>/dev/null || { echo "devc not installed (run make switch)" >&2; return 1; }
-            # --ssh-agent forces lima's forwardAgent on this boot (the colima.yaml
-            # field alone doesn't reliably reach the lima instance); the socket it
-            # sets up at /run/host-services/ssh-auth.sock is what the fleet
-            # container mounts for commit signing. No-op if colima is already up —
-            # a stale VM is caught by claude-fleet's socket check.
+          # Agent devcontainers use trusted configs staged outside each checkout.
+          # Repository-owned .devcontainer files are never read, overwritten, or
+          # followed as symlinks by these wrappers.
+          _agent_devcontainer_preflight() {
+            command -v devcontainer &>/dev/null \
+              || { echo "devcontainer CLI not installed (run make switch)" >&2; return 1; }
             colima status &>/dev/null || colima start --ssh-agent
           }
 
-          # Stamp devc's three static templates plus a devcontainer.json into
-          # $1/.devcontainer, then bring the container up and open a shell.
-          # install (not cp) so a re-run overwrites the prior files with a
-          # writable mode; the nix-store sources are 0444 and `cp` would prompt
-          # or fail on the read-only destinations left by an earlier run.
-          # The devc wrapper sources CLAUDE_CODE_OAUTH_TOKEN from the keychain,
-          # so container login works from any devc entry point; warn (don't
-          # block) when the item is missing so a locked keychain isn't silent.
-          _devc_stamp_and_launch() {
-            local dir="$1" devcontainer_json="$2" dc="$1/.devcontainer"
-            mkdir -p "$dc"
-            install -m0644 ${devc}/share/claude-devcontainer/Dockerfile "$dc/Dockerfile"
-            install -m0644 ${devc}/share/claude-devcontainer/post_install.py "$dc/post_install.py"
-            install -m0644 ${devc}/share/claude-devcontainer/.zshrc "$dc/.zshrc"
-            install -m0644 "$devcontainer_json" "$dc/devcontainer.json"
-            # Warn if the keychain token is missing or implausibly short (a
-            # mispasted token stores a few bytes and 401s in-container). Piped
-            # to wc so the value is never printed, stored, or echoed.
-            local token_bytes; token_bytes=$(security find-generic-password -a "$USER" -s claude-code-oauth -w 2>/dev/null | wc -c)
-            [[ "$token_bytes" -ge 20 ]] \
-              || echo "keychain token (claude-code-oauth) missing or malformed ($token_bytes bytes); container will need interactive /login. Re-store: security delete-generic-password -a \"\$USER\" -s claude-code-oauth; security add-generic-password -a \"\$USER\" -s claude-code-oauth -w" >&2
-            ( cd "$dir" && devc up . && devc shell )
+          _agent_devcontainer_stage() {
+            local profile="$1"
+            local cache="${homeDir}/.cache"
+            local root="$cache/agent-devcontainer"
+            local stage="$root/$profile"
+            # Not `path`: zsh ties that name to $PATH, so a plain `local path`
+            # loop would clobber PATH and make mkdir/install unresolvable.
+            local p file
+
+            for p in "$cache" "$root" "$stage"; do
+              [[ ! -L "$p" ]] \
+                || { echo "refusing symlinked agent cache path: $p" >&2; return 1; }
+              if [[ -e "$p" ]]; then
+                [[ -d "$p" && -O "$p" ]] \
+                  || { echo "agent cache path is not an owned directory: $p" >&2; return 1; }
+              else
+                mkdir "$p" || return 1
+              fi
+            done
+
+            for file in Dockerfile .zshrc post_install.py init-firewall.sh apply-firewall.sh post-start.sh sudoers-agent; do
+              [[ ! -L "$stage/$file" ]] \
+                || { echo "refusing symlinked staged file: $stage/$file" >&2; return 1; }
+              install -m0644 "${devc}/share/agent-devcontainer/$file" "$stage/$file" || return 1
+            done
+            [[ ! -L "$stage/devcontainer.json" ]] \
+              || { echo "refusing symlinked staged config: $stage/devcontainer.json" >&2; return 1; }
+            install -m0644 \
+              "${devc}/share/agent-devcontainer/$profile.devcontainer.json" \
+              "$stage/devcontainer.json" || return 1
+            print -r -- "$stage/devcontainer.json"
           }
 
-          # Shared container over one trusted org's fleet: every repo under the
-          # org dir is visible at /workspace/<repo>, sharing one Claude login and
-          # one gh login. The fleet devcontainer.json drops devc's per-repo .git
-          # mounts (no .git at the org root) but keeps its read-only .devcontainer
-          # overlay. Only run this over orgs you trust.
-          claude-fleet() {
+          _agent_devcontainer_launch() {
+            local dir="$1" profile="$2" config
+            config="$(_agent_devcontainer_stage "$profile")" || return 1
+
+            (
+              export DOTFILES_PATH="${dotfilesPath}"
+              if [[ "$profile" == audit ]]; then
+                unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY OPENAI_API_KEY
+              else
+                local token
+                token=$(security find-generic-password -a "$USER" -s claude-code-oauth -w 2>/dev/null)
+                if [[ "''${#token}" -ge 20 ]]; then
+                  export CLAUDE_CODE_OAUTH_TOKEN="$token"
+                else
+                  unset CLAUDE_CODE_OAUTH_TOKEN
+                  echo "Claude keychain token missing or malformed; use interactive login in the fleet container" >&2
+                fi
+              fi
+
+              cd "$dir" || return 1
+              devcontainer up \
+                --workspace-folder "$dir" \
+                --config "$config" \
+                --id-label "devcontainer.local_folder=$dir" \
+                --id-label "agent.devcontainer.profile=$profile" \
+                || return 1
+              devcontainer exec \
+                --workspace-folder "$dir" \
+                --config "$config" \
+                --id-label "devcontainer.local_folder=$dir" \
+                --id-label "agent.devcontainer.profile=$profile" \
+                zsh
+            )
+          }
+
+          # One trusted container over every repository in an organization. It
+          # carries both Claude and Codex, shared login volumes, gh auth, and the
+          # forwarded signing agent. Only use this over organizations you trust.
+          agent-fleet() {
             local org="$1"
-            [[ -n "$org" ]] || { echo "usage: claude-fleet <org>" >&2; return 1; }
-            # A single path component only: a slash or .. would escape the ghq
-            # root and mount other orgs (or $HOME) into the shared container.
-            [[ "$org" != */* && "$org" != *..* ]] || { echo "org must be a single name, not a path: $org" >&2; return 1; }
-            _devc_preflight || return 1
-            # Commit signing inside the container uses the forwarded agent, but
-            # gh uses https so nothing otherwise loads the signing key. Load it
-            # from the keychain, then add it directly (a no-op if already there).
+            [[ -n "$org" ]] || { echo "usage: agent-fleet <org>" >&2; return 1; }
+            [[ "$org" != *[^A-Za-z0-9._-]* && "$org" != . && "$org" != .. ]] \
+              || { echo "org must be one safe path component: $org" >&2; return 1; }
+            local fleet_dir="${homeDir}/ghq/github.com/$org"
+            [[ -d "$fleet_dir" && ! -L "$fleet_dir" ]] \
+              || { echo "no safe org directory: $fleet_dir" >&2; return 1; }
+
+            _agent_devcontainer_preflight || return 1
             local signing_key="${homeDir}/.ssh/id_ed25519"
             ssh-add --apple-load-keychain 2>/dev/null
-            ssh-add "$signing_key" 2>/dev/null
+            ssh-add "$signing_key" 2>/dev/null \
+              || { echo "could not load signing key: $signing_key" >&2; return 1; }
             colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
-              || { echo "colima VM has no forwarded SSH agent socket; run: colima stop && claude-fleet $org" >&2; return 1; }
-            local fleet_dir="${homeDir}/ghq/github.com/$org"
-            [[ -d "$fleet_dir" ]] || { echo "no such org dir: $fleet_dir" >&2; return 1; }
-            _devc_stamp_and_launch "$fleet_dir" "${dotfilesPath}/config/claude-devcontainer/fleet.devcontainer.json"
+              || { echo "colima has no SSH agent socket; run: colima stop && agent-fleet $org" >&2; return 1; }
+            _agent_devcontainer_launch "$fleet_dir" fleet
           }
 
-          # Isolated container for untrusted / third-party code: a distinct
-          # container and volumes, so a compromised repo can't see the fleet. A
-          # URL is cloned under ~/sandbox/audit/<host>/<org>/<repo> (keyed on the
-          # full path so same-named repos don't collide); a path is used in place.
-          claude-audit() {
-            local target="$1"
-            [[ -n "$target" ]] || { echo "usage: claude-audit <repo-path-or-url>" >&2; return 1; }
-            _devc_preflight || return 1
-            local dir
-            if [[ "$target" == *://* || "$target" == git@* ]]; then
-              # Normalize scheme/user prefix and .git suffix to host/org/repo.
-              local slug="''${target%/}"; slug="''${slug%.git}"
-              slug="''${slug#*://}"; slug="''${slug#*@}"; slug="''${slug/://}"
-              [[ "$slug" == */*/* ]] || { echo "can't derive host/org/repo from: $target" >&2; return 1; }
-              dir="${homeDir}/sandbox/audit/$slug"
-              [[ -d "$dir" ]] || git clone "$target" "$dir" || return 1
+          claude-fleet() { agent-fleet "$@"; }
+          codex-fleet() { agent-fleet "$@"; }
+
+          # Per-repository audit containers receive no host AI/API credentials or
+          # SSH agent. URL destinations are validated and created by the pinned
+          # helper, and the trusted config lives outside the checkout.
+          agent-audit() {
+            local target="$1" dir
+            [[ -n "$target" ]] \
+              || { echo "usage: agent-audit <repo-path-or-url>" >&2; return 1; }
+            if [[ "$target" == *://* || "$target" == *@*:* ]]; then
+              dir="$(${devc}/libexec/devc-audit-slug --prepare "${homeDir}/sandbox/audit" "$target")" \
+                || return 1
             else
+              # Reject a symlinked target on the raw path: `:A` resolves
+              # symlinks, so testing -L after it would always pass.
+              [[ ! -L "$target" ]] \
+                || { echo "refusing symlinked target: $target" >&2; return 1; }
               dir="''${target:A}"
-              [[ -d "$dir" ]] || { echo "no such directory: $dir" >&2; return 1; }
+              [[ -d "$dir" && ! -L "$dir" ]] \
+                || { echo "no safe directory: $dir" >&2; return 1; }
+              [[ -d "$dir/.git" ]] \
+                || { echo "not a git checkout (audit mounts .git read-only): $dir" >&2; return 1; }
             fi
-            # Keep devc's stamped .devcontainer out of the repo's own history,
-            # but only when the target actually has a git dir to exclude in.
-            if [[ -d "$dir/.git/info" ]]; then
-              grep -qxF '.devcontainer/' "$dir/.git/info/exclude" 2>/dev/null \
-                || echo '.devcontainer/' >> "$dir/.git/info/exclude"
-            fi
-            # Stamp the upstream template non-interactively (like claude-fleet) so
-            # a re-run doesn't hit devc's "Overwrite? [y/N]" prompt or fail cp-ing
-            # onto the read-only 0444 files a prior run left behind.
-            _devc_stamp_and_launch "$dir" ${devc}/share/claude-devcontainer/devcontainer.json
+
+            _agent_devcontainer_preflight || return 1
+            echo "Audit profile: no host AI/API credentials or SSH agent are forwarded." >&2
+            echo "Use 'codex login --device-auth' or interactive Claude login inside this isolated container." >&2
+            _agent_devcontainer_launch "$dir" audit
           }
+
+          claude-audit() { agent-audit "$@"; }
+          codex-audit() { agent-audit "$@"; }
 
           # Default a bare `ollmcp` to filesystem and serena MCP tools scoped to
           # the current directory; without server flags ollmcp would otherwise

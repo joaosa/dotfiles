@@ -9,17 +9,16 @@
   docker,
   jq,
   git,
+  python3,
 }:
 
-# Trail of Bits' `devc` CLI wraps the devcontainer CLI to run Claude Code in a
-# sandboxed container. Upstream ships it as a self-installing git checkout
-# (`install.sh self-install` symlinks it into ~/.local/bin and reads its four
-# template files from the script's own directory). Here we pin it instead: the
-# script and its templates are installed into the store, the template lookups
-# are rewritten to that path, and `make switch` is the install/update path.
+# Trail of Bits' `devc` CLI, paired with repo-owned Claude Code + Codex
+# templates. Upstream ships a self-installing checkout; this derivation pins the
+# CLI, installs the audited templates into the store, and makes `make switch`
+# the only install/update path.
 stdenvNoCC.mkDerivation {
-  pname = "claude-code-devcontainer";
-  version = "0-unstable-2026-06-27";
+  pname = "agent-devcontainer";
+  version = "0-unstable-2026-07-10";
 
   src = fetchFromGitHub {
     owner = "trailofbits";
@@ -33,23 +32,39 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    templates="$out/share/claude-devcontainer"
-    install -Dm0644 -t "$templates" \
-      Dockerfile devcontainer.json post_install.py .zshrc
+    templates="$out/share/agent-devcontainer"
+    install -Dm0644 ${../../config/agent-devcontainer/Dockerfile} "$templates/Dockerfile"
+    install -Dm0644 ${../../config/agent-devcontainer/.zshrc} "$templates/.zshrc"
+    install -Dm0644 ${../../config/agent-devcontainer/post_install.py} "$templates/post_install.py"
+    install -Dm0644 ${../../config/agent-devcontainer/init-firewall.sh} "$templates/init-firewall.sh"
+    install -Dm0644 ${../../config/agent-devcontainer/apply-firewall.sh} "$templates/apply-firewall.sh"
+    install -Dm0644 ${../../config/agent-devcontainer/post-start.sh} "$templates/post-start.sh"
+    install -Dm0644 ${../../config/agent-devcontainer/sudoers-agent} "$templates/sudoers-agent"
+    install -Dm0644 ${../../config/agent-devcontainer/default.devcontainer.json} "$templates/devcontainer.json"
+    install -Dm0644 ${../../config/agent-devcontainer/audit.devcontainer.json} "$templates/audit.devcontainer.json"
+    install -Dm0644 ${../../config/agent-devcontainer/fleet.devcontainer.json} "$templates/fleet.devcontainer.json"
 
-    # Upstream copies templates via `cp "$SCRIPT_DIR/<file>"` (the script's own
-    # dir). Under Nix the script lives in $out/bin, so rewrite that one shared
-    # prefix to the installed template dir; no other $SCRIPT_DIR use matches it.
+    mkdir -p "$out/libexec"
+    substitute ${./devc-audit-slug.py} "$out/libexec/devc-audit-slug" \
+      --replace-fail '#!/usr/bin/env python3' '#!${python3}/bin/python3'
+    chmod 0755 "$out/libexec/devc-audit-slug"
+
+    # Add the two repo-owned runtime helpers to upstream's template copier, then
+    # rewrite all template lookups from the script directory to the store.
+    substituteInPlace install.sh \
+      --replace-fail \
+        'cp "$SCRIPT_DIR/.zshrc" "$devcontainer_dir/"' \
+        'cp "$SCRIPT_DIR/.zshrc" "$devcontainer_dir/"
+    cp "$SCRIPT_DIR/init-firewall.sh" "$devcontainer_dir/"
+    cp "$SCRIPT_DIR/post-start.sh" "$devcontainer_dir/"'
     substituteInPlace install.sh \
       --replace-fail 'cp "$SCRIPT_DIR/' "cp \"$templates/"
 
     install -Dm0755 install.sh "$out/bin/devc"
 
-    # Ensure devc finds the devcontainer CLI, docker and its other helpers
-    # regardless of the caller's PATH; and source the Claude OAuth token from
-    # the login keychain so EVERY devc invocation (up/rebuild/shell, not just
-    # the claude-fleet wrapper) forwards it into the container via localEnv.
-    # Only set it when unset, so an explicit override still wins.
+    # Ensure devc finds all helpers regardless of the caller's PATH. Credentials
+    # are deliberately not injected here: only the trusted fleet wrapper reads
+    # the Claude token, while audit containers receive no host AI credentials.
     wrapProgram "$out/bin/devc" \
       --prefix PATH : ${
         lib.makeBinPath [
@@ -60,14 +75,13 @@ stdenvNoCC.mkDerivation {
           jq
           git
         ]
-      } \
-      --run 'export CLAUDE_CODE_OAUTH_TOKEN="''${CLAUDE_CODE_OAUTH_TOKEN:-$(/usr/bin/security find-generic-password -a "$USER" -s claude-code-oauth -w 2>/dev/null)}"'
+      }
 
     runHook postInstall
   '';
 
   meta = {
-    description = "Sandboxed devcontainer for running Claude Code with bypassed permissions";
+    description = "Hardened devcontainers for Claude Code and Codex";
     homepage = "https://github.com/trailofbits/claude-code-devcontainer";
     license = lib.licenses.asl20;
     mainProgram = "devc";

@@ -1,0 +1,21 @@
+# Scoped replacement for the base image's NOPASSWD:ALL grant to vscode.
+# Only the exact commands post_install.py and post-start.sh run as root are
+# permitted, so an untrusted agent in the audit container cannot use sudo to
+# tear down the firewall, remount paths, or become root.
+#
+# The firewall is applied through a single no-argument wrapper: it reads the
+# allowlist from PID 1's environment and calls init-firewall.sh itself, so the
+# untrusted user cannot supply the domain payload or run init-firewall.sh with
+# an attacker-chosen ruleset. The remaining rules target fixed paths only.
+
+Cmnd_Alias AGENT_FIREWALL = /usr/local/bin/apply-firewall.sh ""
+Cmnd_Alias AGENT_CHOWN_VOLUMES = \
+  /usr/bin/chown -R [0-9]*\:[0-9]* /home/vscode/.claude, \
+  /usr/bin/chown -R [0-9]*\:[0-9]* /home/vscode/.codex, \
+  /usr/bin/chown -R [0-9]*\:[0-9]* /home/vscode/.config/gh, \
+  /usr/bin/chown -R [0-9]*\:[0-9]* /commandhistory
+Cmnd_Alias AGENT_SSH_SOCK = \
+  /usr/bin/chown vscode\:vscode /run/host-services/ssh-auth.sock, \
+  /usr/bin/chmod 0600 /run/host-services/ssh-auth.sock
+
+vscode ALL=(root) NOPASSWD: AGENT_FIREWALL, AGENT_CHOWN_VOLUMES, AGENT_SSH_SOCK

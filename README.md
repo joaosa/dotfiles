@@ -96,48 +96,61 @@ Project-local Rust CLIs are intentionally managed by their own dev symlink flow
 rather than Cargo's install registry or this flake. Those symlinks live in
 `~/.cargo/bin` and point at the relevant workspace `target` directory.
 
-### Claude Code sandbox
+### Claude Code and Codex devcontainers
 
-Trail of Bits'
-[claude-code-devcontainer](https://github.com/trailofbits/claude-code-devcontainer)
-runs Claude Code in a Docker container so `bypassPermissions` can't touch the
-host. The `devc` CLI is pinned and repackaged in
-[`nix/packages/devc.nix`](./nix/packages/devc.nix) (bump `rev`/`hash` there and
-`make switch` to update — no `devc self-install`/`update`). Two zsh wrappers
-drive it:
+The pinned Trail of Bits `devc` CLI is paired with repo-owned templates under
+[`config/agent-devcontainer`](./config/agent-devcontainer). The image contains
+both Claude Code and Codex; `agent-*` is the canonical wrapper and the
+`claude-*` / `codex-*` names are compatibility aliases:
 
 ```bash
-claude-fleet <org>                 # shared container over ~/ghq/github.com/<org>;
-                                   # all repos at /workspace/<repo>, one Claude/gh login
-claude-audit <repo-path-or-url>    # isolated container + volumes for untrusted code
+agent-fleet <org>                  # trusted org: shared AI/gh login + signing agent
+agent-audit <repo-path-or-url>     # untrusted repo: isolated logins, strict egress
+
+claude-fleet <org>                 # aliases of agent-fleet
+codex-fleet <org>
+claude-audit <repo-path-or-url>    # aliases of agent-audit
+codex-audit <repo-path-or-url>
 ```
 
-`claude-fleet` stamps the org dir with
-[`config/claude-devcontainer/fleet.devcontainer.json`](./config/claude-devcontainer/fleet.devcontainer.json)
-(the base template minus its per-repo `.git` mounts, which don't exist at the
-org root; the read-only `.devcontainer` overlay is kept). Signing material is
-mounted from resolved paths, not `~` symlinks — colima only shares `$HOME`, so
-a mount whose source resolves into `/nix/store` would dangle in the VM. Colima
-itself is configured by the repo-managed
-[`config/colima/colima.yaml`](./config/colima/colima.yaml) — agent forwarding
-on for in-container commit signing, with `COLIMA_SAVE_CONFIG=false` (exported
-from `.zshenv`) keeping colima from rewriting the linked file.
+Wrappers stage the trusted Dockerfile and profile in
+`~/.cache/agent-devcontainer`, outside the checkout, then pass the config path
+explicitly to the Dev Container CLI. They never create or overwrite a
+repository's `.devcontainer`, and URL audit destinations are parsed into safe
+`host/group/repo` components under `~/sandbox/audit` with symlinks rejected.
 
-First run needs a Claude token. It lives in the login keychain (encrypted at
-rest, never in a dotfile or the ambient environment); the `devc` wrapper reads
-it from the keychain on every invocation and forwards it into the container via
-`localEnv`, so login works from `claude-fleet`, `devc up`, or `devc shell`
-alike:
+The fleet profile is only for trusted organizations. It shares Claude, Codex,
+and GitHub login volumes across that organization and forwards the host SSH
+agent for commit signing. The Claude OAuth token is read from the login
+keychain only by this trusted wrapper:
 
 ```bash
-claude setup-token   # once — interactive; copy the sk-ant-oat01-… token it shows
+claude setup-token
 security add-generic-password -a "$USER" -s claude-code-oauth -w
-                     # paste the copied token at the (hidden) password prompt
 ```
 
-Re-store a rotated/mispasted token by deleting first
-(`security delete-generic-password -a "$USER" -s claude-code-oauth`) then adding
-again; `claude-fleet` warns if the stored value is missing or too short.
+The audit profile does not forward `CLAUDE_CODE_OAUTH_TOKEN`,
+`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or the SSH agent. It uses distinct
+per-repository Claude, Codex, and `gh` volumes, leaves Claude permission prompts
+enabled, mounts Git config/hooks read-only, disables inherited commit signing,
+and applies an outbound domain allowlist. `SYS_ADMIN` is deliberately absent,
+so Codex uses the devcontainer as its external sandbox while retaining approval
+prompts; its nested Bubblewrap sandbox is disabled. Authenticate inside it as
+needed; for Codex on a headless container, use:
+
+```bash
+codex login --device-auth
+```
+
+The firewall is defense in depth, not a substitute for the container boundary
+or reviewing requested approvals. Extend `AGENT_ALLOWED_DOMAINS` in
+[`audit.devcontainer.json`](./config/agent-devcontainer/audit.devcontainer.json)
+when an audited project legitimately needs another package registry.
+
+The CLI package lives in [`nix/packages/devc.nix`](./nix/packages/devc.nix).
+Bump its upstream `rev`/`hash` there; update the pinned `CODEX_VERSION` in the
+three devcontainer JSON profiles and Dockerfile together. Use `make switch` to
+install updates—do not use `devc self-install` or `devc update`.
 
 ## Structure
 
@@ -162,6 +175,7 @@ again; `claude-fleet` warns if the stored value is missing or too short.
 ├── Makefile               # Task runner
 └── config/                # Dotfile source tree linked by Home Manager
     ├── alacritty/alacritty.toml
+    ├── agent-devcontainer/  # Claude/Codex image, profiles, firewall
     ├── git/                  # gitconfig, gitignore_global
     ├── hammerspoon/          # init.lua, config/, lib/, modules/
     ├── karabiner/karabiner.json

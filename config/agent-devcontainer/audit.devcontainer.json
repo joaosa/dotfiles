@@ -1,0 +1,83 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "Agent Audit",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "TZ": "${localEnv:TZ:UTC}",
+      "GIT_DELTA_VERSION": "0.18.2",
+      "CODEX_VERSION": "0.144.1",
+      "ZSH_IN_DOCKER_VERSION": "1.2.1"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
+  "init": true,
+  "updateRemoteUserUID": true,
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=devc-${localWorkspaceFolderBasename}-audit-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=devc-${localWorkspaceFolderBasename}-audit-claude-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    "source=devc-${localWorkspaceFolderBasename}-audit-codex-${devcontainerId},target=/home/vscode/.codex,type=volume",
+    "source=devc-${localWorkspaceFolderBasename}-audit-gh-${devcontainerId},target=/home/vscode/.config/gh,type=volume",
+    "source=${localEnv:DOTFILES_PATH}/config/git/gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly",
+    "source=${localWorkspaceFolder}/.git/config,target=/workspace/.git/config,type=bind,readonly",
+    "source=${localWorkspaceFolder}/.git/hooks,target=/workspace/.git/hooks,type=bind,readonly"
+  ],
+  "containerEnv": {
+    "AGENT_CODEX_EXTERNAL_SANDBOX": "1",
+    "AGENT_DISABLE_GIT_SIGNING": "1",
+    "AGENT_ENABLE_FIREWALL": "1",
+    "AGENT_INCLUDE_GITHUB_META_RANGES": "0",
+    "AGENT_ALLOWED_DOMAINS": "api.openai.com auth.openai.com chatgpt.com api.anthropic.com claude.ai sentry.io github.com api.github.com codeload.github.com raw.githubusercontent.com objects.githubusercontent.com release-assets.githubusercontent.com ghcr.io registry.npmjs.org pypi.org files.pythonhosted.org crates.io index.crates.io static.crates.io static.rust-lang.org proxy.golang.org sum.golang.org",
+    "CLAUDE_BYPASS_PERMISSIONS": "0",
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "GIT_CONFIG_GLOBAL": "/home/vscode/.gitconfig.local",
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "NPM_CONFIG_AUDIT": "true",
+    "NPM_CONFIG_FUND": "false",
+    "NPM_CONFIG_IGNORE_SCRIPTS": "true",
+    "NPM_CONFIG_MINIMUM_RELEASE_AGE": "1440",
+    "NPM_CONFIG_SAVE_EXACT": "true",
+    "NPM_CONFIG_UPDATE_NOTIFIER": "false",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "UV_LINK_MODE": "copy",
+    "UV_NO_CONFIG": "1",
+    "UV_PYTHON_DOWNLOADS": "never"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "uv run --directory /opt --no-project /opt/post_install.py && git config --file ~/.gitconfig.local --add safe.directory '*'",
+  "postStartCommand": "bash /opt/post_start.sh",
+  "waitFor": "postStartCommand",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          }
+        },
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true
+      }
+    }
+  }
+}
