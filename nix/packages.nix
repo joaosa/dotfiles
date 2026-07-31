@@ -105,6 +105,7 @@ let
     pkgs.nodejs_22
     pkgs.opencode
     pkgs.openpgp-card-tools
+    pkgs.oras
     pkgs.parallel
     pkgs.pkg-config
     pkgs.pngquant
