@@ -18,8 +18,7 @@ require_trusted_file() {
     echo "[devcontainer] Missing or non-regular allowlist input: $file" >&2
     exit 1
   fi
-  owner="$(stat -c '%u:%g' "$file")"
-  mode="$(stat -c '%a' "$file")"
+  read -r owner mode <<< "$(stat -c '%u:%g %a' "$file")"
   if [ "$owner" != "0:0" ] || [ $((8#$mode & 8#022)) -ne 0 ]; then
     echo "[devcontainer] Untrusted allowlist input $file (owner $owner, mode $mode)" >&2
     exit 1
@@ -39,9 +38,11 @@ if [ "${#domains[@]}" -eq 0 ]; then
   exit 1
 fi
 
+# Validate only: init-firewall.sh reads the trusted file itself, like the
+# allowlist, so the flag has one channel and the Dockerfile ARG one default.
 include_meta="$(tr -d '[:space:]' < "$meta_in")"
-case "${include_meta:-1}" in
-  0 | 1) export AGENT_INCLUDE_GITHUB_META_RANGES="${include_meta:-1}" ;;
+case "$include_meta" in
+  0 | 1) ;;
   *)
     echo "[devcontainer] Invalid include-github-meta: $include_meta" >&2
     exit 1

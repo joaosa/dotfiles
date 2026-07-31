@@ -5,7 +5,12 @@ set -euo pipefail
 IFS=$'\n\t'
 
 allowed_domains_file=/etc/agent-devcontainer/allowed-domains
-include_github_meta_ranges="${AGENT_INCLUDE_GITHUB_META_RANGES:-1}"
+# Baked into the image and validated as 0/1 by apply-firewall.sh, this script's
+# only entry point (the sudoers rule exposes nothing else), so no fallback
+# default here — the Dockerfile ARG is the single owner of the default.
+include_github_meta_ranges="$(tr -d '[:space:]' < /etc/agent-devcontainer/include-github-meta)"
+# An exact-match IPv4 literal; add_ipv4_cidr appends the /prefix variant.
+ipv4_re='^[0-9]{1,3}(\.[0-9]{1,3}){3}$'
 firewall_ready=0
 
 fail_closed() {
@@ -26,15 +31,13 @@ fail_closed() {
 }
 trap fail_closed EXIT
 
+# Non-emptiness is apply-firewall.sh's check: it validates and writes this file
+# immediately before invoking us, with the actionable "rebuild the image" error.
 mapfile -t allowed_domains < <(sed '/^\s*#/d;/^\s*$/d' "$allowed_domains_file")
-if [ "${#allowed_domains[@]}" -eq 0 ]; then
-  echo "ERROR: no allowed domains configured" >&2
-  exit 1
-fi
 
 add_ipv4_cidr() {
   local cidr="$1"
-  if [[ ! "$cidr" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}/[0-9]{1,2}$ ]]; then
+  if [[ ! "$cidr" =~ ${ipv4_re%\$}/[0-9]{1,2}$ ]]; then
     echo "ERROR: invalid IPv4 CIDR: $cidr" >&2
     exit 1
   fi
@@ -112,7 +115,7 @@ fi
 dns_endpoints=0
 while IFS= read -r nameserver; do
   # IPv6 resolvers are unusable here: IPv6 egress is default-deny below.
-  if [[ ! "$nameserver" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+  if [[ ! "$nameserver" =~ $ipv4_re ]]; then
     echo "[devcontainer] Ignoring non-IPv4 nameserver: $nameserver" >&2
     continue
   fi
@@ -132,7 +135,7 @@ ipset create allowed-domains hash:net
 for domain in "${allowed_domains[@]}"; do
   echo "[devcontainer] Resolving $domain"
   # `dig +short A` may print the CNAME chain before the final addresses.
-  ips="$(dig +short A "$domain" | grep -E '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' || true)"
+  ips="$(dig +short A "$domain" | grep -E "$ipv4_re" || true)"
   if [ -z "$ips" ]; then
     echo "ERROR: failed to resolve $domain" >&2
     exit 1
@@ -165,8 +168,7 @@ configure_ipv6_default_deny
 # Assert DNS survived the DROP policy before trusting the negative checks: with
 # resolution dead, every curl below fails for the wrong reason and a firewall
 # that blocks everything would look like one that blocks exactly the right hosts.
-if ! dig +short A example.com \
-  | grep -qE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
+if ! dig +short A example.com | grep -qE "$ipv4_re"; then
   echo "ERROR: DNS resolution is broken under the firewall policy" >&2
   exit 1
 fi

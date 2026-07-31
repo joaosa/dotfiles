@@ -117,9 +117,8 @@ COPY --chmod=0500 apply-firewall.sh /usr/local/bin/apply-firewall.sh
 USER root
 ARG AGENT_ALLOWED_DOMAINS=""
 ARG AGENT_INCLUDE_GITHUB_META_RANGES=1
-RUN install -d -o root -g root -m 0755 /etc/agent-devcontainer && \
+RUN install -d -m 0755 /etc/agent-devcontainer && \
   printf '%s\n' "$AGENT_ALLOWED_DOMAINS" > /etc/agent-devcontainer/allowed-domains.in && \
   printf '%s\n' "$AGENT_INCLUDE_GITHUB_META_RANGES" > /etc/agent-devcontainer/include-github-meta && \
-  chown root:root /etc/agent-devcontainer/allowed-domains.in /etc/agent-devcontainer/include-github-meta && \
   chmod 0444 /etc/agent-devcontainer/allowed-domains.in /etc/agent-devcontainer/include-github-meta
 USER vscode
