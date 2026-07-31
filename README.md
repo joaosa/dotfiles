@@ -143,9 +143,13 @@ codex login --device-auth
 ```
 
 The firewall is defense in depth, not a substitute for the container boundary
-or reviewing requested approvals. Extend `AGENT_ALLOWED_DOMAINS` in
+or reviewing requested approvals. Extend the `AGENT_ALLOWED_DOMAINS` build arg
+in
 [`audit.devcontainer.json`](./config/agent-devcontainer/audit.devcontainer.json)
-when an audited project legitimately needs another package registry.
+when an audited project legitimately needs another package registry. It is a
+build arg rather than an environment variable so the root applier reads it from
+a root-owned file the agent cannot rewrite; changing it rebuilds one trailing
+image layer on the next `agent-audit`.
 
 The package that stages these templates lives in
 [`nix/packages/devc.nix`](./nix/packages/devc.nix). Update the pinned

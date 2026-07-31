@@ -100,12 +100,31 @@ if [ -n "$docker_dns_rules" ]; then
   done <<< "$docker_dns_rules"
 fi
 
-# DNS only to Docker's embedded resolver, not to any host: a wide-open port 53
-# is a data-exfiltration tunnel that bypasses the domain allowlist entirely.
+# DNS only to the resolvers this container actually uses, not to any host: a
+# wide-open port 53 is a data-exfiltration tunnel that bypasses the domain
+# allowlist entirely. Derive them from resolv.conf rather than hardcoding
+# Docker's embedded resolver, which only exists on user-defined networks:
+# colima's default bridge points resolv.conf at the VM resolver instead, and
+# hardcoding 127.0.0.11 there kills DNS the moment the DROP policy lands. Each
+# of these forwards to upstream either way, so the exfil surface is unchanged.
 # Inbound replies ride the ESTABLISHED,RELATED rule below, so no --sport 53
 # INPUT rule (which any peer could match by choosing source port 53) is needed.
-iptables -A OUTPUT -p udp -d 127.0.0.11 --dport 53 -j ACCEPT
-iptables -A OUTPUT -p tcp -d 127.0.0.11 --dport 53 -j ACCEPT
+dns_endpoints=0
+while IFS= read -r nameserver; do
+  # IPv6 resolvers are unusable here: IPv6 egress is default-deny below.
+  if [[ ! "$nameserver" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+    echo "[devcontainer] Ignoring non-IPv4 nameserver: $nameserver" >&2
+    continue
+  fi
+  iptables -A OUTPUT -p udp -d "$nameserver" --dport 53 -j ACCEPT
+  iptables -A OUTPUT -p tcp -d "$nameserver" --dport 53 -j ACCEPT
+  dns_endpoints=$((dns_endpoints + 1))
+  echo "[devcontainer] DNS allowed to $nameserver"
+done < <(awk '$1 == "nameserver" { print $2 }' /etc/resolv.conf | sort -u)
+if [ "$dns_endpoints" -eq 0 ]; then
+  echo "ERROR: no IPv4 nameserver in /etc/resolv.conf; DNS would be dead" >&2
+  exit 1
+fi
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
@@ -142,6 +161,15 @@ iptables -A INPUT -j REJECT --reject-with icmp-admin-prohibited
 iptables -A OUTPUT -j REJECT --reject-with icmp-admin-prohibited
 iptables -A FORWARD -j REJECT --reject-with icmp-admin-prohibited
 configure_ipv6_default_deny
+
+# Assert DNS survived the DROP policy before trusting the negative checks: with
+# resolution dead, every curl below fails for the wrong reason and a firewall
+# that blocks everything would look like one that blocks exactly the right hosts.
+if ! dig +short A example.com \
+  | grep -qE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
+  echo "ERROR: DNS resolution is broken under the firewall policy" >&2
+  exit 1
+fi
 
 # Negative checks are the security-critical assertions: a non-allowlisted host
 # and any IPv6 egress must be blocked. These fail the firewall hard.

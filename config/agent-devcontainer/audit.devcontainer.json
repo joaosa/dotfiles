@@ -7,7 +7,9 @@
       "TZ": "${localEnv:TZ:UTC}",
       "GIT_DELTA_VERSION": "0.18.2",
       "CODEX_VERSION": "0.144.1",
-      "ZSH_IN_DOCKER_VERSION": "1.2.1"
+      "ZSH_IN_DOCKER_VERSION": "1.2.1",
+      "AGENT_INCLUDE_GITHUB_META_RANGES": "0",
+      "AGENT_ALLOWED_DOMAINS": "api.openai.com auth.openai.com chatgpt.com api.anthropic.com claude.ai sentry.io github.com api.github.com codeload.github.com raw.githubusercontent.com objects.githubusercontent.com release-assets.githubusercontent.com ghcr.io registry.npmjs.org pypi.org files.pythonhosted.org crates.io index.crates.io static.crates.io static.rust-lang.org proxy.golang.org sum.golang.org"
     }
   },
   "features": {
@@ -33,8 +35,6 @@
     "AGENT_CODEX_EXTERNAL_SANDBOX": "1",
     "AGENT_DISABLE_GIT_SIGNING": "1",
     "AGENT_ENABLE_FIREWALL": "1",
-    "AGENT_INCLUDE_GITHUB_META_RANGES": "0",
-    "AGENT_ALLOWED_DOMAINS": "api.openai.com auth.openai.com chatgpt.com api.anthropic.com claude.ai sentry.io github.com api.github.com codeload.github.com raw.githubusercontent.com objects.githubusercontent.com release-assets.githubusercontent.com ghcr.io registry.npmjs.org pypi.org files.pythonhosted.org crates.io index.crates.io static.crates.io static.rust-lang.org proxy.golang.org sum.golang.org",
     "CLAUDE_BYPASS_PERMISSIONS": "0",
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
     "GIT_CONFIG_GLOBAL": "/home/vscode/.gitconfig.local",

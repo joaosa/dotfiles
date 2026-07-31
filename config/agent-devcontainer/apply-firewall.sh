@@ -1,33 +1,52 @@
 #!/usr/bin/env bash
 # Root-invoked firewall applier. Runs via a no-argument sudo rule so the
 # untrusted vscode user cannot supply the allowlist payload: the domain list is
-# read from PID 1's environment (set by the container runtime from containerEnv,
-# not writable by the agent), validated here, then written to a root-only path.
+# baked into the image at build time as a root-owned, world-unwritable file,
+# validated here, then written to a root-only path the firewall reads.
 set -euo pipefail
 
-# Read a variable from PID 1's environment (NUL-delimited), ignoring whatever
-# the calling shell exported. This is the runtime-provided, tamper-proof value.
-init_env() {
-  local name="$1" kv
-  while IFS= read -r -d '' kv; do
-    if [ "${kv%%=*}" = "$name" ]; then
-      printf '%s' "${kv#*=}"
-      return 0
-    fi
-  done < /proc/1/environ
-  return 1
+config_dir=/etc/agent-devcontainer
+domains_in="$config_dir/allowed-domains.in"
+meta_in="$config_dir/include-github-meta"
+
+# A baked input is only trustworthy if the agent could not have rewritten it
+# between build and apply: reject symlinks (which could redirect the read into
+# agent-writable storage) and anything not owned by root or writable by others.
+require_trusted_file() {
+  local file="$1" owner mode
+  if [ -L "$file" ] || [ ! -f "$file" ]; then
+    echo "[devcontainer] Missing or non-regular allowlist input: $file" >&2
+    exit 1
+  fi
+  owner="$(stat -c '%u:%g' "$file")"
+  mode="$(stat -c '%a' "$file")"
+  if [ "$owner" != "0:0" ] || [ $((8#$mode & 8#022)) -ne 0 ]; then
+    echo "[devcontainer] Untrusted allowlist input $file (owner $owner, mode $mode)" >&2
+    exit 1
+  fi
 }
 
-domains_raw="$(init_env AGENT_ALLOWED_DOMAINS || true)"
-domains_raw="${domains_raw:-api.openai.com api.anthropic.com}"
-include_meta="$(init_env AGENT_INCLUDE_GITHUB_META_RANGES || true)"
-export AGENT_INCLUDE_GITHUB_META_RANGES="${include_meta:-1}"
+require_trusted_file "$domains_in"
+require_trusted_file "$meta_in"
 
-mapfile -t domains < <(printf '%s\n' "$domains_raw" | tr ', ' '\n' | sed '/^$/d' | sort -u)
+# An empty allowlist means the image was built without AGENT_ALLOWED_DOMAINS.
+# Fail loudly instead of silently applying a narrower default: a firewall that
+# quietly permits two domains looks identical to one applying the real policy.
+mapfile -t domains < <(tr ', ' '\n' < "$domains_in" | sed '/^$/d' | sort -u)
 if [ "${#domains[@]}" -eq 0 ]; then
-  echo "[devcontainer] No allowed domains configured" >&2
+  echo "[devcontainer] No allowed domains baked into this image; rebuild with" \
+    "AGENT_ALLOWED_DOMAINS set, or disable AGENT_ENABLE_FIREWALL" >&2
   exit 1
 fi
+
+include_meta="$(tr -d '[:space:]' < "$meta_in")"
+case "${include_meta:-1}" in
+  0 | 1) export AGENT_INCLUDE_GITHUB_META_RANGES="${include_meta:-1}" ;;
+  *)
+    echo "[devcontainer] Invalid include-github-meta: $include_meta" >&2
+    exit 1
+    ;;
+esac
 
 tmp_file="$(mktemp)"
 trap 'rm -f "$tmp_file"' EXIT
@@ -39,6 +58,5 @@ for domain in "${domains[@]}"; do
   printf '%s\n' "$domain" >> "$tmp_file"
 done
 
-install -d -m 0755 /etc/agent-devcontainer
-install -o root -g root -m 0444 "$tmp_file" /etc/agent-devcontainer/allowed-domains
+install -o root -g root -m 0444 "$tmp_file" "$config_dir/allowed-domains"
 /usr/local/bin/init-firewall.sh

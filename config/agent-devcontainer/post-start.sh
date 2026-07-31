@@ -17,6 +17,7 @@ if [ "${AGENT_ENABLE_FIREWALL:-0}" != "1" ]; then
 fi
 
 echo "[devcontainer] Outbound firewall: strict"
-# The applier runs as root and reads the allowlist from PID 1's environment, so
-# the untrusted user never supplies the domain payload or firewall arguments.
+# The applier runs as root and reads the allowlist from a root-owned file baked
+# into the image, so the untrusted user never supplies the domain payload or any
+# firewall arguments.
 sudo /usr/local/bin/apply-firewall.sh

@@ -4,9 +4,10 @@
 # tear down the firewall, remount paths, or become root.
 #
 # The firewall is applied through a single no-argument wrapper: it reads the
-# allowlist from PID 1's environment and calls init-firewall.sh itself, so the
-# untrusted user cannot supply the domain payload or run init-firewall.sh with
-# an attacker-chosen ruleset. The remaining rules target fixed paths only.
+# allowlist from a root-owned file baked into the image and calls
+# init-firewall.sh itself, so the untrusted user cannot supply the domain
+# payload or run init-firewall.sh with an attacker-chosen ruleset. The remaining
+# rules target fixed paths only.
 
 Cmnd_Alias AGENT_FIREWALL = /usr/local/bin/apply-firewall.sh ""
 Cmnd_Alias AGENT_CHOWN_VOLUMES = \
