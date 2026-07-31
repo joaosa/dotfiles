@@ -104,10 +104,9 @@ let
             hooks = [
               {
                 type = "command";
-                # claudeProfileDirs.main, not a literal ~/.claude: these hooks
-                # are shared config, so they must follow the profile dir if it
-                # ever moves rather than silently breaking both accounts.
-                command = "python3 ${claudeProfileDirs.main}/ccnotify/ccnotify.py ${event}";
+                # In .claude-shared, not a profile dir: shared config must not
+                # depend on any one account's directory.
+                command = "python3 ${homeDir}/.claude-shared/ccnotify/ccnotify.py ${event}";
               }
             ];
           }
@@ -119,22 +118,6 @@ let
   );
   # home.file keys are relative to $HOME, so strip the prefix back off.
   claudeRelative = lib.removePrefix "${homeDir}/";
-  # Move a pre-existing real file or directory aside so linkGeneration can put
-  # a symlink in its place; a no-op once the target is a symlink. Refuses to
-  # clobber an existing backup rather than guessing which copy matters.
-  moveAsideIfReal = target: ''
-    target="${target}"
-    backup="$target.before-nix"
-
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-      if [ -e "$backup" ]; then
-        echo "Refusing to replace $target because $backup already exists"
-        exit 1
-      fi
-
-      /bin/mv "$target" "$backup"
-    fi
-  '';
   claudeProfileFiles = lib.listToAttrs (
     lib.concatMap (
       dir:
@@ -245,10 +228,6 @@ in
           fi
         done
       '';
-
-      qwen3AsrModelPath = lib.hm.dag.entryBefore [ "linkGeneration" ] (
-        moveAsideIfReal "${homeDir}/.local/share/qwen3-asr/Qwen3-ASR-0.6B"
-      );
     };
   };
 
