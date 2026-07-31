@@ -274,7 +274,12 @@ in
       enable = true;
       # No implicit Host * defaults from the module; everything is explicit.
       enableDefaultConfig = false;
-      includes = [ "${homeDir}/.colima/ssh_config" ];
+      includes = [
+        "${homeDir}/.colima/ssh_config"
+        # Machine-local hosts that shouldn't be versioned (ephemeral
+        # engagement/bastion entries); a glob so nothing breaks when empty.
+        "${homeDir}/.ssh/config.d/*"
+      ];
       settings."*" = {
         User = "root";
         # Load keys into the agent lazily on first use, instead of ssh-add
