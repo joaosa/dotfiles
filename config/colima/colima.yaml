@@ -5,8 +5,8 @@
 # colima's defaults; everything else stays at colima's default and is omitted.
 # COLIMA_SAVE_CONFIG=false (from .zshenv) stops `colima start` rewriting this.
 
-cpu: 4
-memory: 8
+cpu: 8
+memory: 32
 disk: 100
 
 vmType: vz
