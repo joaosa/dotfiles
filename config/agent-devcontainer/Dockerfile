@@ -105,10 +105,14 @@ RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "$FNM_D
 
 ENV PATH="/home/vscode/.fnm/aliases/default/bin:/home/vscode/.local/bin:$PATH"
 
+# Verify the installer script by SHA-256 before executing it as root, rather
+# than piping curl straight into a shell. Update on ZSH_IN_DOCKER_VERSION bumps.
 ARG ZSH_IN_DOCKER_VERSION=1.2.1
-RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
-  -p git \
-  -x
+ARG ZSH_IN_DOCKER_SHA256=0cf15b6f9c63a8103eb33bad87dc4b43fed0e0ad5884dff90f943ee1e868796e
+RUN curl -fsSL "https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh" -o /tmp/zid.sh && \
+  echo "${ZSH_IN_DOCKER_SHA256}  /tmp/zid.sh" | sha256sum -c - && \
+  sh /tmp/zid.sh -p git -x && \
+  rm /tmp/zid.sh
 
 COPY --chown=vscode:vscode .zshrc /home/vscode/.zshrc.custom
 RUN echo 'source ~/.zshrc.custom' >> /home/vscode/.zshrc
