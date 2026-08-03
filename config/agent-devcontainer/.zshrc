@@ -30,18 +30,3 @@ alias ll='ls -lah --color=auto'
 alias la='ls -A --color=auto'
 alias l='ls -CF --color=auto'
 alias grep='grep --color=auto'
-
-export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND='fdfind --type d --hidden --follow --exclude .git'
-export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
-
-_fzf_compgen_path() {
-  fdfind --hidden --follow --exclude .git . "$1"
-}
-
-_fzf_compgen_dir() {
-  fdfind --type d --hidden --follow --exclude .git . "$1"
-}
-
-eval "$(fzf --zsh)"

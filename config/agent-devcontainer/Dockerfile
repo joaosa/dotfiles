@@ -59,18 +59,6 @@ RUN ARCH=$(dpkg --print-architecture) && \
 
 COPY --from=uv /uv /usr/local/bin/uv
 
-# Update both digests whenever FZF_VERSION changes.
-ARG FZF_VERSION=0.70.0
-ARG FZF_SHA256_amd64=8fd0e0b93bdf64ba90081ffb6658d77ea5a024c122b36852b1de30f9d2733754
-ARG FZF_SHA256_arm64=90a07a13b61f56dd59ccfd0f0bf05070e9cec067713d313fa2607aab2dc0e422
-RUN ARCH=$(dpkg --print-architecture) && \
-  eval "EXPECT=\${FZF_SHA256_${ARCH}}" && \
-  [ -n "$EXPECT" ] || { echo "No fzf digest for arch ${ARCH}" >&2; exit 1; } && \
-  curl -fsSL "https://github.com/junegunn/fzf/releases/download/v${FZF_VERSION}/fzf-${FZF_VERSION}-linux_${ARCH}.tar.gz" -o /tmp/fzf.tar.gz && \
-  echo "${EXPECT}  /tmp/fzf.tar.gz" | sha256sum -c - && \
-  tar -xzf /tmp/fzf.tar.gz -C /usr/local/bin && \
-  rm /tmp/fzf.tar.gz
-
 RUN mkdir -p /commandhistory /workspace /home/vscode/.claude /home/vscode/.codex /opt && \
   touch /commandhistory/.bash_history /commandhistory/.zsh_history && \
   chown -R vscode:vscode /commandhistory /workspace /home/vscode/.claude /home/vscode/.codex /opt
