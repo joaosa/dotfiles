@@ -176,34 +176,6 @@ def setup_codex_settings() -> None:
     print("[post_install] Codex sandbox: external container", file=sys.stderr)
 
 
-def setup_tmux_config() -> None:
-    tmux_conf = Path.home() / ".tmux.conf"
-    if tmux_conf.exists():
-        return
-
-    tmux_conf.write_text(
-        """\
-set-option -g history-limit 200000
-set -g mouse on
-setw -g mode-keys vi
-set -g base-index 1
-setw -g pane-base-index 1
-set -g renumber-windows on
-set -sg escape-time 10
-set -g default-terminal "tmux-256color"
-set -ag terminal-overrides ",xterm-256color:RGB"
-set -as terminal-features ",xterm-ghostty:RGB"
-set -as terminal-features ",xterm*:RGB"
-set -ga terminal-overrides ",xterm*:colors=256"
-set -ga terminal-overrides '*:Ss=\\E[%p1%d q:Se=\\E[ q'
-set -g status-style 'bg=#333333 fg=#ffffff'
-set -g status-left '[#S] '
-set -g status-right '%Y-%m-%d %H:%M'
-""",
-        encoding="utf-8",
-    )
-
-
 def setup_git_config() -> None:
     home = Path.home()
     gitignore = home / ".gitignore_global"
@@ -311,7 +283,6 @@ def main() -> None:
     setup_onboarding_bypass()
     setup_claude_settings()
     setup_codex_settings()
-    setup_tmux_config()
     setup_git_config()
     print("[post_install] Configuration complete", file=sys.stderr)
 
