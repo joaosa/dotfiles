@@ -38,6 +38,7 @@
     "source=/run/host-services/ssh-auth.sock,target=/run/host-services/ssh-auth.sock,type=bind"
   ],
   "containerEnv": {
+    "AGENT_CLAUDE_MODEL": "fable",
     "AGENT_ENABLE_FIREWALL": "0",
     "AGENT_UPDATE_AGENTS": "1",
     "CLAUDE_BYPASS_PERMISSIONS": "1",

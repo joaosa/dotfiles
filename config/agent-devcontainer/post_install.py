@@ -112,6 +112,13 @@ def setup_claude_settings() -> None:
             if isinstance(loaded, dict):
                 settings = loaded
 
+    # Setup-token auth hides subscription-included models from the /model
+    # picker (anthropics/claude-code#79597), so profiles that rely on
+    # CLAUDE_CODE_OAUTH_TOKEN pin the default model here instead.
+    model = os.environ.get("AGENT_CLAUDE_MODEL")
+    if model:
+        settings["model"] = model
+
     permissions = settings.setdefault("permissions", {})
     if os.environ.get("CLAUDE_BYPASS_PERMISSIONS") == "1":
         permissions["defaultMode"] = "bypassPermissions"
