@@ -8,8 +8,11 @@ ENV TZ="$TZ"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# No bubblewrap: every profile runs Codex with the container as its external
+# sandbox (AGENT_CODEX_EXTERNAL_SANDBOX=1), so Codex never spawns its nested
+# bwrap. A setuid-root bwrap would be latent local-root surface for no benefit,
+# and this profile blocks the user namespaces unprivileged bwrap needs anyway.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  bubblewrap \
   socat \
   fd-find \
   ripgrep \
@@ -24,7 +27,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ipset \
   iptables \
   iproute2 \
-  && chmod u+s /usr/bin/bwrap \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
