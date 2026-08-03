@@ -39,6 +39,7 @@
   ],
   "containerEnv": {
     "AGENT_ENABLE_FIREWALL": "0",
+    "AGENT_UPDATE_AGENTS": "1",
     "CLAUDE_BYPASS_PERMISSIONS": "1",
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
     "CODEX_UNSAFE_ALLOW_NO_SANDBOX": "1",
@@ -58,7 +59,8 @@
   },
   "remoteEnv": {
     "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN:}",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY:}"
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY:}",
+    "CODEX_API_KEY": "${localEnv:CODEX_API_KEY:}"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",

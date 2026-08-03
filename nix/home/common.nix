@@ -534,6 +534,19 @@ in
             print -r -- "$stage/devcontainer.json"
           }
 
+          # Export one keychain-held credential into the fleet container, or
+          # unset it and say so.
+          _agent_devcontainer_export_secret() {
+            local var="$1" service="$2" agent="$3" secret
+            secret=$(security find-generic-password -a "$USER" -s "$service" -w 2>/dev/null)
+            if [[ "''${#secret}" -ge 20 ]]; then
+              export "$var=$secret"
+            else
+              unset "$var"
+              echo "$agent keychain secret missing or malformed ($service); use interactive login in the fleet container" >&2
+            fi
+          }
+
           _agent_devcontainer_launch() {
             local dir="$1" profile="$2" config
             config="$(_agent_devcontainer_stage "$profile")" || return 1
@@ -541,16 +554,12 @@ in
             (
               export DOTFILES_PATH="${dotfilesPath}"
               if [[ "$profile" == audit ]]; then
-                unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY OPENAI_API_KEY
+                unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY OPENAI_API_KEY CODEX_API_KEY
               else
-                local token
-                token=$(security find-generic-password -a "$USER" -s claude-code-oauth -w 2>/dev/null)
-                if [[ "''${#token}" -ge 20 ]]; then
-                  export CLAUDE_CODE_OAUTH_TOKEN="$token"
-                else
-                  unset CLAUDE_CODE_OAUTH_TOKEN
-                  echo "Claude keychain token missing or malformed; use interactive login in the fleet container" >&2
-                fi
+                _agent_devcontainer_export_secret \
+                  CLAUDE_CODE_OAUTH_TOKEN claude-code-oauth Claude
+                _agent_devcontainer_export_secret \
+                  CODEX_API_KEY codex-api-key Codex
               fi
 
               cd "$dir" || return 1

@@ -121,18 +121,37 @@ repository's `.devcontainer`, and URL audit destinations are parsed into safe
 
 The fleet profile is only for trusted organizations. It shares Claude, Codex,
 and GitHub login volumes across that organization and forwards the host SSH
-agent for commit signing. The Claude OAuth token is read from the login
-keychain only by this trusted wrapper:
+agent for commit signing. The Claude OAuth token and the Codex API key are read
+from the login keychain only by this trusted wrapper:
 
 ```bash
+# Claude: the CLI mints a subscription OAuth token
 claude setup-token
 security add-generic-password -a "$USER" -s claude-code-oauth -w
+
+# Codex: mint an API key at platform.openai.com (no CLI equivalent exists)
+security add-generic-password -a "$USER" -s codex-api-key -w
 ```
 
+The wrapper exports these as `CLAUDE_CODE_OAUTH_TOKEN` and `CODEX_API_KEY`.
+Claude reads its variable directly; Codex's interactive TUI does not, so the
+post-start hook exchanges a forwarded `CODEX_API_KEY` for persistent
+credentials via `codex login --with-api-key`. In both cases the keychain secret
+takes precedence over an earlier interactive login inside the container.
+
+Both secrets are optional; without one, the wrapper unsets its variable and
+warns, and that agent falls back to interactive login backed by its persistent
+volume.
+
+Fleet also refreshes both agents on start, at most once a day, because the image
+pins them at build time and a self-update cannot outlive the container. The
+audit and sandbox profiles keep the pinned build.
+
 The audit profile does not forward `CLAUDE_CODE_OAUTH_TOKEN`,
-`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or the SSH agent. It uses distinct
-per-repository Claude, Codex, and `gh` volumes, leaves Claude permission prompts
-enabled, mounts Git config/hooks read-only, disables inherited commit signing,
+`ANTHROPIC_API_KEY`, `CODEX_API_KEY`, `OPENAI_API_KEY`, or the SSH agent. It
+uses distinct per-repository Claude, Codex, and `gh` volumes, leaves Claude
+permission prompts enabled, mounts Git config/hooks read-only, disables
+inherited commit signing,
 and applies an outbound domain allowlist. `SYS_ADMIN` is deliberately absent,
 so Codex uses the devcontainer as its external sandbox while retaining approval
 prompts; its nested Bubblewrap sandbox is disabled. Authenticate inside it as
