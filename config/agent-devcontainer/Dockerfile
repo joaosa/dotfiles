@@ -43,22 +43,33 @@ RUN find /etc/sudoers.d -type f ! -name agent-devcontainer \
   chown root:root /etc/sudoers.d/agent-devcontainer && \
   visudo -cf /etc/sudoers.d/agent-devcontainer
 
+# Pin release assets by SHA-256, not just version tag: a retagged or
+# compromised release would otherwise execute at build time as root. Update
+# both digests whenever GIT_DELTA_VERSION changes.
 ARG GIT_DELTA_VERSION=0.18.2
+ARG GIT_DELTA_SHA256_amd64=1658c7b61825d411b50734f34016101309e4b6e7f5799944cf8e4ac542cebd7f
+ARG GIT_DELTA_SHA256_arm64=937781aa7788e1510858743fff6c9a8b4a69fe0a22a7c8a69493e633227939a9
 RUN ARCH=$(dpkg --print-architecture) && \
+  eval "EXPECT=\${GIT_DELTA_SHA256_${ARCH}}" && \
+  [ -n "$EXPECT" ] || { echo "No git-delta digest for arch ${ARCH}" >&2; exit 1; } && \
   curl -fsSL "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" -o /tmp/git-delta.deb && \
+  echo "${EXPECT}  /tmp/git-delta.deb" | sha256sum -c - && \
   dpkg -i /tmp/git-delta.deb && \
   rm /tmp/git-delta.deb
 
 COPY --from=uv /uv /usr/local/bin/uv
 
+# Update both digests whenever FZF_VERSION changes.
 ARG FZF_VERSION=0.70.0
+ARG FZF_SHA256_amd64=8fd0e0b93bdf64ba90081ffb6658d77ea5a024c122b36852b1de30f9d2733754
+ARG FZF_SHA256_arm64=90a07a13b61f56dd59ccfd0f0bf05070e9cec067713d313fa2607aab2dc0e422
 RUN ARCH=$(dpkg --print-architecture) && \
-  case "${ARCH}" in \
-    amd64) FZF_ARCH="linux_amd64" ;; \
-    arm64) FZF_ARCH="linux_arm64" ;; \
-    *) echo "Unsupported architecture: ${ARCH}" && exit 1 ;; \
-  esac && \
-  curl -fsSL "https://github.com/junegunn/fzf/releases/download/v${FZF_VERSION}/fzf-${FZF_VERSION}-${FZF_ARCH}.tar.gz" | tar -xz -C /usr/local/bin
+  eval "EXPECT=\${FZF_SHA256_${ARCH}}" && \
+  [ -n "$EXPECT" ] || { echo "No fzf digest for arch ${ARCH}" >&2; exit 1; } && \
+  curl -fsSL "https://github.com/junegunn/fzf/releases/download/v${FZF_VERSION}/fzf-${FZF_VERSION}-linux_${ARCH}.tar.gz" -o /tmp/fzf.tar.gz && \
+  echo "${EXPECT}  /tmp/fzf.tar.gz" | sha256sum -c - && \
+  tar -xzf /tmp/fzf.tar.gz -C /usr/local/bin && \
+  rm /tmp/fzf.tar.gz
 
 RUN mkdir -p /commandhistory /workspace /home/vscode/.claude /home/vscode/.codex /opt && \
   touch /commandhistory/.bash_history /commandhistory/.zsh_history && \
