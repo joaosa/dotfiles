@@ -152,14 +152,19 @@ The audit profile does not forward `CLAUDE_CODE_OAUTH_TOKEN`,
 uses distinct per-repository Claude, Codex, and `gh` volumes, leaves Claude
 permission prompts enabled, mounts Git config/hooks read-only, disables
 inherited commit signing,
-and applies an outbound domain allowlist. `SYS_ADMIN` is deliberately absent,
-so Codex uses the devcontainer as its external sandbox while retaining approval
-prompts; its nested Bubblewrap sandbox is disabled. Authenticate inside it as
+and applies an outbound domain allowlist. Authenticate inside it as
 needed; for Codex on a headless container, use:
 
 ```bash
 codex login --device-auth
 ```
+
+No profile grants capabilities beyond `NET_ADMIN`/`NET_RAW` for the firewall,
+and none relaxes Docker's default seccomp or AppArmor confinement: the
+container boundary is the sandbox. Codex therefore uses the devcontainer as its
+external sandbox in every profile — its nested Bubblewrap sandbox, which would
+need `SYS_ADMIN`, `SYS_PTRACE`, and an unconfined seccomp profile, stays
+disabled — and audit retains its approval prompts.
 
 The firewall is defense in depth, not a substitute for the container boundary
 or reviewing requested approvals. Extend the `AGENT_ALLOWED_DOMAINS` build arg

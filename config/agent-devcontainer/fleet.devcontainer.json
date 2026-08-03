@@ -14,13 +14,6 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "runArgs": [
-    "--cap-add=SYS_ADMIN",
-    "--cap-add=SYS_CHROOT",
-    "--cap-add=SETUID",
-    "--cap-add=SETGID",
-    "--cap-add=SYS_PTRACE",
-    "--security-opt=seccomp=unconfined",
-    "--security-opt=apparmor=unconfined",
     "--cap-add=NET_ADMIN",
     "--cap-add=NET_RAW"
   ],
@@ -39,11 +32,11 @@
   ],
   "containerEnv": {
     "AGENT_CLAUDE_MODEL": "fable",
+    "AGENT_CODEX_EXTERNAL_SANDBOX": "1",
     "AGENT_ENABLE_FIREWALL": "0",
     "AGENT_UPDATE_AGENTS": "1",
     "CLAUDE_BYPASS_PERMISSIONS": "1",
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
-    "CODEX_UNSAFE_ALLOW_NO_SANDBOX": "1",
     "GIT_CONFIG_GLOBAL": "/home/vscode/.gitconfig.local",
     "NODE_OPTIONS": "--max-old-space-size=4096",
     "NPM_CONFIG_AUDIT": "true",
