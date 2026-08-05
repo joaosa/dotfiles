@@ -49,7 +49,14 @@
     home = "/Users/${username}";
   };
 
-  environment.pathsToLink = [ "/share/zsh" ];
+  # pkgconfig dirs exposed so /etc/profiles/per-user/${username} carries the
+  # .pc files at a stable path; PKG_CONFIG_PATH (common.nix) points there
+  # instead of at a per-generation store path that GC invalidates.
+  environment.pathsToLink = [
+    "/share/zsh"
+    "/lib/pkgconfig"
+    "/share/pkgconfig"
+  ];
   environment.shells = [ pkgs.zsh ];
   # System zsh integration left off so nix-darwin does not manage /etc/zshrc;
   # Home Manager owns the user-level zsh config (~/.zshrc, plugins, starship).

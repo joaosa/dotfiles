@@ -21,14 +21,6 @@ let
   # Same derivation that puts `devc` on PATH; used below to locate its bundled
   # container templates (Dockerfile/post_install.py/.zshrc) by store path.
   devc = pkgs.callPackage ../packages/devc.nix { };
-  pkgConfigEnv = pkgs.buildEnv {
-    name = "home-pkg-config-path";
-    paths = homePackages;
-    pathsToLink = [
-      "/lib/pkgconfig"
-      "/share/pkgconfig"
-    ];
-  };
   # Config files for cross-platform tools, symlinked out-of-store from this repo
   # so edits take effect without a rebuild. macOS-app configs live in darwin.nix.
   commonFiles = {
@@ -151,9 +143,12 @@ in
     ];
 
     sessionVariables = {
+      # Stable profile symlinks only — never a per-generation store path, so
+      # long-lived shells (tmux server) survive rebuild + GC. The per-user
+      # profile carries the .pc files via pathsToLink in darwin/default.nix.
       PKG_CONFIG_PATH = lib.concatStringsSep ":" [
-        "${pkgConfigEnv}/lib/pkgconfig"
-        "${pkgConfigEnv}/share/pkgconfig"
+        "/etc/profiles/per-user/${username}/lib/pkgconfig"
+        "/etc/profiles/per-user/${username}/share/pkgconfig"
         "${homeDir}/.nix-profile/lib/pkgconfig"
         "${homeDir}/.nix-profile/share/pkgconfig"
         "/run/current-system/sw/lib/pkgconfig"
