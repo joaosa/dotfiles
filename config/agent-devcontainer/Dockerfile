@@ -12,9 +12,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # sandbox (AGENT_CODEX_EXTERNAL_SANDBOX=1), so Codex never spawns its nested
 # bwrap. A setuid-root bwrap would be latent local-root surface for no benefit,
 # and this profile blocks the user namespaces unprivileged bwrap needs anyway.
-# Only packages the base image lacks. build-essential, unzip, nano, git, curl
-# already ship in mcr.microsoft.com/devcontainers/base, so installing them again
-# is a no-op; nano is the configured EDITOR and comes from the base.
+# Only packages the base image lacks (EDITOR=nano ships in the base).
 RUN apt-get update && apt-get install -y --no-install-recommends \
   fd-find \
   ripgrep \

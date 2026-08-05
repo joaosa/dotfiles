@@ -205,9 +205,8 @@ in
       # settings.json: /config edits to keys outside claudeSharedSettings
       # survive; keys inside it revert on the next switch.
       claudeSettingsMerge = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        /bin/mkdir -p ${lib.concatMapStringsSep " " (dir: ''"${dir}"'') (lib.attrValues claudeProfileDirs)}
-
         for dir in ${lib.concatMapStringsSep " " (dir: ''"${dir}"'') (lib.attrValues claudeProfileDirs)}; do
+          /bin/mkdir -p "$dir"
           target="$dir/settings.json"
           # -s, not -e: an empty file would fail the merge rather than seed it.
           [ -s "$target" ] || echo '{}' > "$target"
