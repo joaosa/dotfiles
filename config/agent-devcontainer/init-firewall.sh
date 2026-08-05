@@ -9,8 +9,9 @@ allowed_domains_file=/etc/agent-devcontainer/allowed-domains
 # only entry point (the sudoers rule exposes nothing else), so no fallback
 # default here — the Dockerfile ARG is the single owner of the default.
 include_github_meta_ranges="$(tr -d '[:space:]' < /etc/agent-devcontainer/include-github-meta)"
-# An exact-match IPv4 literal; add_ipv4_cidr appends the /prefix variant.
 ipv4_re='^[0-9]{1,3}(\.[0-9]{1,3}){3}$'
+# The same dotted quad plus a /prefix, for GitHub's published CIDR ranges.
+ipv4_cidr_re='^[0-9]{1,3}(\.[0-9]{1,3}){3}/[0-9]{1,2}$'
 firewall_ready=0
 
 fail_closed() {
@@ -37,11 +38,11 @@ mapfile -t allowed_domains < <(sed '/^\s*#/d;/^\s*$/d' "$allowed_domains_file")
 
 add_ipv4_cidr() {
   local cidr="$1"
-  if [[ ! "$cidr" =~ ${ipv4_re%\$}/[0-9]{1,2}$ ]]; then
+  if [[ ! "$cidr" =~ $ipv4_cidr_re ]]; then
     echo "ERROR: invalid IPv4 CIDR: $cidr" >&2
     exit 1
   fi
-  ipset add allowed-domains "$cidr" -exist
+  printf 'add allowed-domains %s\n' "$cidr" >> "$ipset_batch"
 }
 
 configure_ipv6_default_deny() {
@@ -132,16 +133,28 @@ iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
 ipset create allowed-domains hash:net
+# Entries accumulate here and load in one `ipset restore` at the end: a fork
+# per entry adds seconds once GitHub's meta ranges (hundreds of CIDRs) join.
+ipset_batch="$(mktemp)"
+
+# Resolve concurrently: serial digs cost seconds on every start, and a single
+# slow resolver retry would stall the whole list. Domains are safe as file
+# names: apply-firewall.sh validated them against [a-zA-Z0-9.-].
+echo "[devcontainer] Resolving ${#allowed_domains[@]} allowlisted domains"
+resolve_dir="$(mktemp -d)"
 for domain in "${allowed_domains[@]}"; do
-  echo "[devcontainer] Resolving $domain"
+  dig +short A "$domain" > "$resolve_dir/$domain" &
+done
+wait
+for domain in "${allowed_domains[@]}"; do
   # `dig +short A` may print the CNAME chain before the final addresses.
-  ips="$(dig +short A "$domain" | grep -E "$ipv4_re" || true)"
+  ips="$(grep -E "$ipv4_re" "$resolve_dir/$domain" || true)"
   if [ -z "$ips" ]; then
     echo "ERROR: failed to resolve $domain" >&2
     exit 1
   fi
   while IFS= read -r ip; do
-    ipset add allowed-domains "$ip" -exist
+    printf 'add allowed-domains %s\n' "$ip" >> "$ipset_batch"
   done <<< "$ips"
 done
 
@@ -153,6 +166,9 @@ if [ "$include_github_meta_ranges" = 1 ]; then
     [[ "$cidr" == *:* ]] || add_ipv4_cidr "$cidr"
   done < <(echo "$github_meta" | jq -r '((.web // []) + (.api // []) + (.git // []))[]' | sort -u)
 fi
+
+ipset -exist restore < "$ipset_batch"
+rm -rf "$resolve_dir" "$ipset_batch"
 
 iptables -P INPUT DROP
 iptables -P FORWARD DROP

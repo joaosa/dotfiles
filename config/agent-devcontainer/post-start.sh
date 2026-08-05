@@ -18,8 +18,13 @@ fi
 if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
   && [ -z "$(find /home/vscode/.codex/.agent-update-stamp -mtime -1 2>/dev/null)" ]; then
   echo "[devcontainer] Checking for Claude Code and Codex updates"
-  timeout 120 claude update \
-    || echo "[devcontainer] Claude update skipped; keeping installed build" >&2
+  # The two checks are independent; overlap them so the slower download never
+  # serializes behind the other.
+  (
+    timeout 120 claude update \
+      || echo "[devcontainer] Claude update skipped; keeping installed build" >&2
+  ) &
+  claude_update=$!
   # npm re-downloads the ~130MB platform binary even when current, so compare
   # versions first. NPM_CONFIG_MINIMUM_RELEASE_AGE keeps @latest off fresh publishes.
   codex_have=$(codex --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
@@ -28,6 +33,7 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
     timeout 600 npm install --global "@openai/codex@$codex_want" \
       || echo "[devcontainer] Codex update skipped; keeping installed build" >&2
   fi
+  wait "$claude_update"
   touch /home/vscode/.codex/.agent-update-stamp || true
 fi
 
