@@ -10,6 +10,44 @@
 # and the agent-fleet/agent-audit wrappers use the templates directly. This
 # derivation only stages the audited templates and helpers into the store and
 # installs a guard as `devc`, making `make switch` the only install/update path.
+let
+  # Egress allowlists, substituted into the staged profile JSONs so the shared
+  # base cannot drift between profiles. Once github.com is admitted the
+  # firewall cannot stop credentialed exfiltration (an attacker-supplied PAT
+  # pushes anywhere), so its guarantee is "no direct-to-attacker traffic";
+  # every entry is then a utility-vs-surface call. Fleet carries the agents,
+  # GitHub plus its read-only release CDNs, and the ecosystems actually in
+  # use. No sentry.io anywhere: Sentry ingestion is attacker-readable storage
+  # (any account can receive POSTed events) and the agents' crash telemetry
+  # fails silently without it. No ghcr.io: there is no docker daemon inside
+  # the container, so OCI pulls are niche — re-add on first real need.
+  fleetDomains = [
+    "api.openai.com"
+    "auth.openai.com"
+    "chatgpt.com"
+    "api.anthropic.com"
+    "claude.ai"
+    "github.com"
+    "api.github.com"
+    "codeload.github.com"
+    "raw.githubusercontent.com"
+    "objects.githubusercontent.com"
+    "release-assets.githubusercontent.com"
+    "registry.npmjs.org"
+    "crates.io"
+    "index.crates.io"
+    "static.crates.io"
+    "static.rust-lang.org"
+    "proxy.golang.org"
+    "sum.golang.org"
+  ];
+  # Audit hosts arbitrary untrusted repos, so it also admits the ecosystems
+  # fleet has no use for.
+  auditDomains = fleetDomains ++ [
+    "pypi.org"
+    "files.pythonhosted.org"
+  ];
+in
 stdenvNoCC.mkDerivation {
   pname = "agent-devcontainer";
   version = "0-unstable-2026-07-10";
@@ -28,8 +66,11 @@ stdenvNoCC.mkDerivation {
     install -Dm0644 ${../../config/agent-devcontainer/post-start.sh} "$templates/post-start.sh"
     install -Dm0644 ${../../config/agent-devcontainer/sudoers-agent} "$templates/sudoers-agent"
     install -Dm0644 ${../../config/agent-devcontainer/default.devcontainer.json} "$templates/devcontainer.json"
-    install -Dm0644 ${../../config/agent-devcontainer/audit.devcontainer.json} "$templates/audit.devcontainer.json"
-    install -Dm0644 ${../../config/agent-devcontainer/fleet.devcontainer.json} "$templates/fleet.devcontainer.json"
+    substitute ${../../config/agent-devcontainer/audit.devcontainer.json} "$templates/audit.devcontainer.json" \
+      --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " auditDomains}'
+    substitute ${../../config/agent-devcontainer/fleet.devcontainer.json} "$templates/fleet.devcontainer.json" \
+      --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " fleetDomains}'
+    chmod 0644 "$templates/audit.devcontainer.json" "$templates/fleet.devcontainer.json"
 
     mkdir -p "$out/libexec"
     substitute ${./devc-audit-slug.py} "$out/libexec/devc-audit-slug" \

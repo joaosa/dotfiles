@@ -4,10 +4,7 @@
   "build": {
     "dockerfile": "Dockerfile",
     "args": {
-      "TZ": "${localEnv:TZ:UTC}",
-      "GIT_DELTA_VERSION": "0.18.2",
-      "CODEX_VERSION": "0.144.1",
-      "ZSH_IN_DOCKER_VERSION": "1.2.1"
+      "TZ": "${localEnv:TZ:UTC}"
     }
   },
   "features": {

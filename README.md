@@ -104,7 +104,7 @@ both Claude Code and Codex; `agent-*` is the canonical wrapper and the
 `claude-*` / `codex-*` names are compatibility aliases:
 
 ```bash
-agent-fleet <org>                  # trusted org: shared AI/gh login + signing agent
+agent-fleet <org>                  # trusted org: shared AI/gh login + signing agent, allowlisted egress
 agent-audit <repo-path-or-url>     # untrusted repo: isolated logins, strict egress
 
 claude-fleet <org>                 # aliases of agent-fleet
@@ -147,6 +147,19 @@ Fleet also refreshes both agents on start, at most once a day, because the image
 pins them at build time and a self-update cannot outlive the container. The
 audit and sandbox profiles keep the pinned build.
 
+Fleet applies an outbound domain allowlist, and additionally admits GitHub's
+published web/api/git IP ranges so SSH pushes through the forwarded agent do
+not depend on a DNS snapshot of `github.com`. Both profiles' lists are defined
+once in [`nix/packages/devc.nix`](./nix/packages/devc.nix) — audit extends
+fleet's base with the ecosystems fleet has no use for — and are substituted
+into the staged configs by `make switch`. The agent refresh runs before the
+firewall lands, so it can still fetch outside the allowlist; everything after
+container start is confined. The trade-off is that in-fleet web browsing
+(Claude's WebFetch/WebSearch) only reaches allowlisted hosts — extend the
+allowlist when a task legitimately needs more. The firewall limits credential
+exfiltration to attacker infrastructure; it cannot stop misuse of a forwarded
+token against an allowlisted service such as `api.github.com`.
+
 The audit profile does not forward `CLAUDE_CODE_OAUTH_TOKEN`,
 `ANTHROPIC_API_KEY`, `CODEX_API_KEY`, `OPENAI_API_KEY`, or the SSH agent. It
 uses distinct per-repository Claude, Codex, and `gh` volumes, leaves Claude
@@ -167,13 +180,12 @@ need `SYS_ADMIN`, `SYS_PTRACE`, and an unconfined seccomp profile, stays
 disabled — and audit retains its approval prompts.
 
 The firewall is defense in depth, not a substitute for the container boundary
-or reviewing requested approvals. Extend the `AGENT_ALLOWED_DOMAINS` build arg
-in
-[`audit.devcontainer.json`](./config/agent-devcontainer/audit.devcontainer.json)
-when an audited project legitimately needs another package registry. It is a
-build arg rather than an environment variable so the root applier reads it from
-a root-owned file the agent cannot rewrite; changing it rebuilds one trailing
-image layer on the next `agent-audit`.
+or reviewing requested approvals. Extend the domain lists in
+[`nix/packages/devc.nix`](./nix/packages/devc.nix) when a project legitimately
+needs another package registry; `make switch` restages the configs and the
+next launch rebuilds one trailing image layer. The list reaches the image as a
+build arg rather than an environment variable so the root applier reads it
+from a root-owned file the agent cannot rewrite.
 
 The package that stages these templates lives in
 [`nix/packages/devc.nix`](./nix/packages/devc.nix). Update the pinned
