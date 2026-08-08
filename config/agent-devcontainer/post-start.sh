@@ -11,12 +11,24 @@ if [ -n "${SSH_AUTH_SOCK:-}" ]; then
   echo "[devcontainer] SSH agent socket permissions refreshed"
 fi
 
+# Firewall first: everything below does network fetches, and the fleet profile
+# enables both flags — updating agent binaries during the one unfiltered-egress
+# window would undercut the allowlist exactly where it matters most. The
+# applier runs as root and reads the allowlist from a root-owned file baked
+# into the image, so the untrusted user never supplies the domain payload.
+if [ "${AGENT_ENABLE_FIREWALL:-0}" = "1" ]; then
+  echo "[devcontainer] Outbound firewall: strict"
+  sudo /usr/local/bin/apply-firewall.sh
+else
+  echo "[devcontainer] Outbound firewall: permissive"
+fi
+
 # Both agents live in the image, so a self-update dies with the container and
 # layer caching keeps serving old builds. Refresh here instead, throttled by a
 # container-local stamp — the binaries are container-local too, so a stamp on
 # a persistent volume would let a recreated container skip the refresh. Fleet
-# opts in; audit and sandbox stay pinned.
-# Runs before the firewall, so enabling both flags fetches outside the allowlist.
+# opts in; audit and sandbox stay pinned. The hosts it needs are allowlisted;
+# a blocked fetch keeps the image-pinned build.
 stamp=/home/vscode/.agent-update-stamp
 if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
   && [ -z "$(find "$stamp" -mtime -1 2>/dev/null)" ]; then
@@ -61,14 +73,3 @@ if [ -n "${CODEX_API_KEY:-}" ]; then
   printf '%s' "$CODEX_API_KEY" | codex login --with-api-key \
     || echo "[devcontainer] Codex: API key login failed; run codex login manually" >&2
 fi
-
-if [ "${AGENT_ENABLE_FIREWALL:-0}" != "1" ]; then
-  echo "[devcontainer] Outbound firewall: permissive"
-  exit 0
-fi
-
-echo "[devcontainer] Outbound firewall: strict"
-# The applier runs as root and reads the allowlist from a root-owned file baked
-# into the image, so the untrusted user never supplies the domain payload or any
-# firewall arguments.
-sudo /usr/local/bin/apply-firewall.sh
