@@ -81,18 +81,6 @@ RUN uv tool install ast-grep-cli
 ARG PRE_COMMIT_VERSION=4.6.1
 RUN uv tool install "pre-commit==${PRE_COMMIT_VERSION}"
 
-ARG NODE_VERSION=22
-ARG CODEX_VERSION=0.144.1
-ENV FNM_DIR="/home/vscode/.fnm"
-RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "$FNM_DIR" --skip-shell && \
-  export PATH="$FNM_DIR:$PATH" && \
-  eval "$(fnm env)" && \
-  fnm install "${NODE_VERSION}" && \
-  fnm default "${NODE_VERSION}" && \
-  npm install --global "@openai/codex@${CODEX_VERSION}"
-
-ENV PATH="/home/vscode/.fnm/aliases/default/bin:/home/vscode/.local/bin:$PATH"
-
 # Rust toolchain + task-runner tooling so agent sessions in the Rust repos
 # (second-brain-tools et al.) get working gates, fmt, and tests instead of
 # degraded fallbacks. rustup-init is version-pinned and digest-checked
@@ -198,10 +186,24 @@ RUN ARCH=$(dpkg --print-architecture) && \
 ARG CARGO_MUTANTS_VERSION=27.1.0
 ARG CARGO_VET_VERSION=0.10.0
 ARG BACON_VERSION=3.24.0
-RUN cargo install --locked \
-  "cargo-mutants@${CARGO_MUTANTS_VERSION}" \
-  "cargo-vet@${CARGO_VET_VERSION}" \
-  "bacon@${BACON_VERSION}"
+RUN cargo install --locked "cargo-mutants@${CARGO_MUTANTS_VERSION}"
+RUN cargo install --locked "cargo-vet@${CARGO_VET_VERSION}"
+RUN cargo install --locked "bacon@${BACON_VERSION}"
+
+# Node and Codex sit below the Rust chain: CODEX_VERSION is the most
+# frequently bumped pin in the image, and above the Rust layers every bump
+# forced a full rustup reinstall plus three source compiles.
+ARG NODE_VERSION=22
+ARG CODEX_VERSION=0.144.1
+ENV FNM_DIR="/home/vscode/.fnm"
+RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "$FNM_DIR" --skip-shell && \
+  export PATH="$FNM_DIR:$PATH" && \
+  eval "$(fnm env)" && \
+  fnm install "${NODE_VERSION}" && \
+  fnm default "${NODE_VERSION}" && \
+  npm install --global "@openai/codex@${CODEX_VERSION}"
+
+ENV PATH="/home/vscode/.fnm/aliases/default/bin:/home/vscode/.local/bin:$PATH"
 
 # Verify the installer script by SHA-256 before executing it as root, rather
 # than piping curl straight into a shell. Update on ZSH_IN_DOCKER_VERSION bumps.
