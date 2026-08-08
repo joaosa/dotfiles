@@ -9,6 +9,31 @@ config_dir=/etc/agent-devcontainer
 domains_in="$config_dir/allowed-domains.in"
 meta_in="$config_dir/include-github-meta"
 
+# A validation failure must leave the container fail-closed, not permissive:
+# this script is the sudo entry point, and exiting before init-firewall.sh
+# arms its own trap would keep egress wide open under AGENT_ENABLE_FIREWALL=1.
+# Mirrors init-firewall.sh's fail_closed: flush first because rules beat
+# policy, then default-DROP everything.
+firewall_applied=0
+fail_closed() {
+  if [ -n "${tmp_file:-}" ]; then
+    rm -f "$tmp_file"
+  fi
+  if [ "$firewall_applied" != 1 ]; then
+    iptables -F 2>/dev/null || true
+    iptables -t nat -F 2>/dev/null || true
+    ip6tables -F 2>/dev/null || true
+    iptables -P INPUT DROP 2>/dev/null || true
+    iptables -P FORWARD DROP 2>/dev/null || true
+    iptables -P OUTPUT DROP 2>/dev/null || true
+    ip6tables -P INPUT DROP 2>/dev/null || true
+    ip6tables -P FORWARD DROP 2>/dev/null || true
+    ip6tables -P OUTPUT DROP 2>/dev/null || true
+    echo "[devcontainer] Firewall inputs invalid; egress locked down fail-closed" >&2
+  fi
+}
+trap fail_closed EXIT
+
 # A baked input is only trustworthy if the agent could not have rewritten it
 # between build and apply: reject symlinks (which could redirect the read into
 # agent-writable storage) and anything not owned by root or writable by others.
@@ -50,7 +75,6 @@ case "$include_meta" in
 esac
 
 tmp_file="$(mktemp)"
-trap 'rm -f "$tmp_file"' EXIT
 for domain in "${domains[@]}"; do
   if [[ ! "$domain" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$ ]]; then
     echo "[devcontainer] Invalid domain: $domain" >&2
@@ -61,3 +85,4 @@ done
 
 install -o root -g root -m 0444 "$tmp_file" "$config_dir/allowed-domains"
 /usr/local/bin/init-firewall.sh
+firewall_applied=1
