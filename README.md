@@ -150,8 +150,9 @@ audit and sandbox profiles keep the pinned build.
 Fleet applies an outbound domain allowlist, and additionally admits GitHub's
 published web/api/git IP ranges so SSH pushes through the forwarded agent do
 not depend on a DNS snapshot of `github.com`. Both profiles' lists are defined
-once in [`nix/packages/devc.nix`](./nix/packages/devc.nix) — audit extends
-fleet's base with the ecosystems fleet has no use for — and are substituted
+once in [`nix/packages/devc.nix`](./nix/packages/devc.nix) — currently
+identical, since fleet's Serena launch pulled PyPI into the shared base; audit
+is where ecosystems fleet has no use for would go — and are substituted
 into the staged configs by `make switch`. The agent refresh runs before the
 firewall lands, so it can still fetch outside the allowlist; everything after
 container start is confined. The trade-off is that in-fleet web browsing
