@@ -13,16 +13,21 @@ fi
 
 # Both agents live in the image, so a self-update dies with the container and
 # layer caching keeps serving old builds. Refresh here instead, throttled by a
-# marker in the ~/.codex volume. Fleet opts in; audit and sandbox stay pinned.
+# container-local stamp: the refreshed binaries live in this container's
+# ephemeral layer, so a stamp on a persistent volume would let a recreated
+# container silently revert to the image-pinned builds while still skipping
+# the refresh. Fleet opts in; audit and sandbox stay pinned.
 # Runs before the firewall, so enabling both flags fetches outside the allowlist.
+stamp=/home/vscode/.agent-update-stamp
 if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
-  && [ -z "$(find /home/vscode/.codex/.agent-update-stamp -mtime -1 2>/dev/null)" ]; then
+  && [ -z "$(find "$stamp" -mtime -1 2>/dev/null)" ]; then
   echo "[devcontainer] Checking for Claude Code and Codex updates"
+  update_ok=1
   # The two checks are independent; overlap them so the slower download never
   # serializes behind the other.
   (
     timeout 120 claude update \
-      || echo "[devcontainer] Claude update skipped; keeping installed build" >&2
+      || { echo "[devcontainer] Claude update skipped; keeping installed build" >&2; exit 1; }
   ) &
   claude_update=$!
   # npm re-downloads the ~130MB platform binary even when current, so compare
@@ -40,13 +45,19 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
        | map(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | select(.value <= $cutoff))
        | (max_by(.value) // {}).key // empty' \
     || true)
-  if [ -n "$codex_want" ] && [ "$codex_have" != "$codex_want" ] \
+  if [ -z "$codex_want" ]; then
+    update_ok=0
+  elif [ "$codex_have" != "$codex_want" ] \
     && [ "$(printf '%s\n' "$codex_have" "$codex_want" | sort -V | tail -n1)" = "$codex_want" ]; then
     timeout 600 npm install --global "@openai/codex@$codex_want" \
-      || echo "[devcontainer] Codex update skipped; keeping installed build" >&2
+      || { echo "[devcontainer] Codex update skipped; keeping installed build" >&2; update_ok=0; }
   fi
-  wait "$claude_update"
-  touch /home/vscode/.codex/.agent-update-stamp || true
+  wait "$claude_update" || update_ok=0
+  # Stamp only a fully successful refresh: a transient failure should retry
+  # on the next start, not be suppressed for a day.
+  if [ "$update_ok" = 1 ]; then
+    touch "$stamp"
+  fi
 fi
 
 # Codex's TUI ignores CODEX_API_KEY, so exchange it for persistent ~/.codex
