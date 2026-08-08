@@ -223,7 +223,10 @@ in
 
       # Re-assert the account-agnostic settings into each profile's writable
       # settings.json: /config edits to keys outside claudeSharedSettings
-      # survive; keys inside it revert on the next switch.
+      # survive; keys inside it revert on the next switch. The .last file
+      # records what the previous switch asserted, so a key deleted from
+      # claudeSharedSettings is actually removed from the profiles instead
+      # of accreting forever.
       claudeSettingsMerge = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         for dir in ${lib.concatMapStringsSep " " (dir: ''"${dir}"'') (lib.attrValues claudeProfileDirs)}; do
           /bin/mkdir -p "$dir"
@@ -231,8 +234,22 @@ in
           # -s, not -e: an empty file would fail the merge rather than seed it.
           [ -s "$target" ] || echo '{}' > "$target"
 
+          # A corrupt profile file (crash mid-write) must not brick every
+          # subsequent activation: quarantine and reseed instead of aborting.
+          if ! ${pkgs.jq}/bin/jq -e 'type == "object"' "$target" > /dev/null 2>&1; then
+            echo "Quarantining unparseable $target to $target.corrupt" >&2
+            /bin/mv "$target" "$target.corrupt"
+            echo '{}' > "$target"
+          fi
+
+          applied="$dir/.claude-shared-settings.last"
+          [ -s "$applied" ] || echo '{}' > "$applied"
+
           tmp="$target.hm-merge"
-          if ${pkgs.jq}/bin/jq -s '.[0] * .[1]' "$target" "${claudeSharedSettingsFile}" > "$tmp"; then
+          if ${pkgs.jq}/bin/jq -s \
+            '((.[1] | keys) - (.[2] | keys) | map([.])) as $stale
+             | (.[0] | delpaths($stale)) * .[2]' \
+            "$target" "$applied" "${claudeSharedSettingsFile}" > "$tmp"; then
             # Skip the rewrite when the merge is a no-op, so a routine switch
             # doesn't churn the mtime of a file a running Claude Code watches.
             if /usr/bin/cmp -s "$tmp" "$target"; then
@@ -240,6 +257,7 @@ in
             else
               /bin/mv "$tmp" "$target"
             fi
+            /bin/cp "${claudeSharedSettingsFile}" "$applied"
           else
             /bin/rm -f "$tmp"
             echo "Failed to merge shared Claude settings into $target" >&2
