@@ -51,7 +51,7 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
     | jq -r --arg cutoff "$age_cutoff" \
       'to_entries
        | map(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | select(.value <= $cutoff))
-       | (max_by(.value) // {}).key // empty' \
+       | (max_by(.key | split(".") | map(tonumber)) // {}).key // empty' \
     || true)
   if [ -z "$codex_want" ]; then
     update_ok=0
