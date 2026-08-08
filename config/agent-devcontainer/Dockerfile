@@ -92,6 +92,7 @@ ARG RUST_TOOLCHAIN=1.97.1
 RUN ARCH=$(dpkg --print-architecture) && \
   case "$ARCH" in amd64) T=x86_64 ;; arm64) T=aarch64 ;; *) echo "unsupported arch ${ARCH}" >&2; exit 1 ;; esac && \
   eval "EXPECT=\${RUSTUP_SHA256_${ARCH}}" && \
+  [ -n "$EXPECT" ] || { echo "No rustup digest for arch ${ARCH}" >&2; exit 1; } && \
   curl -fsSL "https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/${T}-unknown-linux-gnu/rustup-init" -o /tmp/rustup-init && \
   echo "${EXPECT}  /tmp/rustup-init" | sha256sum -c - && \
   chmod +x /tmp/rustup-init && \
@@ -99,10 +100,11 @@ RUN ARCH=$(dpkg --print-architecture) && \
   rm /tmp/rustup-init
 ENV PATH="/home/vscode/.cargo/bin:$PATH"
 
-# Standalone release binaries, each digest-pinned per arch: just (task
-# runner), cargo-nextest (test runner), shellcheck (pre-commit parity),
-# sccache (the workspace .cargo/config.toml sets rustc-wrapper = "sccache",
-# so cargo is dead without it).
+# Prebuilt tool binaries, one digest-per-arch fetch path for all: just,
+# nextest, sccache (core loop — the workspace .cargo/config.toml sets
+# rustc-wrapper = "sccache"), shellcheck/gitleaks (commit gates), and the
+# cargo audit suite. musl where published; cargo-audit and cargo-machete ship
+# no arm64 musl, so arm64 takes their gnu builds.
 ARG JUST_VERSION=1.42.4
 ARG JUST_SHA256_amd64=678efc1cfbd5fa5a88375daa7e2f3864a049d6d63a0296df925a2ae5f516cb56
 ARG JUST_SHA256_arm64=beb35a4ed1208ffbb0fef26042c65875759a5358b9ee1a7856dec8490dfd4aca
@@ -115,35 +117,6 @@ ARG SHELLCHECK_SHA256_arm64=12b331c1d2db6b9eb13cfca64306b1b157a86eb69db83023e261
 ARG SCCACHE_VERSION=0.10.0
 ARG SCCACHE_SHA256_amd64=1fbb35e135660d04a2d5e42b59c7874d39b3deb17de56330b25b713ec59f849b
 ARG SCCACHE_SHA256_arm64=d6a1ce4acd02b937cd61bc675a8be029a60f7bc167594c33d75732bbc0a07400
-RUN ARCH=$(dpkg --print-architecture) && \
-  case "$ARCH" in amd64) T=x86_64 ;; arm64) T=aarch64 ;; *) echo "unsupported arch ${ARCH}" >&2; exit 1 ;; esac && \
-  mkdir -p /home/vscode/.local/bin && cd /tmp && \
-  eval "EXPECT=\${JUST_SHA256_${ARCH}}" && \
-  curl -fsSL "https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-${T}-unknown-linux-musl.tar.gz" -o just.tgz && \
-  echo "${EXPECT}  just.tgz" | sha256sum -c - && \
-  tar xzf just.tgz just && install -m 0755 just /home/vscode/.local/bin/just && \
-  eval "EXPECT=\${NEXTEST_SHA256_${ARCH}}" && \
-  curl -fsSL "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${NEXTEST_VERSION}/cargo-nextest-${NEXTEST_VERSION}-${T}-unknown-linux-gnu.tar.gz" -o nextest.tgz && \
-  echo "${EXPECT}  nextest.tgz" | sha256sum -c - && \
-  tar xzf nextest.tgz cargo-nextest && install -m 0755 cargo-nextest /home/vscode/.cargo/bin/cargo-nextest && \
-  eval "EXPECT=\${SHELLCHECK_SHA256_${ARCH}}" && \
-  curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.${T}.tar.xz" -o shellcheck.txz && \
-  echo "${EXPECT}  shellcheck.txz" | sha256sum -c - && \
-  tar xJf shellcheck.txz "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" && \
-  install -m 0755 "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /home/vscode/.local/bin/shellcheck && \
-  eval "EXPECT=\${SCCACHE_SHA256_${ARCH}}" && \
-  curl -fsSL "https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-${T}-unknown-linux-musl.tar.gz" -o sccache.tgz && \
-  echo "${EXPECT}  sccache.tgz" | sha256sum -c - && \
-  tar xzf sccache.tgz "sccache-v${SCCACHE_VERSION}-${T}-unknown-linux-musl/sccache" && \
-  install -m 0755 "sccache-v${SCCACHE_VERSION}-${T}-unknown-linux-musl/sccache" /home/vscode/.local/bin/sccache && \
-  rm -rf /tmp/just.tgz /tmp/just /tmp/nextest.tgz /tmp/cargo-nextest \
-    /tmp/shellcheck.txz "/tmp/shellcheck-v${SHELLCHECK_VERSION}" \
-    /tmp/sccache.tgz "/tmp/sccache-v${SCCACHE_VERSION}-${T}-unknown-linux-musl"
-
-# Commit-path and audit-parity tooling, same digest-per-arch pattern: gitleaks
-# (pre-commit secrets gate) and the cargo audit suite (just sec / just drift).
-# musl builds where the publisher ships them; cargo-audit and cargo-machete
-# publish no arm64 musl, so arm64 takes their gnu builds instead.
 ARG GITLEAKS_VERSION=8.30.1
 ARG GITLEAKS_SHA256_amd64=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
 ARG GITLEAKS_SHA256_arm64=e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080
@@ -161,19 +134,24 @@ ARG CARGO_MACHETE_SHA256_amd64=48200087f54c55aabcd4db4af1e25742b49846c02a1b1bfa1
 ARG CARGO_MACHETE_SHA256_arm64=6f96c3e6026a5bdd241b6ae600c6fb86c9197c6e189a894f91371baa01fd10f5
 RUN ARCH=$(dpkg --print-architecture) && \
   case "$ARCH" in \
-    amd64) GL_ARCH=x64; MUSL=x86_64-unknown-linux-musl; ALT=$MUSL ;; \
-    arm64) GL_ARCH=arm64; MUSL=aarch64-unknown-linux-musl; ALT=aarch64-unknown-linux-gnu ;; \
+    amd64) T=x86_64; GL_ARCH=x64; MUSL=x86_64-unknown-linux-musl; GNU=x86_64-unknown-linux-gnu; ALT=$MUSL ;; \
+    arm64) T=aarch64; GL_ARCH=arm64; MUSL=aarch64-unknown-linux-musl; GNU=aarch64-unknown-linux-gnu; ALT=$GNU ;; \
     *) echo "unsupported arch ${ARCH}" >&2; exit 1 ;; \
   esac && \
+  mkdir -p /home/vscode/.local/bin && \
   fetch() { \
     eval "EXPECT=\${${2}_${ARCH}}" && \
     [ -n "$EXPECT" ] || { echo "No $1 digest for arch ${ARCH}" >&2; exit 1; } && \
-    curl -fsSL "$3" -o /tmp/tool.tgz && \
-    echo "${EXPECT}  /tmp/tool.tgz" | sha256sum -c - && \
-    mkdir -p /tmp/tool && tar -xzf /tmp/tool.tgz -C /tmp/tool && \
+    curl -fsSL "$3" -o /tmp/tool.a && \
+    echo "${EXPECT}  /tmp/tool.a" | sha256sum -c - && \
+    mkdir -p /tmp/tool && tar -xf /tmp/tool.a -C /tmp/tool && \
     install -m 0755 "$(find /tmp/tool -type f -name "$1")" "$4/$1" && \
-    rm -rf /tmp/tool.tgz /tmp/tool; \
+    rm -rf /tmp/tool.a /tmp/tool; \
   } && \
+  fetch just JUST_SHA256 "https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-${MUSL}.tar.gz" /home/vscode/.local/bin && \
+  fetch cargo-nextest NEXTEST_SHA256 "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-${NEXTEST_VERSION}/cargo-nextest-${NEXTEST_VERSION}-${GNU}.tar.gz" /home/vscode/.cargo/bin && \
+  fetch shellcheck SHELLCHECK_SHA256 "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.${T}.tar.xz" /home/vscode/.local/bin && \
+  fetch sccache SCCACHE_SHA256 "https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-${MUSL}.tar.gz" /home/vscode/.local/bin && \
   fetch gitleaks GITLEAKS_SHA256 "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz" /home/vscode/.local/bin && \
   fetch cargo-deny CARGO_DENY_SHA256 "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/cargo-deny-${CARGO_DENY_VERSION}-${MUSL}.tar.gz" /home/vscode/.cargo/bin && \
   fetch cargo-audit CARGO_AUDIT_SHA256 "https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv${CARGO_AUDIT_VERSION}/cargo-audit-${ALT}-v${CARGO_AUDIT_VERSION}.tgz" /home/vscode/.cargo/bin && \
