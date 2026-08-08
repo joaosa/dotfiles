@@ -115,9 +115,8 @@ def setup_claude_settings() -> None:
     # Setup-token auth hides subscription-included models from the /model
     # picker (anthropics/claude-code#79597), so profiles that rely on
     # CLAUDE_CODE_OAUTH_TOKEN pin the default model here instead. The marker
-    # records what this script pinned, so dropping AGENT_CLAUDE_MODEL later
-    # unpins exactly that value while a user's own /model choice survives.
-    # (Volumes pinned before the marker existed keep their pin.)
+    # lets a dropped AGENT_CLAUDE_MODEL unpin exactly that value while a
+    # user's own /model choice survives.
     model = os.environ.get("AGENT_CLAUDE_MODEL")
     pin_marker = claude_dir / ".agent-model-pin"
     if model:

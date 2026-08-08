@@ -289,9 +289,8 @@ class ClaudePromptTracker:
             ]
 
             if cwd:
-                # Deviation from upstream: -execute is a shell string and cwd
-                # comes from the hook payload, so quote it — a crafted
-                # directory name must not inject into the click action.
+                # Deviation from upstream: -execute is a shell string, so a
+                # crafted cwd must not inject into the click action.
                 cmd.extend(["-execute", f"/usr/local/bin/code {shlex.quote(cwd)}"])
 
             subprocess.run(cmd, check=False, capture_output=True)

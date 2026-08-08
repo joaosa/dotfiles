@@ -9,11 +9,9 @@ config_dir=/etc/agent-devcontainer
 domains_in="$config_dir/allowed-domains.in"
 meta_in="$config_dir/include-github-meta"
 
-# A validation failure must leave the container fail-closed, not permissive:
-# this script is the sudo entry point, and exiting before init-firewall.sh
-# arms its own trap would keep egress wide open under AGENT_ENABLE_FIREWALL=1.
-# Mirrors init-firewall.sh's fail_closed: flush first because rules beat
-# policy, then default-DROP everything.
+# Validation failure must fail closed, not permissive: exiting before
+# init-firewall.sh arms its own trap would leave egress wide open under
+# AGENT_ENABLE_FIREWALL=1. Flush first — rules beat policy.
 firewall_applied=0
 fail_closed() {
   if [ -n "${tmp_file:-}" ]; then

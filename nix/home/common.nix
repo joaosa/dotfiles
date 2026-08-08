@@ -180,12 +180,10 @@ in
           source = qwen3AsrModel;
           force = true;
         };
-        # Vendored from github.com/dazuiba/CCNotify (source-audited: stdin
-        # JSON to sqlite + terminal-notifier, no network). Staged because the
-        # shared hooks above call it: a missing UserPromptSubmit hook target
-        # exits 2, which blocks every prompt on a fresh machine. Symlinking is
-        # safe for its state: abspath(__file__) does not resolve symlinks, so
-        # the db/log stay in the real ~/.claude-shared/ccnotify/ directory.
+        # Vendored from github.com/dazuiba/CCNotify (source-audited). Staged
+        # because the shared hooks call it: a missing hook target exits 2,
+        # blocking every prompt. abspath(__file__) doesn't resolve symlinks,
+        # so its db/log stay in the real ~/.claude-shared/ccnotify/.
         ".claude-shared/ccnotify/ccnotify.py" = {
           source = link "config/claude/ccnotify.py";
           force = true;
@@ -198,11 +196,9 @@ in
       '';
 
       # Seed the canonical shared-config tree the per-profile symlinks point
-      # at, so the links are never dangling on a fresh machine. A pre-profile
-      # machine had its real content in ~/.claude; the symlink pass displaces
-      # it to *.hm-backup (flake backupFileExtension), so adopt that content
-      # as the seed rather than leaving an empty skeleton that silently
-      # replaces every global instruction, command, agent, and skill.
+      # at, so the links are never dangling on a fresh machine. Pre-profile
+      # content displaced to *.hm-backup by the symlink pass becomes the
+      # seed, instead of an empty skeleton silently replacing it.
       claudeSharedSkeleton = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         /bin/mkdir -p ${
           lib.concatMapStringsSep " " (dir: ''"${homeDir}/.claude-shared/${dir}"'') claudeSharedDirs
@@ -224,9 +220,7 @@ in
       # Re-assert the account-agnostic settings into each profile's writable
       # settings.json: /config edits to keys outside claudeSharedSettings
       # survive; keys inside it revert on the next switch. The .last file
-      # records what the previous switch asserted, so a key deleted from
-      # claudeSharedSettings is actually removed from the profiles instead
-      # of accreting forever.
+      # tracks what was asserted so deleted shared keys get removed too.
       claudeSettingsMerge = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         for dir in ${lib.concatMapStringsSep " " (dir: ''"${dir}"'') (lib.attrValues claudeProfileDirs)}; do
           /bin/mkdir -p "$dir"
@@ -234,8 +228,8 @@ in
           # -s, not -e: an empty file would fail the merge rather than seed it.
           [ -s "$target" ] || echo '{}' > "$target"
 
-          # A corrupt profile file (crash mid-write) must not brick every
-          # subsequent activation: quarantine and reseed instead of aborting.
+          # A corrupt profile file must not brick every later activation:
+          # quarantine and reseed instead of aborting.
           if ! ${pkgs.jq}/bin/jq -e 'type == "object"' "$target" > /dev/null 2>&1; then
             echo "Quarantining unparseable $target to $target.corrupt" >&2
             /bin/mv "$target" "$target.corrupt"
@@ -695,9 +689,8 @@ in
           # unset-vs-export rule has exactly one owner; the
           # subshell keeps ccuse's environment change local to this
           # launch and shields it from an earlier ccuse in this shell.
-          # $1 is a profile only when it names one: everything else
-          # (`cc --resume`, `cc -c`) passes through to claude under the
-          # default profile instead of dying in ccuse's usage error.
+          # $1 is a profile only when it names one; anything else passes
+          # through to claude under the default profile.
           cc() {
             (
               local profile=${claudeDefaultProfile}

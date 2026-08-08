@@ -13,10 +13,9 @@ fi
 
 # Both agents live in the image, so a self-update dies with the container and
 # layer caching keeps serving old builds. Refresh here instead, throttled by a
-# container-local stamp: the refreshed binaries live in this container's
-# ephemeral layer, so a stamp on a persistent volume would let a recreated
-# container silently revert to the image-pinned builds while still skipping
-# the refresh. Fleet opts in; audit and sandbox stay pinned.
+# container-local stamp — the binaries are container-local too, so a stamp on
+# a persistent volume would let a recreated container skip the refresh. Fleet
+# opts in; audit and sandbox stay pinned.
 # Runs before the firewall, so enabling both flags fetches outside the allowlist.
 stamp=/home/vscode/.agent-update-stamp
 if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
@@ -31,12 +30,9 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
   ) &
   claude_update=$!
   # npm re-downloads the ~130MB platform binary even when current, so compare
-  # versions first. Resolve the target from the publish timeline, not
-  # `npm view ... version`: exact @x.y.z installs are exempt from
-  # NPM_CONFIG_MINIMUM_RELEASE_AGE, so the age gate only holds if we pick the
-  # newest version already older than the quarantine window ourselves. The
-  # sort -V guard refuses to downgrade while the newest build is still inside
-  # the window.
+  # versions first. Exact @x.y.z installs are exempt from
+  # NPM_CONFIG_MINIMUM_RELEASE_AGE, so pick the newest version older than the
+  # window ourselves; the sort -V guard refuses in-window downgrades.
   codex_have=$(codex --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
   age_cutoff=$(date -u -d "${NPM_CONFIG_MINIMUM_RELEASE_AGE:-0} minutes ago" '+%Y-%m-%dT%H:%M:%S.000Z')
   codex_want=$(timeout 30 npm view @openai/codex time --json 2>/dev/null \
@@ -53,8 +49,7 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
       || { echo "[devcontainer] Codex update skipped; keeping installed build" >&2; update_ok=0; }
   fi
   wait "$claude_update" || update_ok=0
-  # Stamp only a fully successful refresh: a transient failure should retry
-  # on the next start, not be suppressed for a day.
+  # Stamp only a fully successful refresh so transient failures retry.
   if [ "$update_ok" = 1 ]; then
     touch "$stamp"
   fi

@@ -190,9 +190,8 @@ RUN cargo install --locked "cargo-mutants@${CARGO_MUTANTS_VERSION}"
 RUN cargo install --locked "cargo-vet@${CARGO_VET_VERSION}"
 RUN cargo install --locked "bacon@${BACON_VERSION}"
 
-# Node and Codex sit below the Rust chain: CODEX_VERSION is the most
-# frequently bumped pin in the image, and above the Rust layers every bump
-# forced a full rustup reinstall plus three source compiles.
+# Below the Rust chain: CODEX_VERSION is the most-bumped pin, and above it a
+# bump forced a rustup reinstall plus three source compiles.
 ARG NODE_VERSION=22
 ARG CODEX_VERSION=0.144.1
 ENV FNM_DIR="/home/vscode/.fnm"
