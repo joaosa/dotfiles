@@ -180,6 +180,16 @@ in
           source = qwen3AsrModel;
           force = true;
         };
+        # Vendored from github.com/dazuiba/CCNotify (source-audited: stdin
+        # JSON to sqlite + terminal-notifier, no network). Staged because the
+        # shared hooks above call it: a missing UserPromptSubmit hook target
+        # exits 2, which blocks every prompt on a fresh machine. Symlinking is
+        # safe for its state: abspath(__file__) does not resolve symlinks, so
+        # the db/log stay in the real ~/.claude-shared/ccnotify/ directory.
+        ".claude-shared/ccnotify/ccnotify.py" = {
+          source = link "config/claude/ccnotify.py";
+          force = true;
+        };
       };
 
     activation = {
@@ -188,12 +198,27 @@ in
       '';
 
       # Seed the canonical shared-config tree the per-profile symlinks point
-      # at, so the links are never dangling on a fresh machine.
+      # at, so the links are never dangling on a fresh machine. A pre-profile
+      # machine had its real content in ~/.claude; the symlink pass displaces
+      # it to *.hm-backup (flake backupFileExtension), so adopt that content
+      # as the seed rather than leaving an empty skeleton that silently
+      # replaces every global instruction, command, agent, and skill.
       claudeSharedSkeleton = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         /bin/mkdir -p ${
           lib.concatMapStringsSep " " (dir: ''"${homeDir}/.claude-shared/${dir}"'') claudeSharedDirs
         }
         [ -e "${homeDir}/.claude-shared/CLAUDE.md" ] || : > "${homeDir}/.claude-shared/CLAUDE.md"
+        for item in ${lib.concatStringsSep " " claudeSharedDirs}; do
+          backup="${claudeProfileDirs.main}/$item.hm-backup"
+          shared="${homeDir}/.claude-shared/$item"
+          if [ -d "$backup" ] && [ -z "$(/bin/ls -A "$shared")" ]; then
+            /bin/cp -R "$backup/." "$shared/"
+          fi
+        done
+        if [ -f "${claudeProfileDirs.main}/CLAUDE.md.hm-backup" ] \
+          && [ ! -s "${homeDir}/.claude-shared/CLAUDE.md" ]; then
+          /bin/cp "${claudeProfileDirs.main}/CLAUDE.md.hm-backup" "${homeDir}/.claude-shared/CLAUDE.md"
+        fi
       '';
 
       # Re-assert the account-agnostic settings into each profile's writable
