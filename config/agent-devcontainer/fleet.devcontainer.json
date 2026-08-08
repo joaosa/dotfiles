@@ -5,7 +5,8 @@
     "dockerfile": "Dockerfile",
     "args": {
       "TZ": "${localEnv:TZ:UTC}",
-      "AGENT_ALLOWED_DOMAINS": "@AGENT_ALLOWED_DOMAINS@"
+      "AGENT_ALLOWED_DOMAINS": "@AGENT_ALLOWED_DOMAINS@",
+      "AGENT_INCLUDE_GITHUB_META_RANGES": "1"
     }
   },
   "features": {
