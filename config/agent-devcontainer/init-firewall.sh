@@ -14,20 +14,12 @@ ipv4_re='^[0-9]{1,3}(\.[0-9]{1,3}){3}$'
 ipv4_cidr_re='^[0-9]{1,3}(\.[0-9]{1,3}){3}/[0-9]{1,2}$'
 firewall_ready=0
 
+# shellcheck source=firewall-lockdown.sh
+. /usr/local/lib/firewall-lockdown.sh
 fail_closed() {
   if [ "$firewall_ready" != 1 ]; then
-    # Flush before dropping: a partial run may have appended broad ACCEPT rules
-    # (e.g. DNS) that would otherwise survive alongside the DROP policy and keep
-    # egress open in the supposedly closed state. Rules beat policy.
-    iptables -F 2>/dev/null || true
-    iptables -t nat -F 2>/dev/null || true
-    ip6tables -F 2>/dev/null || true
-    iptables -P INPUT DROP 2>/dev/null || true
-    iptables -P FORWARD DROP 2>/dev/null || true
-    iptables -P OUTPUT DROP 2>/dev/null || true
-    ip6tables -P INPUT DROP 2>/dev/null || true
-    ip6tables -P FORWARD DROP 2>/dev/null || true
-    ip6tables -P OUTPUT DROP 2>/dev/null || true
+    rm -rf "${resolve_dir:-}" "${ipset_batch:-}" 2>/dev/null || true
+    lockdown_egress
   fi
 }
 trap fail_closed EXIT

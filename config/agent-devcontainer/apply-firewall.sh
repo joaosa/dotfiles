@@ -11,24 +11,16 @@ meta_in="$config_dir/include-github-meta"
 
 # Validation failure must fail closed, not permissive: exiting before
 # init-firewall.sh arms its own trap would leave egress wide open under
-# AGENT_ENABLE_FIREWALL=1. Flush first — rules beat policy.
-firewall_applied=0
+# AGENT_ENABLE_FIREWALL=1. The success path execs into init-firewall.sh, so
+# this trap only ever fires on failure and exactly one trap is live at a time.
+# shellcheck source=firewall-lockdown.sh
+. /usr/local/lib/firewall-lockdown.sh
 fail_closed() {
   if [ -n "${tmp_file:-}" ]; then
     rm -f "$tmp_file"
   fi
-  if [ "$firewall_applied" != 1 ]; then
-    iptables -F 2>/dev/null || true
-    iptables -t nat -F 2>/dev/null || true
-    ip6tables -F 2>/dev/null || true
-    iptables -P INPUT DROP 2>/dev/null || true
-    iptables -P FORWARD DROP 2>/dev/null || true
-    iptables -P OUTPUT DROP 2>/dev/null || true
-    ip6tables -P INPUT DROP 2>/dev/null || true
-    ip6tables -P FORWARD DROP 2>/dev/null || true
-    ip6tables -P OUTPUT DROP 2>/dev/null || true
-    echo "[devcontainer] Firewall inputs invalid; egress locked down fail-closed" >&2
-  fi
+  lockdown_egress
+  echo "[devcontainer] Firewall inputs invalid; egress locked down fail-closed" >&2
 }
 trap fail_closed EXIT
 
@@ -82,5 +74,5 @@ for domain in "${domains[@]}"; do
 done
 
 install -o root -g root -m 0444 "$tmp_file" "$config_dir/allowed-domains"
-/usr/local/bin/init-firewall.sh
-firewall_applied=1
+rm -f "$tmp_file"
+exec /usr/local/bin/init-firewall.sh

@@ -220,6 +220,7 @@ COPY --chown=vscode:vscode post_install.py /opt/post_install.py
 COPY --chown=vscode:vscode --chmod=0755 post-start.sh /opt/post_start.sh
 COPY --chmod=0500 init-firewall.sh /usr/local/bin/init-firewall.sh
 COPY --chmod=0500 apply-firewall.sh /usr/local/bin/apply-firewall.sh
+COPY --chmod=0444 firewall-lockdown.sh /usr/local/lib/firewall-lockdown.sh
 
 # The firewall allowlist is baked in as root-owned, world-unwritable files so
 # the untrusted vscode agent cannot supply the payload the root applier acts on.

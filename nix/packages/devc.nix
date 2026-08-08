@@ -63,6 +63,7 @@ stdenvNoCC.mkDerivation {
     install -Dm0644 ${../../config/agent-devcontainer/post_install.py} "$templates/post_install.py"
     install -Dm0644 ${../../config/agent-devcontainer/init-firewall.sh} "$templates/init-firewall.sh"
     install -Dm0644 ${../../config/agent-devcontainer/apply-firewall.sh} "$templates/apply-firewall.sh"
+    install -Dm0644 ${../../config/agent-devcontainer/firewall-lockdown.sh} "$templates/firewall-lockdown.sh"
     install -Dm0644 ${../../config/agent-devcontainer/post-start.sh} "$templates/post-start.sh"
     install -Dm0644 ${../../config/agent-devcontainer/sudoers-agent} "$templates/sudoers-agent"
     install -Dm0644 ${../../config/agent-devcontainer/default.devcontainer.json} "$templates/devcontainer.json"
