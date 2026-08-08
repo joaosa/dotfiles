@@ -68,8 +68,18 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
 fi
 
 # Codex's TUI ignores CODEX_API_KEY, so exchange it for persistent ~/.codex
-# credentials. Unconditional: that is what lets a rotated key beat a stale login.
+# credentials. The hash gate skips the round trip when the key is unchanged;
+# a failed exchange is fatal, or a rotated-but-rejected key would silently
+# keep using the previous login.
 if [ -n "${CODEX_API_KEY:-}" ]; then
-  printf '%s' "$CODEX_API_KEY" | codex login --with-api-key \
-    || echo "[devcontainer] Codex: API key login failed; run codex login manually" >&2
+  key_hash=$(printf '%s' "$CODEX_API_KEY" | sha256sum | cut -d' ' -f1)
+  hash_file=/home/vscode/.codex/.api-key-hash
+  if [ ! -f "$hash_file" ] || [ "$(cat "$hash_file")" != "$key_hash" ]; then
+    if printf '%s' "$CODEX_API_KEY" | codex login --with-api-key; then
+      printf '%s\n' "$key_hash" > "$hash_file"
+    else
+      echo "[devcontainer] Codex API key login failed; previous credentials may be stale" >&2
+      exit 1
+    fi
+  fi
 fi
