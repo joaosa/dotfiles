@@ -40,13 +40,13 @@ let
     "static.rust-lang.org"
     "proxy.golang.org"
     "sum.golang.org"
-  ];
-  # Audit hosts arbitrary untrusted repos, so it also admits the ecosystems
-  # fleet has no use for.
-  auditDomains = fleetDomains ++ [
+    # Serena (MCP) resolves its Python deps through uv at launch.
     "pypi.org"
     "files.pythonhosted.org"
   ];
+  # Audit hosts arbitrary untrusted repos; ecosystems the fleet has no use
+  # for would extend fleetDomains here.
+  auditDomains = fleetDomains;
 in
 stdenvNoCC.mkDerivation {
   pname = "agent-devcontainer";
