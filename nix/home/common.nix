@@ -62,7 +62,7 @@ let
     alt = "${homeDir}/.claude-profiles/alt";
   };
   # Explicit, not `lib.head`: attrNames sorts alphabetically, which would make
-  # a bare `cc` land in alt.
+  # ccuse's unset-vs-export default land on alt.
   claudeDefaultProfile = "main";
   claudeSharedDirs = [
     "commands"
@@ -124,10 +124,11 @@ let
       }) claudeSharedItems
     ) (lib.attrValues claudeProfileDirs)
   );
-  # cc<first letter> per profile: ccm/cca. Kept next to claudeProfileDirs so a
+  # cc<first letter> per profile: ccm/cca — the only launchers; no bare `cc`,
+  # which would shadow the C compiler. Kept next to claudeProfileDirs so a
   # profile rename can't leave a stale alias behind.
   claudeProfileAliases = lib.mapAttrs' (
-    profile: _: lib.nameValuePair "cc${lib.substring 0 1 profile}" "cc ${profile}"
+    profile: _: lib.nameValuePair "cc${lib.substring 0 1 profile}" "_claude_launch ${profile}"
   ) claudeProfileDirs;
 in
 {
@@ -677,7 +678,7 @@ in
           # is unset; exporting it — even to ~/.claude — makes it read
           # $CLAUDE_CONFIG_DIR/.claude.json instead, which has no oauthAccount
           # and re-runs onboarding. The map still records the directory because
-          # the settings merge and shared symlinks need it; only the launcher
+          # the settings merge and shared symlinks need it; only ccuse
           # treats the default specially.
           typeset -gA CLAUDE_PROFILES=(${
             lib.concatStringsSep " " (
@@ -685,20 +686,14 @@ in
             )
           })
 
-          # One launch under a profile. Routed through ccuse so the
-          # unset-vs-export rule has exactly one owner; the
-          # subshell keeps ccuse's environment change local to this
-          # launch and shields it from an earlier ccuse in this shell.
-          # $1 is a profile only when it names one; anything else passes
-          # through to claude under the default profile.
-          cc() {
+          # One launch under a profile; the ccm/cca aliases always pass the
+          # profile. Routed through ccuse so the unset-vs-export rule has
+          # exactly one owner; the subshell keeps ccuse's environment change
+          # local to this launch.
+          _claude_launch() {
             (
-              local profile=${claudeDefaultProfile}
-              if (( $# )) && [[ -n "''${CLAUDE_PROFILES[$1]:-}" ]]; then
-                profile="$1"
-                shift
-              fi
-              ccuse "$profile" > /dev/null || exit 1
+              ccuse "$1" > /dev/null || exit 1
+              shift
               command claude "$@"
             )
           }
