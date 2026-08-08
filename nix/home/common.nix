@@ -695,10 +695,17 @@ in
           # unset-vs-export rule has exactly one owner; the
           # subshell keeps ccuse's environment change local to this
           # launch and shields it from an earlier ccuse in this shell.
+          # $1 is a profile only when it names one: everything else
+          # (`cc --resume`, `cc -c`) passes through to claude under the
+          # default profile instead of dying in ccuse's usage error.
           cc() {
             (
-              ccuse "''${1:-${claudeDefaultProfile}}" > /dev/null || exit 1
-              (( $# )) && shift
+              local profile=${claudeDefaultProfile}
+              if (( $# )) && [[ -n "''${CLAUDE_PROFILES[$1]:-}" ]]; then
+                profile="$1"
+                shift
+              fi
+              ccuse "$profile" > /dev/null || exit 1
               command claude "$@"
             )
           }
