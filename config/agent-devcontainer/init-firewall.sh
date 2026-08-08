@@ -9,9 +9,12 @@ allowed_domains_file=/etc/agent-devcontainer/allowed-domains
 # only entry point (the sudoers rule exposes nothing else), so no fallback
 # default here — the Dockerfile ARG is the single owner of the default.
 include_github_meta_ranges="$(tr -d '[:space:]' < /etc/agent-devcontainer/include-github-meta)"
-ipv4_re='^[0-9]{1,3}(\.[0-9]{1,3}){3}$'
+# Real octets only: a garbage A record like 999.1.1.1 must be dropped here,
+# not abort the whole batched `ipset restore` and brick the start fail-closed.
+ipv4_octet='(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])'
+ipv4_re="^${ipv4_octet}(\.${ipv4_octet}){3}\$"
 # The same dotted quad plus a /prefix, for GitHub's published CIDR ranges.
-ipv4_cidr_re='^[0-9]{1,3}(\.[0-9]{1,3}){3}/[0-9]{1,2}$'
+ipv4_cidr_re="^${ipv4_octet}(\.${ipv4_octet}){3}/([0-9]|[12][0-9]|3[0-2])\$"
 firewall_ready=0
 
 # shellcheck source=firewall-lockdown.sh
@@ -141,6 +144,11 @@ wait
 for domain in "${allowed_domains[@]}"; do
   # `dig +short A` may print the CNAME chain before the final addresses.
   ips="$(grep -E "$ipv4_re" "$resolve_dir/$domain" || true)"
+  if [ -z "$ips" ]; then
+    # One serial retry: the parallel burst can overrun the embedded resolver,
+    # and a single dropped reply must not brick the start fail-closed.
+    ips="$(dig +short A "$domain" | grep -E "$ipv4_re" || true)"
+  fi
   if [ -z "$ips" ]; then
     echo "ERROR: failed to resolve $domain" >&2
     exit 1
