@@ -5,6 +5,7 @@ https://github.com/dazuiba/CCNotify
 """
 
 import os
+import shlex
 import sys
 import json
 import sqlite3
@@ -288,7 +289,10 @@ class ClaudePromptTracker:
             ]
 
             if cwd:
-                cmd.extend(["-execute", f'/usr/local/bin/code "{cwd}"'])
+                # Deviation from upstream: -execute is a shell string and cwd
+                # comes from the hook payload, so quote it — a crafted
+                # directory name must not inject into the click action.
+                cmd.extend(["-execute", f"/usr/local/bin/code {shlex.quote(cwd)}"])
 
             subprocess.run(cmd, check=False, capture_output=True)
             logging.info(f"Notification sent: {title} - {subtitle}")
