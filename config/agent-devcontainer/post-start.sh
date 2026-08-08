@@ -26,10 +26,22 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
   ) &
   claude_update=$!
   # npm re-downloads the ~130MB platform binary even when current, so compare
-  # versions first. NPM_CONFIG_MINIMUM_RELEASE_AGE keeps @latest off fresh publishes.
+  # versions first. Resolve the target from the publish timeline, not
+  # `npm view ... version`: exact @x.y.z installs are exempt from
+  # NPM_CONFIG_MINIMUM_RELEASE_AGE, so the age gate only holds if we pick the
+  # newest version already older than the quarantine window ourselves. The
+  # sort -V guard refuses to downgrade while the newest build is still inside
+  # the window.
   codex_have=$(codex --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true)
-  codex_want=$(timeout 30 npm view @openai/codex version 2>/dev/null || true)
-  if [ -n "$codex_want" ] && [ "$codex_have" != "$codex_want" ]; then
+  age_cutoff=$(date -u -d "${NPM_CONFIG_MINIMUM_RELEASE_AGE:-0} minutes ago" '+%Y-%m-%dT%H:%M:%S.000Z')
+  codex_want=$(timeout 30 npm view @openai/codex time --json 2>/dev/null \
+    | jq -r --arg cutoff "$age_cutoff" \
+      'to_entries
+       | map(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | select(.value <= $cutoff))
+       | (max_by(.value) // {}).key // empty' \
+    || true)
+  if [ -n "$codex_want" ] && [ "$codex_have" != "$codex_want" ] \
+    && [ "$(printf '%s\n' "$codex_have" "$codex_want" | sort -V | tail -n1)" = "$codex_want" ]; then
     timeout 600 npm install --global "@openai/codex@$codex_want" \
       || echo "[devcontainer] Codex update skipped; keeping installed build" >&2
   fi
