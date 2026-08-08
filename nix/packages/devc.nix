@@ -44,8 +44,8 @@ let
     "pypi.org"
     "files.pythonhosted.org"
   ];
-  # Audit hosts arbitrary untrusted repos; ecosystems the fleet has no use
-  # for would extend fleetDomains here.
+  # Currently identical to fleet; a distinct name so the profiles can diverge
+  # again without touching the substitutions below.
   auditDomains = fleetDomains;
 in
 stdenvNoCC.mkDerivation {

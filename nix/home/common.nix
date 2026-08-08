@@ -64,6 +64,7 @@ let
   # Explicit, not `lib.head`: attrNames sorts alphabetically, which would make
   # ccuse's unset-vs-export default land on alt.
   claudeDefaultProfile = "main";
+  claudeSharedDir = "${homeDir}/.claude-shared";
   claudeSharedDirs = [
     "commands"
     "agents"
@@ -98,7 +99,7 @@ let
                 type = "command";
                 # In .claude-shared, not a profile dir: shared config must not
                 # depend on any one account's directory.
-                command = "python3 ${homeDir}/.claude-shared/ccnotify/ccnotify.py ${event}";
+                command = "python3 ${claudeSharedDir}/ccnotify/ccnotify.py ${event}";
               }
             ];
           }
@@ -108,15 +109,21 @@ let
   claudeSharedSettingsFile = pkgs.writeText "claude-shared-settings.json" (
     builtins.toJSON claudeSharedSettings
   );
-  # home.file keys are relative to $HOME, so strip the prefix back off.
-  claudeRelative = lib.removePrefix "${homeDir}/";
+  # home.file keys are relative to $HOME, so strip the prefix back off —
+  # loudly, since removePrefix is a silent no-op on non-matching input.
+  claudeRelative =
+    path:
+    if lib.hasPrefix "${homeDir}/" path then
+      lib.removePrefix "${homeDir}/" path
+    else
+      throw "claude dir ${path} is outside ${homeDir}";
   claudeProfileFiles = lib.listToAttrs (
     lib.concatMap (
       dir:
       map (item: {
         name = "${claudeRelative dir}/${item}";
         value = {
-          source = config.lib.file.mkOutOfStoreSymlink "${homeDir}/.claude-shared/${item}";
+          source = config.lib.file.mkOutOfStoreSymlink "${claudeSharedDir}/${item}";
           # Pre-profile machines have real files here; force + the flake's
           # backupFileExtension move them to *.hm-backup instead of aborting.
           force = true;
@@ -185,7 +192,7 @@ in
         # because the shared hooks call it: a missing hook target exits 2,
         # blocking every prompt. abspath(__file__) doesn't resolve symlinks,
         # so its db/log stay in the real ~/.claude-shared/ccnotify/.
-        ".claude-shared/ccnotify/ccnotify.py" = {
+        "${claudeRelative claudeSharedDir}/ccnotify/ccnotify.py" = {
           source = link "config/claude/ccnotify.py";
           force = true;
         };
@@ -201,20 +208,18 @@ in
       # content displaced to *.hm-backup by the symlink pass becomes the
       # seed, instead of an empty skeleton silently replacing it.
       claudeSharedSkeleton = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        /bin/mkdir -p ${
-          lib.concatMapStringsSep " " (dir: ''"${homeDir}/.claude-shared/${dir}"'') claudeSharedDirs
-        }
-        [ -e "${homeDir}/.claude-shared/CLAUDE.md" ] || : > "${homeDir}/.claude-shared/CLAUDE.md"
+        /bin/mkdir -p ${lib.concatMapStringsSep " " (dir: ''"${claudeSharedDir}/${dir}"'') claudeSharedDirs}
+        [ -e "${claudeSharedDir}/CLAUDE.md" ] || : > "${claudeSharedDir}/CLAUDE.md"
         for item in ${lib.concatStringsSep " " claudeSharedDirs}; do
           backup="${claudeProfileDirs.main}/$item.hm-backup"
-          shared="${homeDir}/.claude-shared/$item"
+          shared="${claudeSharedDir}/$item"
           if [ -d "$backup" ] && [ -z "$(/bin/ls -A "$shared")" ]; then
             /bin/cp -R "$backup/." "$shared/"
           fi
         done
         if [ -f "${claudeProfileDirs.main}/CLAUDE.md.hm-backup" ] \
-          && [ ! -s "${homeDir}/.claude-shared/CLAUDE.md" ]; then
-          /bin/cp "${claudeProfileDirs.main}/CLAUDE.md.hm-backup" "${homeDir}/.claude-shared/CLAUDE.md"
+          && [ ! -s "${claudeSharedDir}/CLAUDE.md" ]; then
+          /bin/cp "${claudeProfileDirs.main}/CLAUDE.md.hm-backup" "${claudeSharedDir}/CLAUDE.md"
         fi
       '';
 
