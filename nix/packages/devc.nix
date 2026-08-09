@@ -43,6 +43,10 @@ let
     # Serena (MCP) resolves its Python deps through uv at launch.
     "pypi.org"
     "files.pythonhosted.org"
+    # Scryfall MTG API; bulk data and card images live on scryfall.io.
+    "api.scryfall.com"
+    "data.scryfall.io"
+    "cards.scryfall.io"
   ];
   # Currently identical to fleet; a distinct name so the profiles can diverge
   # again without touching the substitutions below.
