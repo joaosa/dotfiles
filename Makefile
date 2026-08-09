@@ -2,6 +2,9 @@
 NIX := /nix/var/nix/profiles/default/bin/nix
 # Host entry from flake.nix to build/switch; override with `make switch HOST=...`
 HOST ?= Mac
+# GitHub organization mounted by the fleet devcontainer targets.
+ORG ?=
+export ORG
 
 .DEFAULT_GOAL := help
 
@@ -31,3 +34,10 @@ check:
 hooks:
 	$(NIX) develop -c prek install
 	$(NIX) develop -c prek install --hook-type pre-push
+
+## devc-rebuild: Apply config, rebuild the fleet devcontainer, and enter it (ORG=<org>)
+.PHONY: devc-rebuild
+devc-rebuild:
+	@test -n "$$ORG" || { echo "usage: make devc-rebuild ORG=<github-org>" >&2; exit 2; }
+	$(MAKE) switch
+	zsh -lic 'agent-fleet-rebuild "$$ORG"'

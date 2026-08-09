@@ -27,6 +27,7 @@ let
     "chatgpt.com"
     "api.anthropic.com"
     "claude.ai"
+    "downloads.claude.ai"
     "github.com"
     "api.github.com"
     "codeload.github.com"

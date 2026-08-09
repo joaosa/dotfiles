@@ -558,7 +558,7 @@ in
               fi
             done
 
-            for file in Dockerfile .zshrc post_install.py init-firewall.sh apply-firewall.sh post-start.sh sudoers-agent; do
+            for file in Dockerfile .zshrc post_install.py init-firewall.sh apply-firewall.sh firewall-lockdown.sh post-start.sh sudoers-agent; do
               [[ ! -L "$stage/$file" ]] \
                 || { echo "refusing symlinked staged file: $stage/$file" >&2; return 1; }
               install -m0644 "${devc}/share/agent-devcontainer/$file" "$stage/$file" || return 1
@@ -585,8 +585,13 @@ in
           }
 
           _agent_devcontainer_launch() {
-            local dir="$1" profile="$2" config
+            local dir="$1" profile="$2" rebuild="''${3:-0}" config
+            local -a up_args
             config="$(_agent_devcontainer_stage "$profile")" || return 1
+
+            if [[ "$rebuild" == 1 ]]; then
+              up_args+=(--remove-existing-container)
+            fi
 
             (
               export DOTFILES_PATH="${dotfilesPath}"
@@ -605,6 +610,7 @@ in
                 --config "$config" \
                 --id-label "devcontainer.local_folder=$dir" \
                 --id-label "agent.devcontainer.profile=$profile" \
+                "''${up_args[@]}" \
                 || return 1
               devcontainer exec \
                 --workspace-folder "$dir" \
@@ -619,8 +625,13 @@ in
           # carries both Claude and Codex, shared login volumes, gh auth, and the
           # forwarded signing agent. Only use this over organizations you trust.
           agent-fleet() {
+            local rebuild=0
+            if [[ "$1" == --rebuild ]]; then
+              rebuild=1
+              shift
+            fi
             local org="$1"
-            [[ -n "$org" ]] || { echo "usage: agent-fleet <org>" >&2; return 1; }
+            [[ -n "$org" ]] || { echo "usage: agent-fleet [--rebuild] <org>" >&2; return 1; }
             [[ "$org" != *[^A-Za-z0-9._-]* && "$org" != . && "$org" != .. ]] \
               || { echo "org must be one safe path component: $org" >&2; return 1; }
             local fleet_dir="${homeDir}/ghq/github.com/$org"
@@ -634,9 +645,10 @@ in
               || { echo "could not load signing key: $signing_key" >&2; return 1; }
             colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
               || { echo "colima has no SSH agent socket; run: colima stop && agent-fleet $org" >&2; return 1; }
-            _agent_devcontainer_launch "$fleet_dir" fleet
+            _agent_devcontainer_launch "$fleet_dir" fleet "$rebuild"
           }
 
+          agent-fleet-rebuild() { agent-fleet --rebuild "$@"; }
           claude-fleet() { agent-fleet "$@"; }
           codex-fleet() { agent-fleet "$@"; }
 

@@ -57,7 +57,9 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
     update_ok=0
   elif [ "$codex_have" != "$codex_want" ] \
     && [ "$(printf '%s\n' "$codex_have" "$codex_want" | sort -V | tail -n1)" = "$codex_want" ]; then
-    timeout 600 npm install --global "@openai/codex@$codex_want" \
+    # npm does not support auditing global installs, so override the profile's
+    # audit=true for this command instead of emitting its global/audit warning.
+    timeout 600 npm install --global --no-audit "@openai/codex@$codex_want" \
       || { echo "[devcontainer] Codex update skipped; keeping installed build" >&2; update_ok=0; }
   fi
   wait "$claude_update" || update_ok=0

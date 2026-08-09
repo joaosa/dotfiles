@@ -105,6 +105,7 @@ both Claude Code and Codex; `agent-*` is the canonical wrapper and the
 
 ```bash
 agent-fleet <org>                  # trusted org: shared AI/gh login + signing agent, allowlisted egress
+agent-fleet-rebuild <org>          # force-recreate that fleet container, preserving named volumes
 agent-audit <repo-path-or-url>     # untrusted repo: isolated logins, strict egress
 
 claude-fleet <org>                 # aliases of agent-fleet
@@ -112,6 +113,18 @@ codex-fleet <org>
 claude-audit <repo-path-or-url>    # aliases of agent-audit
 codex-audit <repo-path-or-url>
 ```
+
+After changing the devcontainer image or its allowlist, rebuild from the host:
+
+```bash
+make devc-rebuild ORG=<org>
+```
+
+This applies the current Nix configuration, removes only the matching fleet
+container, rebuilds it using Docker's layer cache, and opens a shell in the new
+container. Named history and login volumes are preserved; changes made only to
+the old container filesystem are discarded. If the current configuration is
+already activated, `agent-fleet --rebuild <org>` is the lower-level equivalent.
 
 Wrappers stage the trusted Dockerfile and profile in
 `~/.cache/agent-devcontainer`, outside the checkout, then pass the config path
