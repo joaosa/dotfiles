@@ -96,15 +96,16 @@ RUN ARCH=$(dpkg --print-architecture) && \
   curl -fsSL "https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/${T}-unknown-linux-gnu/rustup-init" -o /tmp/rustup-init && \
   echo "${EXPECT}  /tmp/rustup-init" | sha256sum -c - && \
   chmod +x /tmp/rustup-init && \
-  /tmp/rustup-init -y --profile minimal --default-toolchain "${RUST_TOOLCHAIN}" -c rustfmt -c clippy -c rust-analyzer -c llvm-tools && \
+  /tmp/rustup-init -y --profile minimal --default-toolchain "${RUST_TOOLCHAIN}" -c rustfmt -c clippy -c rust-analyzer -c llvm-tools -t wasm32-unknown-unknown && \
   rm /tmp/rustup-init
 ENV PATH="/home/vscode/.cargo/bin:$PATH"
 
 # Prebuilt tool binaries, one digest-per-arch fetch path for all: just,
 # nextest, sccache (core loop — the workspace .cargo/config.toml sets
-# rustc-wrapper = "sccache"), shellcheck/gitleaks (commit gates), and the
-# cargo audit suite. musl where published; cargo-audit and cargo-machete ship
-# no arm64 musl, so arm64 takes their gnu builds.
+# rustc-wrapper = "sccache"), shellcheck/gitleaks (commit gates), the cargo
+# audit suite, and wasm-pack (builds the Cardmarket extension's mtg-wasm).
+# musl where published; cargo-audit and cargo-machete ship no arm64 musl, so
+# arm64 takes their gnu builds.
 ARG JUST_VERSION=1.42.4
 ARG JUST_SHA256_amd64=678efc1cfbd5fa5a88375daa7e2f3864a049d6d63a0296df925a2ae5f516cb56
 ARG JUST_SHA256_arm64=beb35a4ed1208ffbb0fef26042c65875759a5358b9ee1a7856dec8490dfd4aca
@@ -132,6 +133,9 @@ ARG CARGO_LLVM_COV_SHA256_arm64=b7bb2ad514166f3b19fc06874c577eefde0010e5ac571f9a
 ARG CARGO_MACHETE_VERSION=0.9.2
 ARG CARGO_MACHETE_SHA256_amd64=48200087f54c55aabcd4db4af1e25742b49846c02a1b1bfa134711945b35b2e9
 ARG CARGO_MACHETE_SHA256_arm64=6f96c3e6026a5bdd241b6ae600c6fb86c9197c6e189a894f91371baa01fd10f5
+ARG WASM_PACK_VERSION=0.13.1
+ARG WASM_PACK_SHA256_amd64=c539d91ccab2591a7e975bcf82c82e1911b03335c80aa83d67ad25ed2ad06539
+ARG WASM_PACK_SHA256_arm64=2e65038769f8bbaa5fc237ad4bb523e692df99458cbd3e3d92525b89d8762379
 RUN ARCH=$(dpkg --print-architecture) && \
   case "$ARCH" in \
     amd64) T=x86_64; GL_ARCH=x64; MUSL=x86_64-unknown-linux-musl; GNU=x86_64-unknown-linux-gnu; ALT=$MUSL ;; \
@@ -156,7 +160,8 @@ RUN ARCH=$(dpkg --print-architecture) && \
   fetch cargo-deny CARGO_DENY_SHA256 "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/cargo-deny-${CARGO_DENY_VERSION}-${MUSL}.tar.gz" /home/vscode/.cargo/bin && \
   fetch cargo-audit CARGO_AUDIT_SHA256 "https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv${CARGO_AUDIT_VERSION}/cargo-audit-${ALT}-v${CARGO_AUDIT_VERSION}.tgz" /home/vscode/.cargo/bin && \
   fetch cargo-llvm-cov CARGO_LLVM_COV_SHA256 "https://github.com/taiki-e/cargo-llvm-cov/releases/download/v${CARGO_LLVM_COV_VERSION}/cargo-llvm-cov-${MUSL}.tar.gz" /home/vscode/.cargo/bin && \
-  fetch cargo-machete CARGO_MACHETE_SHA256 "https://github.com/bnjbvr/cargo-machete/releases/download/v${CARGO_MACHETE_VERSION}/cargo-machete-v${CARGO_MACHETE_VERSION}-${ALT}.tar.gz" /home/vscode/.cargo/bin
+  fetch cargo-machete CARGO_MACHETE_SHA256 "https://github.com/bnjbvr/cargo-machete/releases/download/v${CARGO_MACHETE_VERSION}/cargo-machete-v${CARGO_MACHETE_VERSION}-${ALT}.tar.gz" /home/vscode/.cargo/bin && \
+  fetch wasm-pack WASM_PACK_SHA256 "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-${MUSL}.tar.gz" /home/vscode/.local/bin
 
 # No usable prebuilts: bacon ships no release binaries at all, and
 # cargo-mutants / cargo-vet publish no arm64 Linux builds, so these compile
