@@ -158,7 +158,7 @@ volume.
 
 Fleet also refreshes both agents on start, at most once a day, because the image
 pins them at build time and a self-update cannot outlive the container. The
-audit and sandbox profiles keep the pinned build.
+audit profile keeps the pinned build.
 
 Fleet applies an outbound domain allowlist, and additionally admits GitHub's
 published web/api/git IP ranges so SSH pushes through the forwarded agent do
@@ -202,8 +202,8 @@ build arg rather than an environment variable so the root applier reads it
 from a root-owned file the agent cannot rewrite.
 
 The package that stages these templates lives in
-[`nix/packages/devc.nix`](./nix/packages/devc.nix). Update the pinned
-`CODEX_VERSION` in the three devcontainer JSON profiles and Dockerfile together.
+[`nix/packages/devc.nix`](./nix/packages/devc.nix). The pinned `CODEX_VERSION`
+lives in the Dockerfile.
 Use `make switch` to install updates. The `agent-fleet` and `agent-audit`
 wrappers are the only entry points; a bare `devc` is a guard that refuses to run
 so upstream's unsafe `up` / `template` / `self-install` / `update` subcommands

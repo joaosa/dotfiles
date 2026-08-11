@@ -71,7 +71,6 @@ stdenvNoCC.mkDerivation {
     install -Dm0644 ${../../config/agent-devcontainer/firewall-lockdown.sh} "$templates/firewall-lockdown.sh"
     install -Dm0644 ${../../config/agent-devcontainer/post-start.sh} "$templates/post-start.sh"
     install -Dm0644 ${../../config/agent-devcontainer/sudoers-agent} "$templates/sudoers-agent"
-    install -Dm0644 ${../../config/agent-devcontainer/default.devcontainer.json} "$templates/devcontainer.json"
     substitute ${../../config/agent-devcontainer/audit.devcontainer.json} "$templates/audit.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " auditDomains}'
     substitute ${../../config/agent-devcontainer/fleet.devcontainer.json} "$templates/fleet.devcontainer.json" \

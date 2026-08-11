@@ -27,7 +27,7 @@ fi
 # layer caching keeps serving old builds. Refresh here instead, throttled by a
 # container-local stamp — the binaries are container-local too, so a stamp on
 # a persistent volume would let a recreated container skip the refresh. Fleet
-# opts in; audit and sandbox stay pinned. The hosts it needs are allowlisted;
+# opts in; audit stays pinned. The hosts it needs are allowlisted;
 # a blocked fetch keeps the image-pinned build.
 stamp=/home/vscode/.agent-update-stamp
 if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
