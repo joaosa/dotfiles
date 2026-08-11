@@ -64,6 +64,7 @@ let
   # Explicit, not `lib.head`: attrNames sorts alphabetically, which would make
   # ccuse's unset-vs-export default land on alt.
   claudeDefaultProfile = "main";
+  # Also hardcoded in the config/agent-devcontainer/*.devcontainer.json mounts.
   claudeSharedDir = "${homeDir}/.claude-shared";
   claudeSharedDirs = [
     "commands"
