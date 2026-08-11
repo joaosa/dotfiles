@@ -13,6 +13,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # bwrap. A setuid-root bwrap would be latent local-root surface for no benefit,
 # and this profile blocks the user namespaces unprivileged bwrap needs anyway.
 # Only packages the base image lacks (EDITOR=nano ships in the base).
+# libclang-dev: leptess bindgen; libsqlite3-dev: rusqlite link (mtg tools).
 RUN apt-get update && apt-get install -y --no-install-recommends \
   fd-find \
   ripgrep \
@@ -22,7 +23,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   ipset \
   iptables \
   iproute2 \
+  libclang-dev \
   libleptonica-dev \
+  libsqlite3-dev \
   libtesseract-dev \
   pkg-config \
   && apt-get clean \
