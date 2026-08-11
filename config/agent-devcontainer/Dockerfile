@@ -176,6 +176,20 @@ RUN cargo install --locked "cargo-mutants@${CARGO_MUTANTS_VERSION}"
 RUN cargo install --locked "cargo-vet@${CARGO_VET_VERSION}"
 RUN cargo install --locked "bacon@${BACON_VERSION}"
 
+# Go toolchain; digests are the official checksums from go.dev/dl. Module and
+# GOTOOLCHAIN downloads go through the already-allowlisted proxy.golang.org.
+ARG GO_VERSION=1.26.5
+ARG GO_SHA256_amd64=5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053
+ARG GO_SHA256_arm64=fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49
+RUN ARCH=$(dpkg --print-architecture) && \
+  eval "EXPECT=\${GO_SHA256_${ARCH}}" && \
+  [ -n "$EXPECT" ] || { echo "No Go digest for arch ${ARCH}" >&2; exit 1; } && \
+  curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" -o /tmp/go.tgz && \
+  echo "${EXPECT}  /tmp/go.tgz" | sha256sum -c - && \
+  tar -C /home/vscode/.local -xzf /tmp/go.tgz && \
+  rm /tmp/go.tgz
+ENV PATH="/home/vscode/.local/go/bin:/home/vscode/go/bin:$PATH"
+
 # Below the Rust chain: CODEX_VERSION is the most-bumped pin, and above it a
 # bump forced a rustup reinstall plus three source compiles.
 ARG NODE_VERSION=22
