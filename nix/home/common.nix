@@ -277,7 +277,13 @@ in
     ollama = {
       enable = true;
       environmentVariables = {
+        # Coding agents need enough room for repository context and tool
+        # transcripts. Keep this aligned with OpenCode's model limit.
+        OLLAMA_CONTEXT_LENGTH = "65536";
         OLLAMA_FLASH_ATTENTION = "1";
+        # The launch agent stays alive; unload only the model after it has been
+        # idle so the next request gets a fresh Metal-aware load.
+        OLLAMA_KEEP_ALIVE = "30m";
         OLLAMA_KV_CACHE_TYPE = "q8_0";
       };
     };

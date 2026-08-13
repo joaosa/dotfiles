@@ -8,6 +8,40 @@
 
 let
   link = relativePath: config.lib.file.mkOutOfStoreSymlink "${dotfilesPath}/${relativePath}";
+  ollamaPackage = pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
+    pname = "ollama-bin";
+    version = "0.32.9";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/ollama/ollama/releases/download/v${finalAttrs.version}/ollama-darwin.tgz";
+      hash = "sha256-F6WwltRRXQCmQVAS24R6KzU7OJ7XqzPQJeO5jC8FtJw=";
+    };
+
+    sourceRoot = ".";
+
+    installPhase = ''
+      runHook preInstall
+
+      mkdir -p "$out/bin" "$out/libexec"
+      cp -R . "$out/libexec/ollama"
+      ln -s ../libexec/ollama/ollama "$out/bin/ollama"
+
+      runHook postInstall
+    '';
+
+    # Preserve the upstream binary bytes and relocatable runtime layout.
+    dontFixup = true;
+
+    meta = {
+      description = "Get up and running with large language models locally";
+      homepage = "https://ollama.com";
+      changelog = "https://github.com/ollama/ollama/releases/tag/v${finalAttrs.version}";
+      license = lib.licenses.mit;
+      sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
+      platforms = lib.platforms.darwin;
+      mainProgram = "ollama";
+    };
+  });
   obsidianCli = ''
     #!${pkgs.bash}/bin/bash
     exec /Applications/Obsidian.app/Contents/MacOS/Obsidian "$@"
@@ -20,6 +54,11 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
 
   # Native macOS pinentry dialog (with keychain support) for gpg-agent.
   services.gpg-agent.pinentry.package = pkgs.pinentry_mac;
+
+  # Muse Glimmer requires a newer Ollama than the main nixpkgs pin currently
+  # carries. Keep the official macOS release independently pinned so updating
+  # Ollama does not upgrade the rest of the workstation.
+  services.ollama.package = ollamaPackage;
 
   home = {
     # `open` is the macOS URL handler; set for all sessions, not just login zsh.
@@ -37,6 +76,9 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     # Configs for macOS-only apps (Karabiner, Hammerspoon) and the Obsidian.app
     # launcher wrappers.
     file = {
+      # Apple-Silicon-specific local model; the Ollama service itself remains
+      # cross-platform in common.nix.
+      ".config/opencode/opencode.json".source = link "config/opencode/opencode.json";
       # Karabiner-Elements rewrites karabiner.json at runtime, so the repo copy
       # tracks the app's last write (expect git churn). It is kept under version
       # control deliberately, as a backup/restore point for the key remaps.
@@ -61,4 +103,38 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       };
     };
   };
+
+  # Extend Home Manager's Ollama launch agent rather than declaring a second
+  # service that would compete for localhost:11434.
+  launchd.agents.ollama.config = {
+    StandardOutPath = "${config.home.homeDirectory}/Library/Logs/ollama.log";
+    StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/ollama.log";
+  };
+
+  # The pinned Home Manager invokes `launchctl bootout --wait`, but macOS 15's
+  # launchctl does not support that flag. Unload a changed or stale Ollama job
+  # with the compatible syntax and remove its plist so setupLaunchAgents can
+  # bootstrap the new definition without trying the unsupported command.
+  # This also removes the service's former nix-darwin-owned launch agent.
+  home.activation.prepareOllamaLaunchAgent = lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
+    legacyAgent="${config.home.homeDirectory}/Library/LaunchAgents/com.ollama.serve.plist"
+    if [ -e "$legacyAgent" ]; then
+      run /bin/launchctl bootout "gui/$UID/com.ollama.serve" 2>/dev/null || true
+      run /bin/rm -f "$legacyAgent"
+    fi
+
+    agentName="org.nix-community.home.ollama"
+    currentAgent="${config.home.homeDirectory}/Library/LaunchAgents/$agentName.plist"
+    nextAgent="$newGenPath/LaunchAgents/$agentName.plist"
+    loadedAgent=$(/bin/launchctl print "gui/$UID/$agentName" 2>/dev/null || true)
+
+    if [ -e "$currentAgent" ] && {
+      [ ! -e "$nextAgent" ] \
+        || ! /usr/bin/cmp -s "$nextAgent" "$currentAgent" \
+        || [[ "$loadedAgent" != *"${ollamaPackage}/bin/ollama serve"* ]]
+    }; then
+      run /bin/launchctl bootout "gui/$UID/$agentName" 2>/dev/null || true
+      run /bin/rm -f "$currentAgent"
+    fi
+  '';
 }
