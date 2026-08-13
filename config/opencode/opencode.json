@@ -2,6 +2,30 @@
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": false,
   "share": "disabled",
+  "instructions": [".opencode/instructions.md"],
+  "mcp": {
+    "serena": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--enable-web-dashboard",
+        "false",
+        "--project",
+        "/Users/joao-sousa-andrade/ghq/github.com/joaosa/dotfiles"
+      ],
+      "timeout": 120000
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp"]
+    }
+  },
   "model": "ollama/muse-glimmer:30b-mlx",
   "provider": {
     "ollama": {
