@@ -57,10 +57,18 @@ let
   # ~/.claude, so a bare `claude` and `ccm` are the same account and the
   # pre-profiles history/plugins/tasks keep working untouched.
   # (programs.claude-code rejected: single config dir, read-only settings.json.)
-  claudeProfileDirs = {
-    main = "${homeDir}/.claude";
-    alt = "${homeDir}/.claude-profiles/alt";
+  claudeProfiles = {
+    main = {
+      dir = "${homeDir}/.claude";
+      keychainService = "claude-code-oauth";
+    };
+    alt = {
+      dir = "${homeDir}/.claude-profiles/alt";
+      keychainService = "claude-code-oauth-alt";
+    };
   };
+  claudeProfileDirs = lib.mapAttrs (_: profile: profile.dir) claudeProfiles;
+  claudeProfileKeychainServices = lib.mapAttrs (_: profile: profile.keychainService) claudeProfiles;
   # Explicit, not `lib.head`: attrNames sorts alphabetically, which would make
   # ccuse's unset-vs-export default land on alt.
   claudeDefaultProfile = "main";
@@ -592,10 +600,29 @@ in
           }
 
           _agent_devcontainer_launch() {
-            local dir="$1" profile="$2" rebuild="''${3:-0}" config
-            local -a up_args
+            local dir="$1" profile="$2" rebuild="''${3:-0}"
+            local claude_profile="''${4:-}" claude_service="''${5:-}" config
+            local identity_profile="$profile"
+            local -a account_identity_args identity_args up_args
             config="$(_agent_devcontainer_stage "$profile")" || return 1
 
+            # Preserve the pre-multi-account identity for main. Every other
+            # Claude profile gets a distinct profile value as well as an
+            # account label. The distinct value matters: a lookup for the two
+            # legacy main labels must not also match an alt container carrying
+            # those same labels plus one more. devcontainerId is a hash of the
+            # full label set, so all named volumes are isolated too.
+            if [[ -n "$claude_profile" && "$claude_profile" != ${claudeDefaultProfile} ]]; then
+              identity_profile="$profile-$claude_profile"
+              account_identity_args=(
+                --id-label "agent.devcontainer.claude-profile=$claude_profile"
+              )
+            fi
+            identity_args=(
+              --id-label "devcontainer.local_folder=$dir"
+              --id-label "agent.devcontainer.profile=$identity_profile"
+              "''${account_identity_args[@]}"
+            )
             if [[ "$rebuild" == 1 ]]; then
               up_args+=(--remove-existing-container)
             fi
@@ -603,10 +630,15 @@ in
             (
               export DOTFILES_PATH="${dotfilesPath}"
               if [[ "$profile" == audit ]]; then
-                unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY OPENAI_API_KEY CODEX_API_KEY
+                unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
+                unset OPENAI_API_KEY CODEX_API_KEY AGENT_CLAUDE_PROFILE
               else
+                export AGENT_CLAUDE_PROFILE="$claude_profile"
+                # Anthropic API credentials outrank CLAUDE_CODE_OAUTH_TOKEN;
+                # do not let ambient host state defeat the explicit account.
+                unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
                 _agent_devcontainer_export_secret \
-                  CLAUDE_CODE_OAUTH_TOKEN claude-code-oauth Claude
+                  CLAUDE_CODE_OAUTH_TOKEN "$claude_service" "Claude ($claude_profile)"
                 _agent_devcontainer_export_secret \
                   CODEX_API_KEY codex-api-key Codex
               fi
@@ -615,30 +647,63 @@ in
               devcontainer up \
                 --workspace-folder "$dir" \
                 --config "$config" \
-                --id-label "devcontainer.local_folder=$dir" \
-                --id-label "agent.devcontainer.profile=$profile" \
+                "''${identity_args[@]}" \
                 "''${up_args[@]}" \
                 || return 1
               devcontainer exec \
                 --workspace-folder "$dir" \
                 --config "$config" \
-                --id-label "devcontainer.local_folder=$dir" \
-                --id-label "agent.devcontainer.profile=$profile" \
+                "''${identity_args[@]}" \
                 zsh
             )
           }
 
           # One trusted container over every repository in an organization. It
-          # carries both Claude and Codex, shared login volumes, gh auth, and the
-          # forwarded signing agent. Only use this over organizations you trust.
+          # carries both Claude and Codex, profile-specific login volumes, gh
+          # auth, and the forwarded signing agent. Only use this over
+          # organizations you trust.
           agent-fleet() {
-            local rebuild=0
-            if [[ "$1" == --rebuild ]]; then
-              rebuild=1
-              shift
-            fi
+            local rebuild=0 claude_profile=${claudeDefaultProfile}
+            local usage="usage: agent-fleet [--rebuild] [--claude-profile <profile>] <org>"
+            while (( $# )); do
+              case "$1" in
+                --rebuild)
+                  rebuild=1
+                  shift
+                  ;;
+                --claude-profile)
+                  (( $# >= 2 )) \
+                    || { echo "$usage" >&2; return 1; }
+                  claude_profile="$2"
+                  shift 2
+                  ;;
+                --claude-profile=*)
+                  claude_profile="''${1#*=}"
+                  shift
+                  ;;
+                --)
+                  shift
+                  break
+                  ;;
+                -*)
+                  echo "unknown agent-fleet option: $1" >&2
+                  echo "$usage" >&2
+                  return 1
+                  ;;
+                *)
+                  break
+                  ;;
+              esac
+            done
+
+            (( $# == 1 )) || { echo "$usage" >&2; return 1; }
+            [[ -n "$claude_profile" && "$claude_profile" != *[^A-Za-z0-9_-]* ]] \
+              || { echo "invalid Claude profile: $claude_profile" >&2; return 1; }
+            local claude_service="''${CLAUDE_PROFILE_KEYCHAIN_SERVICES[$claude_profile]:-}"
+            [[ -n "$claude_service" ]] \
+              || { echo "unknown Claude profile '$claude_profile' (use ${lib.concatStringsSep "|" (lib.attrNames claudeProfiles)})" >&2; return 1; }
+
             local org="$1"
-            [[ -n "$org" ]] || { echo "usage: agent-fleet [--rebuild] <org>" >&2; return 1; }
             [[ "$org" != *[^A-Za-z0-9._-]* && "$org" != . && "$org" != .. ]] \
               || { echo "org must be one safe path component: $org" >&2; return 1; }
             local fleet_dir="${homeDir}/ghq/github.com/$org"
@@ -652,7 +717,8 @@ in
               || { echo "could not load signing key: $signing_key" >&2; return 1; }
             colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
               || { echo "colima has no SSH agent socket; run: colima stop && agent-fleet $org" >&2; return 1; }
-            _agent_devcontainer_launch "$fleet_dir" fleet "$rebuild"
+            _agent_devcontainer_launch \
+              "$fleet_dir" fleet "$rebuild" "$claude_profile" "$claude_service"
           }
 
           agent-fleet-rebuild() { agent-fleet --rebuild "$@"; }
@@ -707,6 +773,11 @@ in
           typeset -gA CLAUDE_PROFILES=(${
             lib.concatStringsSep " " (
               lib.mapAttrsToList (profile: dir: "${profile} \"${dir}\"") claudeProfileDirs
+            )
+          })
+          typeset -gA CLAUDE_PROFILE_KEYCHAIN_SERVICES=(${
+            lib.concatStringsSep " " (
+              lib.mapAttrsToList (profile: service: "${profile} \"${service}\"") claudeProfileKeychainServices
             )
           })
 

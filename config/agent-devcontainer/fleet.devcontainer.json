@@ -52,8 +52,8 @@
     "UV_LINK_MODE": "copy"
   },
   "remoteEnv": {
+    "AGENT_CLAUDE_PROFILE": "${localEnv:AGENT_CLAUDE_PROFILE:main}",
     "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN:}",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY:}",
     "CODEX_API_KEY": "${localEnv:CODEX_API_KEY:}"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",

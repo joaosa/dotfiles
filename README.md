@@ -104,9 +104,10 @@ both Claude Code and Codex; `agent-*` is the canonical wrapper and the
 `claude-*` / `codex-*` names are compatibility aliases:
 
 ```bash
-agent-fleet <org>                  # trusted org: shared AI/gh login + signing agent, allowlisted egress
-agent-fleet-rebuild <org>          # force-recreate that fleet container, preserving named volumes
-agent-audit <repo-path-or-url>     # untrusted repo: isolated logins, strict egress
+agent-fleet <org>                              # trusted org, main Claude account
+agent-fleet --claude-profile alt <org>         # same org, isolated alt-account container
+agent-fleet-rebuild [--claude-profile alt] <org>
+agent-audit <repo-path-or-url>                 # untrusted repo: isolated logins, strict egress
 
 claude-fleet <org>                 # aliases of agent-fleet
 codex-fleet <org>
@@ -117,14 +118,16 @@ codex-audit <repo-path-or-url>
 After changing the devcontainer image or its allowlist, rebuild from the host:
 
 ```bash
-make devc-rebuild ORG=<org>
+make devc-rebuild ORG=<org>                       # main
+make devc-rebuild ORG=<org> CLAUDE_PROFILE=alt    # alt
 ```
 
 This applies the current Nix configuration, removes only the matching fleet
 container, rebuilds it using Docker's layer cache, and opens a shell in the new
 container. Named history and login volumes are preserved; changes made only to
 the old container filesystem are discarded. If the current configuration is
-already activated, `agent-fleet --rebuild <org>` is the lower-level equivalent.
+already activated, `agent-fleet-rebuild [--claude-profile alt] <org>` is the
+lower-level equivalent.
 
 Wrappers stage the trusted Dockerfile and profile in
 `~/.cache/agent-devcontainer`, outside the checkout, then pass the config path
@@ -132,29 +135,39 @@ explicitly to the Dev Container CLI. They never create or overwrite a
 repository's `.devcontainer`, and URL audit destinations are parsed into safe
 `host/group/repo` components under `~/sandbox/audit` with symlinks rejected.
 
-The fleet profile is only for trusted organizations. It shares Claude, Codex,
-and GitHub login volumes across that organization and forwards the host SSH
-agent for commit signing. The Claude OAuth token and the Codex API key are read
-from the login keychain only by this trusted wrapper:
+The fleet profile is only for trusted organizations. It shares one workspace
+across that organization and forwards the host SSH agent for commit signing.
+Its `main` and `alt` Claude profiles use different containers and named volumes,
+so credentials, onboarding state, and histories stay isolated. `main` remains
+the default and retains the original fleet container identity. The selected
+Claude OAuth token and the Codex API key are read from the login keychain only
+by this trusted wrapper:
 
 ```bash
-# Claude: the CLI mints a subscription OAuth token
-claude setup-token
-security add-generic-password -a "$USER" -s claude-code-oauth -w
+# Claude main account
+ccm setup-token
+security add-generic-password -U -a "$USER" -s claude-code-oauth -w
+
+# Claude alt account
+cca setup-token
+security add-generic-password -U -a "$USER" -s claude-code-oauth-alt -w
 
 # Codex: mint an API key at platform.openai.com (no CLI equivalent exists)
-security add-generic-password -a "$USER" -s codex-api-key -w
+security add-generic-password -U -a "$USER" -s codex-api-key -w
 ```
 
-The wrapper exports these as `CLAUDE_CODE_OAUTH_TOKEN` and `CODEX_API_KEY`.
-Claude reads its variable directly; Codex's interactive TUI does not, so the
-post-start hook exchanges a forwarded `CODEX_API_KEY` for persistent
-credentials via `codex login --with-api-key`. In both cases the keychain secret
-takes precedence over an earlier interactive login inside the container.
+Each `setup-token` command prints a token; paste it at the corresponding hidden
+`security` password prompt. The wrapper exports the chosen item as
+`CLAUDE_CODE_OAUTH_TOKEN` and the Codex item as `CODEX_API_KEY`. Claude reads its
+variable directly; Codex's interactive TUI does not, so the post-start hook
+exchanges a forwarded `CODEX_API_KEY` for persistent credentials via
+`codex login --with-api-key`. In both cases the keychain secret takes precedence
+over an earlier interactive login inside the container.
 
 Both secrets are optional; without one, the wrapper unsets its variable and
-warns, and that agent falls back to interactive login backed by its persistent
-volume.
+warns, and that agent falls back to interactive login backed by the selected
+profile's persistent volume. Use `/status` in Claude or inspect
+`$AGENT_CLAUDE_PROFILE` to confirm the active fleet account.
 
 Fleet also refreshes both agents on start, at most once a day, because the image
 pins them at build time and a self-update cannot outlive the container. The
