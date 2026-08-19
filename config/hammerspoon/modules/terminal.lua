@@ -26,6 +26,10 @@ local log = hs.logger.new('terminal', 'info')
 
 local launching = false
 
+-- Screen geometry can shift slightly when the Dock or display layout changes.
+-- Treat windows within 5% of a configured unit frame as the same terminal.
+local FRAME_TOLERANCE = 0.05
+
 -- Module-level reference so the watcher is not garbage-collected
 local screenWatcher = nil
 
@@ -57,18 +61,40 @@ local function getAllTerminalWindows()
     return allWindows
 end
 
+local function frameMatches(unit, target)
+    return math.abs(unit.x - target.x) <= FRAME_TOLERANCE
+        and math.abs(unit.y - target.y) <= FRAME_TOLERANCE
+        and math.abs(unit.w - target.w) <= FRAME_TOLERANCE
+        and math.abs(unit.h - target.h) <= FRAME_TOLERANCE
+end
+
 -- Find window by frame, optionally restricted to a specific screen
 local function getWindowByFrame(targetFrame, screen)
+    local target = hs.geometry(targetFrame)
+    local focusedWindow = hs.window.focusedWindow()
+    local exactMatch = nil
+    local approximateMatch = nil
+
     for _, window in ipairs(getAllTerminalWindows()) do
         local winScreen = window:screen()
         if winScreen and (not screen or winScreen:id() == screen:id()) then
             local unit = window:frame():toUnitRect(winScreen:frame())
-            if unit:equals(hs.geometry(targetFrame)) then
-                return window
+            if unit:equals(target) then
+                if focusedWindow and focusedWindow:id() == window:id() then
+                    return window, true
+                end
+                exactMatch = exactMatch or window
+            elseif frameMatches(unit, target) then
+                if focusedWindow and focusedWindow:id() == window:id() then
+                    return window, false
+                end
+                approximateMatch = approximateMatch or window
             end
         end
     end
-    return nil
+
+    if exactMatch then return exactMatch, true end
+    return approximateMatch, false
 end
 
 -- Focus window with optional raise (without activating the app which can switch screens)
@@ -88,8 +114,12 @@ local function placeWindow(window, targetScreen, frame, raise)
     if not hs.fnutils.contains(hs.spaces.windowSpaces(window) or {}, targetSpace) then
         hs.spaces.moveWindowToSpace(window, targetSpace)
     end
-    window:setFrame(targetScreen:fromUnitRect(hs.geometry(frame)))
+    local targetFrame = targetScreen:fromUnitRect(hs.geometry(frame))
+    window:setFrame(targetFrame)
     hs.timer.doAfter(0.1, function()
+        -- Moving between Spaces is asynchronous. Reapply the destination
+        -- frame once the move has settled so the old screen size cannot stick.
+        window:setFrame(targetFrame)
         focusWindow(window, raise)
     end)
 end
@@ -101,7 +131,15 @@ local function toggleTerminal(type)
     local currentScreen = focusedWin and focusedWin:screen() or hs.screen.mainScreen()
 
     -- First check if window exists on current screen
-    local window = getWindowByFrame(cfg.frame, currentScreen)
+    local window, exactFrame = getWindowByFrame(cfg.frame, currentScreen)
+
+    -- A tolerant match identifies a terminal after display geometry changes,
+    -- but it still needs to be normalized to this screen's configured frame.
+    if window and not exactFrame then
+        log.i("Resizing", type, "window to screen", currentScreen:name())
+        placeWindow(window, currentScreen, cfg.frame, cfg.raise)
+        return
+    end
 
     -- If not on current screen, check other screens
     if not window then
@@ -168,7 +206,7 @@ end
 local function findMatchedTerminalConfig(window, windowScreen)
     local unit = window:frame():toUnitRect(windowScreen:frame())
     for configName, config in pairs(terminalConfigs) do
-        if unit:equals(hs.geometry(config.frame)) then
+        if frameMatches(unit, hs.geometry(config.frame)) then
             return { name = configName, config = config }
         end
     end
