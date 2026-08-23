@@ -337,6 +337,7 @@ require("lazy").setup({
     opts = {
       dashboard = { enabled = true },
       indent = { enabled = true },
+      input = { enabled = true },
       notifier = { enabled = true },
       quickfile = { enabled = true },
       words = { enabled = true },
@@ -927,22 +928,53 @@ require("lazy").setup({
     end,
   },
   {
-    "sudo-tee/opencode.nvim",
-    cmd = "Opencode",
+    "MeanderingProgrammer/render-markdown.nvim",
     opts = {
-      keymap_prefix = "<localleader>",
+      anti_conceal = { enabled = false },
     },
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      {
-        "MeanderingProgrammer/render-markdown.nvim",
-        opts = {
-          anti_conceal = { enabled = false },
-          file_types = { "markdown", "opencode_output" },
+    ft = { "markdown" },
+  },
+  {
+    "nickjvandyke/opencode.nvim",
+    version = "*",
+    dependencies = { "folke/snacks.nvim" },
+    init = function()
+      vim.g.opencode_opts = {
+        server = {
+          start = function()
+            local tmux_pane = vim.env.TMUX_PANE
+            if not tmux_pane or tmux_pane == "" then
+              error("Neovim must be running inside tmux to start OpenCode")
+            end
+            local cwd = vim.fn.getcwd():gsub("#", "##")
+
+            local result = vim
+              .system({
+                "tmux",
+                "split-window",
+                "-h",
+                "-d",
+                "-p",
+                "35",
+                "-t",
+                tmux_pane,
+                "-c",
+                cwd,
+                "opencode",
+                "--port",
+              }, { text = true })
+              :wait()
+            if result.code ~= 0 then
+              local detail = vim.trim(result.stderr or "")
+              if detail == "" then
+                detail = "exit status " .. result.code
+              end
+              error("tmux split-window failed: " .. detail)
+            end
+          end,
         },
-        ft = { "markdown", "opencode_output" },
-      },
-    },
+      }
+    end,
   },
 })
 
@@ -1014,7 +1046,6 @@ vim.api.nvim_create_autocmd("FileType", {
     "startuptime",
     "tsplayground",
     "PlenaryTestPopup",
-    "opencode",
   },
   callback = function(event)
     set_close_keymaps(event.buf, "Close buffer")
@@ -1375,33 +1406,19 @@ local wk_keymaps = {
   -- Opencode mappings
   { "<localleader>o", group = "opencode" },
   {
-    "<localleader>og",
-    "<cmd>Opencode<cr>",
-    desc = "opencode toggle",
+    "<localleader>oa",
+    function()
+      require("opencode").ask("@this: ")
+    end,
+    desc = "ask about current context",
     mode = { "n", "v" },
   },
   {
-    "<localleader>oi",
-    "<cmd>Opencode open input<cr>",
-    desc = "opencode open input",
-    mode = { "n", "v" },
-  },
-  {
-    "<localleader>oo",
-    "<cmd>Opencode open output<cr>",
-    desc = "opencode open output",
-    mode = { "n", "v" },
-  },
-  {
-    "<localleader>ot",
-    "<cmd>Opencode toggle focus<cr>",
-    desc = "opencode toggle focus",
-    mode = { "n", "v" },
-  },
-  {
-    "<localleader>oq",
-    "<cmd>Opencode close<cr>",
-    desc = "opencode close",
+    "<localleader>os",
+    function()
+      require("opencode").select()
+    end,
+    desc = "select opencode action",
     mode = { "n", "v" },
   },
 

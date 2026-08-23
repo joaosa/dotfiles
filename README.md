@@ -84,6 +84,22 @@ opens a weekly PR bumping `flake.lock`.
 Run the underlying `nix` commands directly for the rarer operations:
 `nix flake check` (validate outputs) and `nix flake update` (update inputs).
 
+### Discuss a document with OpenCode
+
+Start Neovim inside tmux and open a saved document. In normal mode, press
+`\oa` (`<localleader>oa`) to open an OpenCode prompt scoped to the cursor
+location. In visual mode, select text first and press `\oa` to scope the prompt
+to that range.
+
+If no OpenCode server is already running for the working directory, Neovim
+opens a detached, 35%-wide pane on the right and starts `opencode --port`
+without moving focus away from the document. Later prompts reuse that server.
+Type the question in Neovim; the conversation remains visible in the OpenCode
+pane. Press `\os` to open the broader OpenCode action selector.
+
+File-backed context is sent as a path and location, so save pending edits before
+asking if the agent needs to see them.
+
 ### Tool Ownership Exceptions
 
 `node` and `npm` are Nix-managed, while global npm packages install into
