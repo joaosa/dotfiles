@@ -114,6 +114,7 @@ let
     pkgs.procs
     pkgs.pv
     pkgs.pwgen
+    pkgs.qpdf
     pkgs.qrencode
     pkgs.ripgrep
     pkgs.rustup
