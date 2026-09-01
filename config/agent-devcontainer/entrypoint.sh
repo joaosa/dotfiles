@@ -12,6 +12,16 @@ set -uo pipefail
 
 log() { echo "[entrypoint] $*" >&2; }
 
+# Every step below is root-only, and the image's final USER is vscode: running
+# as root depends on the profiles setting containerUser=root. Assert it rather
+# than degrade silently -- unprivileged, the chowns fail and, worse, the
+# firewall never arms, which is a fail-OPEN outcome the rest of this design
+# exists to prevent. Refuse to hand off instead.
+if [ "$(id -u)" -ne 0 ]; then
+  log "FATAL: must run as root (set containerUser=root); refusing to start"
+  exit 1
+fi
+
 # 1. Volume ownership. The named volumes mount root-owned on first create; make
 #    them writable by the remote user. The top-dir uid guard keeps the recursive
 #    walk off the restart hot path. chown -R exits nonzero on the read-only binds
@@ -58,5 +68,8 @@ fi
 
 # Drop into whatever the container was asked to run; the image's CMD defaults
 # this to `sleep infinity`, the keep-alive that overrideCommand=false suppressed.
+# Fall back to it explicitly too: `exec` with no args is a no-op, so an empty
+# command override would otherwise let PID 1 return and stop the container.
 log "init complete; container ready"
+[ "$#" -gt 0 ] || set -- sleep infinity
 exec "$@"
