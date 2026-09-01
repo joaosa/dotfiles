@@ -13,8 +13,16 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "runArgs": [
+    "--cap-drop=ALL",
+    "--cap-add=SETUID",
+    "--cap-add=SETGID",
+    "--cap-add=SETPCAP",
+    "--cap-add=CHOWN",
+    "--cap-add=FOWNER",
+    "--cap-add=DAC_OVERRIDE",
     "--cap-add=NET_ADMIN",
-    "--cap-add=NET_RAW"
+    "--cap-add=NET_RAW",
+    "--pids-limit=2048"
   ],
   "init": true,
   "updateRemoteUserUID": true,

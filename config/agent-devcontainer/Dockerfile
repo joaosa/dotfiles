@@ -35,6 +35,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # the untrusted agent runs as vscode, so unrestricted sudo would let it undo the
 # firewall, mounts, and dropped capabilities (e.g. `sudo iptables -F`). Replace
 # it with a narrow allowlist of exactly the commands the setup scripts run.
+# Note: the profiles deliberately do NOT set no-new-privileges. That flag
+# neuters setuid elevation, so sudo would refuse to run and the firewall and
+# volume chowns below would break. The scoped sudoers allowlist plus the
+# cap-drop=ALL baseline in the devcontainer runArgs bound the escalation surface
+# instead; the container's own root is capped to the six capabilities re-added
+# there. Do not add no-new-privileges without also removing the sudo dependency.
 # Sudoers matches wildcards with fnmatch (no `/` special-casing), so the path
 # arguments below still constrain each command to its intended targets.
 COPY sudoers-agent /etc/sudoers.d/agent-devcontainer

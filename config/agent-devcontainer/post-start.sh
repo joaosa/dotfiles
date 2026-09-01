@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The fleet profile forwards the host SSH agent socket so the agent can push
+# over SSH. This is a real trust hand-off: the agent can sign auth challenges
+# with the host's private keys against any host it can reach. The domain
+# allowlist firewall is what bounds "any host" down to GitHub and the pinned
+# allowlist, so the socket's reach is only as wide as that firewall. Keep the
+# 0600 + vscode-owned scoping so no other in-container uid can borrow it.
 if [ -n "${SSH_AUTH_SOCK:-}" ]; then
   if [ ! -S "$SSH_AUTH_SOCK" ]; then
     echo "[devcontainer] SSH agent socket is unavailable: $SSH_AUTH_SOCK" >&2
