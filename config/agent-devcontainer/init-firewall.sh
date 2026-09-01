@@ -21,7 +21,7 @@ firewall_ready=0
 . /usr/local/lib/firewall-lockdown.sh
 fail_closed() {
   if [ "$firewall_ready" != 1 ]; then
-    rm -rf "${resolve_dir:-}" "${ipset_batch:-}" 2>/dev/null || true
+    rm -rf "${resolve_dir:-}" "${ipset_batch:-}" "${probe_dir:-}" 2>/dev/null || true
     lockdown_egress
   fi
 }
@@ -189,35 +189,46 @@ if ! dig +short A example.com | grep -qE "$ipv4_re"; then
   exit 1
 fi
 
+# All verification probes run concurrently: each is an independent 5s-timeout
+# connect, and they sit on the blocking container-start path. Serially this is
+# 10s of negative checks (which always burn their full timeout, since a working
+# firewall means the connect is *expected* to fail) plus up to 5x5s of positive
+# probes. Overlapped, the whole verification costs one timeout.
+probe_dir="$(mktemp -d)"
+# A probe records "reachable" only on a successful connect; the file is absent
+# for a blocked host, so a probe crashing reads as blocked, never as reachable.
+probe() { curl --connect-timeout 5 "$@" >/dev/null 2>&1 && echo reachable; }
+
 # Negative checks are the security-critical assertions: a non-allowlisted host
 # and any IPv6 egress must be blocked. These fail the firewall hard.
-if curl --connect-timeout 5 https://example.com >/dev/null 2>&1; then
-  echo "ERROR: firewall allowed a non-allowlisted domain" >&2
-  exit 1
-fi
-if curl --connect-timeout 5 -6 https://example.com >/dev/null 2>&1; then
-  echo "ERROR: firewall allowed IPv6 egress" >&2
-  exit 1
-fi
+probe https://example.com > "$probe_dir/neg-v4" &
+probe -6 https://example.com > "$probe_dir/neg-v6" &
 
 # Positive check: confirm at least one configured domain is reachable, drawn
 # from the allowlist rather than hardcoded endpoints. A single domain whose CDN
 # rotated its IP away from the snapshot must not brick startup, so only a total
 # failure (every probed domain unreachable) is fatal; partial misses warn.
-reachable=0
 probed=0
 for domain in "${allowed_domains[@]}"; do
   [ "$probed" -ge 5 ] && break
+  probe "https://$domain" > "$probe_dir/pos-$probed" &
   probed=$((probed + 1))
-  if curl --connect-timeout 5 "https://$domain" >/dev/null 2>&1; then
-    reachable=1
-    break
-  fi
 done
-if [ "$probed" -gt 0 ] && [ "$reachable" -ne 1 ]; then
+wait
+
+if [ -s "$probe_dir/neg-v4" ]; then
+  echo "ERROR: firewall allowed a non-allowlisted domain" >&2
+  exit 1
+fi
+if [ -s "$probe_dir/neg-v6" ]; then
+  echo "ERROR: firewall allowed IPv6 egress" >&2
+  exit 1
+fi
+if [ "$probed" -gt 0 ] && ! grep -rqx reachable "$probe_dir"/pos-* 2>/dev/null; then
   echo "ERROR: firewall blocked every probed allowlisted domain" >&2
   exit 1
 fi
+rm -rf "$probe_dir"
 
 firewall_ready=1
 echo "[devcontainer] Firewall verification passed"
