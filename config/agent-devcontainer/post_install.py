@@ -9,49 +9,9 @@ import sys
 import tomllib
 from pathlib import Path
 
-
-def fix_directory_ownership() -> None:
-    """Make newly created named volumes writable by the remote user."""
-    uid = os.getuid()
-    gid = os.getgid()
-    directories = [
-        Path.home() / ".claude",
-        Path.home() / ".codex",
-        Path.home() / ".config" / "gh",
-        Path("/commandhistory"),
-    ]
-
-    for directory in directories:
-        if not directory.exists():
-            continue
-        try:
-            if directory.stat().st_uid != uid:
-                # Read-only binds nested in the volume (~/.claude/skills) make
-                # chown -R exit nonzero even though the writable contents were
-                # chowned, so judge by the resulting ownership, not exit code.
-                # chown is the only recursive command sudoers-agent allowlists.
-                subprocess.run(
-                    ["sudo", "chown", "-R", f"{uid}:{gid}", str(directory)],
-                    check=False,
-                    capture_output=True,
-                )
-                if directory.stat().st_uid != uid:
-                    print(
-                        f"[post_install] Warning: could not fix ownership of "
-                        f"{directory}",
-                        file=sys.stderr,
-                    )
-                else:
-                    print(
-                        f"[post_install] Fixed ownership: {directory}",
-                        file=sys.stderr,
-                    )
-        except PermissionError as error:
-            print(
-                f"[post_install] Warning: could not fix ownership of {directory}: "
-                f"{error}",
-                file=sys.stderr,
-            )
+# Volume ownership is fixed by the root entrypoint (entrypoint.sh) before this
+# script runs as the unprivileged remote user, so there is no sudo chown here:
+# vscode is no longer in sudoers at all.
 
 
 def setup_onboarding_bypass() -> None:
@@ -306,7 +266,6 @@ node_modules/
 
 def main() -> None:
     print("[post_install] Starting agent container setup...", file=sys.stderr)
-    fix_directory_ownership()
     setup_onboarding_bypass()
     setup_claude_settings()
     setup_codex_settings()

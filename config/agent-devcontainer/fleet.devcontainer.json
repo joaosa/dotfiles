@@ -22,10 +22,13 @@
     "--cap-add=DAC_OVERRIDE",
     "--cap-add=NET_ADMIN",
     "--cap-add=NET_RAW",
-    "--pids-limit=2048"
+    "--pids-limit=2048",
+    "--security-opt=no-new-privileges"
   ],
   "init": true,
+  "overrideCommand": false,
   "updateRemoteUserUID": true,
+  "containerUser": "root",
   "remoteUser": "vscode",
   "mounts": [
     "source=devc-${localWorkspaceFolderBasename}-fleet-bashhistory-${devcontainerId},target=/commandhistory,type=volume",

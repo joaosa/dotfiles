@@ -31,24 +31,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# The base image grants vscode passwordless NOPASSWD:ALL. In the audit profile
-# the untrusted agent runs as vscode, so unrestricted sudo would let it undo the
-# firewall, mounts, and dropped capabilities (e.g. `sudo iptables -F`). Replace
-# it with a narrow allowlist of exactly the commands the setup scripts run.
-# Note: the profiles deliberately do NOT set no-new-privileges. That flag
-# neuters setuid elevation, so sudo would refuse to run and the firewall and
-# volume chowns below would break. The scoped sudoers allowlist plus the
-# cap-drop=ALL baseline in the devcontainer runArgs bound the escalation surface
-# instead; the container's own root is capped to the six capabilities re-added
-# there. Do not add no-new-privileges without also removing the sudo dependency.
-# Sudoers matches wildcards with fnmatch (no `/` special-casing), so the path
-# arguments below still constrain each command to its intended targets.
-COPY sudoers-agent /etc/sudoers.d/agent-devcontainer
-RUN find /etc/sudoers.d -type f ! -name agent-devcontainer \
+# The base image grants vscode passwordless NOPASSWD:ALL. The untrusted agent
+# runs as vscode, so ANY sudo grant is escalation surface. We remove it
+# entirely: every privileged action the container needs (arming the firewall,
+# chowning the named volumes, scoping the forwarded ssh socket) now runs as
+# root in entrypoint.sh BEFORE the agent attaches, so vscode never needs sudo.
+# Strip every vscode sudoers grant image-wide and leave no replacement file.
+# With no setuid path left for the agent to reach, the profiles also set
+# security-opt=no-new-privileges -- now compatible because nothing runs sudo.
+RUN find /etc/sudoers.d -type f \
       -exec grep -qE '^[^#]*\bvscode\b' {} \; -delete && \
-  chmod 0440 /etc/sudoers.d/agent-devcontainer && \
-  chown root:root /etc/sudoers.d/agent-devcontainer && \
-  visudo -cf /etc/sudoers.d/agent-devcontainer
+  if grep -rqE '^[^#]*\bvscode\b' /etc/sudoers /etc/sudoers.d 2>/dev/null; then \
+    echo "vscode still has a sudoers grant after strip" >&2; exit 1; \
+  fi
 
 # Pin release assets by SHA-256, not just version tag: a retagged or
 # compromised release would otherwise execute at build time as root. Update
@@ -227,15 +222,21 @@ COPY --chown=vscode:vscode --chmod=0755 post-start.sh /opt/post_start.sh
 COPY --chmod=0500 init-firewall.sh /usr/local/bin/init-firewall.sh
 COPY --chmod=0500 apply-firewall.sh /usr/local/bin/apply-firewall.sh
 COPY --chmod=0444 firewall-lockdown.sh /usr/local/lib/firewall-lockdown.sh
+# Root PID-1 init: arms the firewall, chowns volumes, scopes the ssh socket,
+# then execs sleep infinity. Runs as root because the profiles set
+# containerUser=root + overrideCommand=false; remoteUser=vscode still owns the
+# agent and terminals. 0500 root-only so the agent cannot rewrite it.
+COPY --chmod=0500 entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # The firewall allowlist is baked in as root-owned, world-unwritable files so
 # the untrusted vscode agent cannot supply the payload the root applier acts on.
-# Build args (not containerEnv) because the applier runs as root while PID 1
-# runs as vscode: reading another uid's environ needs CAP_SYS_PTRACE, which this
-# profile deliberately withholds. Keep this stanza last so editing the allowlist
-# rebuilds only this layer. Bash expands the arg without rescanning it, so a
-# value cannot inject build-time commands; contents are validated again at apply
-# time. Profiles that pass no args get an empty list and must keep the firewall
+# Build args (not containerEnv) because containerEnv is visible to the vscode
+# agent's own environment: a mutable env channel is exactly what the agent must
+# not be able to influence, whereas a root-owned 0444 file baked at build time
+# is immutable to it. Keep this stanza last so editing the allowlist rebuilds
+# only this layer. Bash expands the arg without rescanning it, so a value cannot
+# inject build-time commands; contents are validated again at apply time.
+# Profiles that pass no args get an empty list and must keep the firewall
 # disabled, since the applier refuses to proceed without domains.
 USER root
 ARG AGENT_ALLOWED_DOMAINS=""
@@ -245,3 +246,8 @@ RUN install -d -m 0755 /etc/agent-devcontainer && \
   printf '%s\n' "$AGENT_INCLUDE_GITHUB_META_RANGES" > /etc/agent-devcontainer/include-github-meta && \
   chmod 0444 /etc/agent-devcontainer/allowed-domains.in /etc/agent-devcontainer/include-github-meta
 USER vscode
+
+# containerUser=root in the profiles runs this as root at PID 1; remoteUser
+# keeps the agent as vscode. overrideCommand=false is what makes the CLI honour
+# this ENTRYPOINT instead of substituting its own sleep loop.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

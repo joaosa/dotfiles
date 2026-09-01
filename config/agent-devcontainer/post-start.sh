@@ -1,33 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# The fleet profile forwards the host SSH agent socket so the agent can push
-# over SSH. This is a real trust hand-off: the agent can sign auth challenges
-# with the host's private keys against any host it can reach. The domain
-# allowlist firewall is what bounds "any host" down to GitHub and the pinned
-# allowlist, so the socket's reach is only as wide as that firewall. Keep the
-# 0600 + vscode-owned scoping so no other in-container uid can borrow it.
-if [ -n "${SSH_AUTH_SOCK:-}" ]; then
-  if [ ! -S "$SSH_AUTH_SOCK" ]; then
-    echo "[devcontainer] SSH agent socket is unavailable: $SSH_AUTH_SOCK" >&2
-    exit 1
-  fi
-  sudo chown vscode:vscode "$SSH_AUTH_SOCK"
-  sudo chmod 0600 "$SSH_AUTH_SOCK"
-  echo "[devcontainer] SSH agent socket permissions refreshed"
-fi
-
-# Firewall first: everything below does network fetches, and the fleet profile
-# enables both flags — updating agent binaries during the one unfiltered-egress
-# window would undercut the allowlist exactly where it matters most. The
-# applier runs as root and reads the allowlist from a root-owned file baked
-# into the image, so the untrusted user never supplies the domain payload.
-if [ "${AGENT_ENABLE_FIREWALL:-0}" = "1" ]; then
-  echo "[devcontainer] Outbound firewall: strict"
-  sudo /usr/local/bin/apply-firewall.sh
-else
-  echo "[devcontainer] Outbound firewall: permissive"
-fi
+# Runs as the unprivileged remote user (vscode), which is NOT in sudoers.
+# Every privileged action — arming the firewall, chowning the named volumes,
+# scoping the forwarded SSH agent socket — now happens in the root entrypoint
+# (entrypoint.sh) before this script runs, so nothing here needs sudo. The
+# firewall is therefore already armed by the time the network fetches below
+# run: agent-binary updates never ride an unfiltered-egress window.
+#
+# The SSH socket forwarded by the fleet profile is a real trust hand-off: the
+# agent can sign auth challenges with the host's keys against any host it can
+# reach. The domain allowlist is what bounds "any host" down to GitHub and the
+# pinned list; the entrypoint scopes the socket 0600 to vscode alone.
 
 # Both agents live in the image, so a self-update dies with the container and
 # layer caching keeps serving old builds. Refresh here instead, throttled by a
