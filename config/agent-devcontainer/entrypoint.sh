@@ -1,43 +1,31 @@
 #!/usr/bin/env bash
-# Root PID-1 init for the agent devcontainer. Runs as root at container start
-# (the profiles set containerUser=root + overrideCommand=false so this image
-# ENTRYPOINT is honoured as PID 1), does every privileged action the container
-# needs, then execs a keep-alive. The agent and terminals attach later as
-# remoteUser=vscode, which is NOT in sudoers. Moving these actions here is what
-# lets us remove vscode's sudo grant entirely: an untrusted agent can no longer
-# reach the firewall applier, the volume chowns, or the ssh-socket perms.
+# Root PID-1 init: does every privileged action the container needs (the profiles
+# set containerUser=root + overrideCommand=false so this ENTRYPOINT runs as PID
+# 1), then execs CMD. The agent attaches later as remoteUser=vscode, which is
+# NOT in sudoers -- moving this work here is what lets us drop vscode's sudo
+# grant entirely.
 #
-# Fail-closed on the firewall: apply-firewall.sh arms its own EXIT trap that
-# locks egress down if anything fails, so a broken init denies network rather
-# than leaving the allowlist un-applied (fail-open). We deliberately do NOT
-# `set -e` around the whole script: a chown that races a not-yet-mounted volume
-# must not abort before the firewall arms. Each privileged step guards itself.
+# We deliberately do NOT `set -e`: a chown that races a not-yet-mounted volume
+# must not abort before the firewall arms. Each step guards itself, and the
+# firewall fails closed via apply-firewall.sh's own trap.
 set -uo pipefail
 
 log() { echo "[entrypoint] $*" >&2; }
 
-# 1. Volume ownership. The named volumes (.claude, .codex, .config/gh,
-#    /commandhistory) mount root-owned on first create; make them writable by
-#    the remote user. Read-only binds nested inside (e.g. ~/.claude/skills)
-#    make chown -R exit nonzero even when the writable contents were chowned,
-#    so judge success by ownership, not exit code -- same rationale as the old
-#    post_install.py path this replaces.
+# 1. Volume ownership. The named volumes mount root-owned on first create; make
+#    them writable by the remote user. The top-dir uid guard keeps the recursive
+#    walk off the restart hot path. chown -R exits nonzero on the read-only binds
+#    nested inside (e.g. ~/.claude/skills) even when the writable contents were
+#    chowned, so judge success by the resulting ownership, not the exit code.
 remote_uid="$(id -u vscode)"
 remote_gid="$(id -g vscode)"
-for dir in \
-  /home/vscode/.claude \
-  /home/vscode/.codex \
-  /home/vscode/.config/gh \
-  /commandhistory; do
-  [ -e "$dir" ] || continue
-  cur_uid="$(stat -c '%u' "$dir" 2>/dev/null || echo -1)"
-  if [ "$cur_uid" != "$remote_uid" ]; then
-    chown -R "$remote_uid:$remote_gid" "$dir" 2>/dev/null || true
-    if [ "$(stat -c '%u' "$dir" 2>/dev/null || echo -1)" = "$remote_uid" ]; then
-      log "fixed ownership: $dir"
-    else
-      log "warning: could not fix ownership of $dir"
-    fi
+for dir in /home/vscode/.claude /home/vscode/.codex /home/vscode/.config/gh /commandhistory; do
+  [ -e "$dir" ] && [ "$(stat -c '%u' "$dir")" != "$remote_uid" ] || continue
+  chown -R "$remote_uid:$remote_gid" "$dir" 2>/dev/null || true
+  if [ "$(stat -c '%u' "$dir")" = "$remote_uid" ]; then
+    log "fixed ownership: $dir"
+  else
+    log "warning: could not fix ownership of $dir"
   fi
 done
 
@@ -54,6 +42,11 @@ fi
 #    the allowlist from the root-owned baked-in file and fails closed on any
 #    error via its own trap. Kept last among the privileged steps so egress is
 #    locked before the container becomes reachable for work.
+#    The enable flag is read from containerEnv, which is safe where the payload
+#    is not: PID 1 captures it at container start, before the agent exists, so
+#    the agent cannot flip it. The allowlist stays a baked 0444 file because it
+#    is the attacker-chosen *content*, not a fixed on/off switch, that must be
+#    immutable. Both profiles set it to 1.
 if [ "${AGENT_ENABLE_FIREWALL:-0}" = "1" ]; then
   log "outbound firewall: strict"
   if ! /usr/local/bin/apply-firewall.sh; then
@@ -63,8 +56,7 @@ else
   log "outbound firewall: permissive"
 fi
 
-# Hand off to a keep-alive PID 1. init=true gives us tini as the real PID 1
-# reaping zombies; this exec keeps the container running the way the default
-# overrideCommand sleep loop would have.
+# Drop into whatever the container was asked to run; the image's CMD defaults
+# this to `sleep infinity`, the keep-alive that overrideCommand=false suppressed.
 log "init complete; container ready"
-exec sleep infinity
+exec "$@"

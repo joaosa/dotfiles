@@ -9,10 +9,6 @@ import sys
 import tomllib
 from pathlib import Path
 
-# Volume ownership is fixed by the root entrypoint (entrypoint.sh) before this
-# script runs as the unprivileged remote user, so there is no sudo chown here:
-# vscode is no longer in sudoers at all.
-
 
 def setup_onboarding_bypass() -> None:
     """Seed Claude onboarding only for the trusted profile's forwarded token."""

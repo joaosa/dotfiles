@@ -39,9 +39,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Strip every vscode sudoers grant image-wide and leave no replacement file.
 # With no setuid path left for the agent to reach, the profiles also set
 # security-opt=no-new-privileges -- now compatible because nothing runs sudo.
+# find -delete clears matching drop-ins; the guard then covers /etc/sudoers
+# itself, which find never touched.
 RUN find /etc/sudoers.d -type f \
       -exec grep -qE '^[^#]*\bvscode\b' {} \; -delete && \
-  if grep -rqE '^[^#]*\bvscode\b' /etc/sudoers /etc/sudoers.d 2>/dev/null; then \
+  if grep -qE '^[^#]*\bvscode\b' /etc/sudoers 2>/dev/null; then \
     echo "vscode still has a sudoers grant after strip" >&2; exit 1; \
   fi
 
@@ -249,5 +251,8 @@ USER vscode
 
 # containerUser=root in the profiles runs this as root at PID 1; remoteUser
 # keeps the agent as vscode. overrideCommand=false is what makes the CLI honour
-# this ENTRYPOINT instead of substituting its own sleep loop.
+# this ENTRYPOINT instead of substituting its own sleep loop. The entrypoint
+# execs CMD after its privileged setup, so the keep-alive lives in CMD where a
+# later one-shot run can override it.
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["sleep", "infinity"]

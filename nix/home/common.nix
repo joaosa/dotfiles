@@ -579,7 +579,7 @@ in
               fi
             done
 
-            for file in Dockerfile .zshrc post_install.py init-firewall.sh apply-firewall.sh firewall-lockdown.sh post-start.sh sudoers-agent; do
+            for file in Dockerfile .zshrc post_install.py init-firewall.sh apply-firewall.sh firewall-lockdown.sh post-start.sh entrypoint.sh; do
               [[ ! -L "$stage/$file" ]] \
                 || { echo "refusing symlinked staged file: $stage/$file" >&2; return 1; }
               install -m0644 "${devc}/share/agent-devcontainer/$file" "$stage/$file" || return 1
