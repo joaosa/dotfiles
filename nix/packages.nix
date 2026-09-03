@@ -114,7 +114,6 @@ let
     pkgs.procs
     pkgs.pv
     pkgs.pwgen
-    pkgs.qpdf
     pkgs.qrencode
     pkgs.ripgrep
     pkgs.rustup
@@ -152,6 +151,7 @@ let
     (pkgs.callPackage ./packages/devc.nix { })
     (pkgs.callPackage ./packages/ollmcp.nix { })
     (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
+    (pkgs.callPackage ./packages/qpdf.nix { })
     (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
     (pkgs.callPackage ./packages/serena.nix { })
 
