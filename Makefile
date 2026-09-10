@@ -1,5 +1,6 @@
 # Dotfiles tasks - run `make` or `make help` to see all recipes
 NIX := /nix/var/nix/profiles/default/bin/nix
+NIX_ENV := /nix/var/nix/profiles/default/bin/nix-env
 # Host entry from flake.nix to build/switch; override with `make switch HOST=...`
 HOST ?= Mac
 # GitHub organization mounted by the fleet devcontainer targets.
@@ -19,7 +20,10 @@ help:
 ## switch: Apply the nix-darwin + Home Manager flake
 .PHONY: switch
 switch:
-	sudo -H $(NIX) --extra-experimental-features "nix-command flakes" run .#darwin-rebuild -- switch --flake .#$(HOST)
+	@set -eu; \
+	system_path="$$( $(NIX) --extra-experimental-features "nix-command flakes" build ".#darwinConfigurations.$(HOST).system" --no-link --print-out-paths )"; \
+	sudo -H $(NIX_ENV) -p /nix/var/nix/profiles/system --set "$$system_path"; \
+	sudo -H "$$system_path/sw/bin/darwin-rebuild" activate
 
 ## build: Build the system without activating it
 .PHONY: build

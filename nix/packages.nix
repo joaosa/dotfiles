@@ -78,6 +78,7 @@ let
     pkgs.iftop
     pkgs.imagemagick
     pkgs.inetutils
+    pkgs.infisical
     pkgs.jless
     pkgs.jq
     pkgs.just

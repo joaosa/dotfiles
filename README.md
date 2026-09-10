@@ -27,12 +27,7 @@ cd ~/ghq/github.com/joaosa/dotfiles
 $EDITOR nix/packages.nix
 make build
 
-# First activation (before darwin-rebuild exists on the system)
-nix flake lock
-sudo -H nix --extra-experimental-features "nix-command flakes" \
-  run .#darwin-rebuild -- switch --flake .#Mac
-
-# Later changes use the pinned darwin-rebuild from this flake
+# First activation and later changes
 make switch
 ```
 
@@ -71,6 +66,10 @@ make                # list recipes
 
 Recipes target the `Mac` host entry by default; pass `HOST=<name>` to build
 another `hosts` entry.
+
+`make switch` builds as your user, then uses sudo to register the system
+generation and activate it with the build's pinned `darwin-rebuild`. Run it
+without sudo so Git accesses the checkout as its owner.
 
 For development, `nix develop` drops you into a shell with `nixfmt`, `statix`,
 `deadnix`, and `prek`. `make hooks` wires the hooks in
