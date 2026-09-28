@@ -204,6 +204,7 @@ ENV PATH="/home/vscode/.local/go/bin:/home/vscode/go/bin:$PATH"
 # libheif-sys's embedded build, plus the apt-provided HEVC codecs above so
 # HEIC actually decodes at runtime. Kept below the Rust/Go chain so a version
 # bump only rebuilds the cheap layers that follow.
+USER root
 ARG LIBHEIF_VERSION=1.21.2
 ARG LIBHEIF_SHA256=75f530b7154bc93e7ecf846edfc0416bf5f490612de8c45983c36385aa742b42
 RUN curl -fsSL "https://github.com/strukturag/libheif/releases/download/v${LIBHEIF_VERSION}/libheif-${LIBHEIF_VERSION}.tar.gz" -o /tmp/libheif.tar.gz && \
@@ -219,6 +220,7 @@ RUN curl -fsSL "https://github.com/strukturag/libheif/releases/download/v${LIBHE
   cmake --install /tmp/libheif-build && \
   ldconfig && \
   rm -rf /tmp/libheif.tar.gz "/tmp/libheif-${LIBHEIF_VERSION}" /tmp/libheif-build
+USER vscode
 
 # Below the Rust chain: CODEX_VERSION is the most-bumped pin, and above it a
 # bump forced a rustup reinstall plus three source compiles.
