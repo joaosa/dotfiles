@@ -68,6 +68,9 @@
     # /etc/zshrc sets SAVEHIST from this; a shell that skips ~/.zshrc would
     # otherwise rewrite the shared history file truncated to 2000 entries.
     histSize = 1000000;
+    # Same shared-file hazard: without timestamps, such a shell rewrites every
+    # entry plain and the next ~/.zshrc shell restamps them all to "now".
+    interactiveShellInit = "setopt EXTENDED_HISTORY";
   };
 
   # Stock SauceCodePro patched with the Legacy Computing glyphs chafa needs;
