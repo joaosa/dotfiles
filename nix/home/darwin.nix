@@ -55,6 +55,10 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   # Native macOS pinentry dialog (with keychain support) for gpg-agent.
   services.gpg-agent.pinentry.package = pkgs.pinentry_mac;
 
+  # zsh's `log` builtin (the watch login report) shadows /usr/bin/log; Apple's
+  # stock /etc/zshrc disabled it, but nix-darwin's replacement does not.
+  programs.zsh.initContent = "disable log";
+
   # Muse Glimmer requires a newer Ollama than the main nixpkgs pin currently
   # carries. Keep the official macOS release independently pinned so updating
   # Ollama does not upgrade the rest of the workstation.
