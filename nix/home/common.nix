@@ -494,10 +494,16 @@ in
       };
 
       # .zshenv is re-sourced by every zsh (even inside a stale tmux server whose
-      # inherited hm-session-vars guard skips sessionVariables). Refresh the
-      # managed pkg-config paths and Colima setting on every shell startup.
+      # inherited hm-session-vars guard skips sessionVariables). Append the
+      # managed pkg-config paths (deduped, so dev shells keep priority) and set
+      # Colima on every shell startup.
       envExtra = ''
-        export PKG_CONFIG_PATH=${lib.escapeShellArg config.home.sessionVariables.PKG_CONFIG_PATH}
+        typeset -gxUT PKG_CONFIG_PATH pkg_config_path
+        pkg_config_path+=(${
+          lib.concatMapStringsSep " " lib.escapeShellArg (
+            lib.splitString ":" config.home.sessionVariables.PKG_CONFIG_PATH
+          )
+        })
         export COLIMA_SAVE_CONFIG=false
       '';
 
