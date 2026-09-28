@@ -21,6 +21,7 @@ let
   # Same derivation that puts `devc` on PATH; used below to locate its bundled
   # container templates (Dockerfile/post_install.py/.zshrc) by store path.
   devc = pkgs.callPackage ../packages/devc.nix { };
+  fdFiles = "fd --type f --hidden --follow --exclude .git";
   # Config files for cross-platform tools, symlinked out-of-store from this repo
   # so edits take effect without a rebuild. macOS-app configs live in darwin.nix.
   commonFiles = {
@@ -315,7 +316,7 @@ in
     fzf = {
       enable = true;
       enableZshIntegration = true;
-      defaultCommand = "fd --type f --hidden --follow --exclude .git";
+      defaultCommand = fdFiles;
       defaultOptions = [
         "--reverse"
         "--border"
@@ -326,7 +327,7 @@ in
         "--color=fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fb4934"
         "--color=marker:#fb4934,fg+:#ebdbb2,prompt:#fb4934,hl+:#fb4934"
       ];
-      fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
+      fileWidgetCommand = fdFiles;
       fileWidgetOptions = [ "--preview-window right:50%" ];
       changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
       changeDirWidgetOptions = [ "--preview 'ls -1 {}'" ];
@@ -537,18 +538,10 @@ in
           noop () { }
           zle -N noop
           for keymap in vicmd viins; do
-            bindkey -M "$keymap" "$terminfo[kcuu1]" noop
-            bindkey -M "$keymap" "$terminfo[kcud1]" noop
-            bindkey -M "$keymap" "$terminfo[kcub1]" noop
-            bindkey -M "$keymap" "$terminfo[kcuf1]" noop
+            for key in kcuu1 kcud1 kcub1 kcuf1; do
+              bindkey -M "$keymap" "$terminfo[$key]" noop
+            done
           done
-
-          docker-aws-login() {
-            vault_user="$1"
-            ecr_repo="$(aws-vault exec "$vault_user" -- aws ecr get-authorization-token --output text --query 'authorizationData[].proxyEndpoint')"
-            login="$(aws-vault exec "$vault_user" -- aws ecr get-login-password)"
-            echo "$login" | docker login -u AWS --password-stdin "$ecr_repo"
-          }
 
           # Agent devcontainers use trusted configs staged outside each checkout.
           # Repository-owned .devcontainer files are never read, overwritten, or
@@ -579,7 +572,7 @@ in
               fi
             done
 
-            for file in Dockerfile .zshrc post_install.py init-firewall.sh apply-firewall.sh firewall-lockdown.sh post-start.sh entrypoint.sh; do
+            for file in ${lib.concatStringsSep " " devc.templateFiles}; do
               [[ ! -L "$stage/$file" ]] \
                 || { echo "refusing symlinked staged file: $stage/$file" >&2; return 1; }
               install -m0644 "${devc}/share/agent-devcontainer/$file" "$stage/$file" || return 1
@@ -855,19 +848,14 @@ in
             bindkey -M viins '^f' sesh-sessions
           fi
 
-          _prefer_nix_profile_paths() {
-            typeset -gU path
-            local -a nix_profile_paths
-
-            [[ -d "/etc/profiles/per-user/${username}/bin" ]] && nix_profile_paths+=("/etc/profiles/per-user/${username}/bin")
-            [[ -d "${homeDir}/.nix-profile/bin" ]] && nix_profile_paths+=("${homeDir}/.nix-profile/bin")
-            [[ -d /nix/var/nix/profiles/default/bin ]] && nix_profile_paths+=(/nix/var/nix/profiles/default/bin)
-
-            path=($nix_profile_paths $path)
-          }
-
-          _prefer_nix_profile_paths
-          unfunction _prefer_nix_profile_paths
+          # Nix profiles first (existing dirs, symlinks followed), deduplicated.
+          typeset -gU path
+          path=(
+            /etc/profiles/per-user/${username}/bin(N-/)
+            ${homeDir}/.nix-profile/bin(N-/)
+            /nix/var/nix/profiles/default/bin(N-/)
+            $path
+          )
 
           [ -f ~/.kubectl_aliases ] && source ~/.kubectl_aliases
           function kubectl() { echo "+ kubectl $@">&2; command kubectl "$@"; }
@@ -887,14 +875,17 @@ in
             fi
           }
 
-          if [[ -z "$TMUX" && -t 0 && -t 1 ]] && command -v tmux >/dev/null 2>&1; then
+          # Anonymous function so `session` doesn't leak into the shell.
+          () {
+            [[ -z "$TMUX" && -t 0 && -t 1 ]] && (( $+commands[tmux] )) || return 0
+            local session
             session=$(tmux list-sessions -F '#{session_name}' -f '#{==:#{session_attached},0}' 2>/dev/null | head -1)
             if [[ -n "$session" ]]; then
               tmux attach -t "$session" || true
             else
               tmux new-session -s "default-$$" || true
             fi
-          fi
+          }
         ''
       ];
     };

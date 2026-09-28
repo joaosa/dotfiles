@@ -52,6 +52,18 @@ let
   # Currently identical to fleet; a distinct name so the profiles can diverge
   # again without touching the substitutions below.
   auditDomains = fleetDomains;
+
+  templateDir = ../../config/agent-devcontainer;
+  templateFiles = [
+    "Dockerfile"
+    ".zshrc"
+    "post_install.py"
+    "init-firewall.sh"
+    "apply-firewall.sh"
+    "firewall-lockdown.sh"
+    "post-start.sh"
+    "entrypoint.sh"
+  ];
 in
 stdenvNoCC.mkDerivation {
   pname = "agent-devcontainer";
@@ -63,17 +75,12 @@ stdenvNoCC.mkDerivation {
     runHook preInstall
 
     templates="$out/share/agent-devcontainer"
-    install -Dm0644 ${../../config/agent-devcontainer/Dockerfile} "$templates/Dockerfile"
-    install -Dm0644 ${../../config/agent-devcontainer/.zshrc} "$templates/.zshrc"
-    install -Dm0644 ${../../config/agent-devcontainer/post_install.py} "$templates/post_install.py"
-    install -Dm0644 ${../../config/agent-devcontainer/init-firewall.sh} "$templates/init-firewall.sh"
-    install -Dm0644 ${../../config/agent-devcontainer/apply-firewall.sh} "$templates/apply-firewall.sh"
-    install -Dm0644 ${../../config/agent-devcontainer/firewall-lockdown.sh} "$templates/firewall-lockdown.sh"
-    install -Dm0644 ${../../config/agent-devcontainer/post-start.sh} "$templates/post-start.sh"
-    install -Dm0644 ${../../config/agent-devcontainer/entrypoint.sh} "$templates/entrypoint.sh"
-    substitute ${../../config/agent-devcontainer/audit.devcontainer.json} "$templates/audit.devcontainer.json" \
+    ${lib.concatMapStrings (file: ''
+      install -Dm0644 ${templateDir + "/${file}"} "$templates/${file}"
+    '') templateFiles}
+    substitute ${templateDir + "/audit.devcontainer.json"} "$templates/audit.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " auditDomains}'
-    substitute ${../../config/agent-devcontainer/fleet.devcontainer.json} "$templates/fleet.devcontainer.json" \
+    substitute ${templateDir + "/fleet.devcontainer.json"} "$templates/fleet.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " fleetDomains}'
     chmod 0644 "$templates/audit.devcontainer.json" "$templates/fleet.devcontainer.json"
 
@@ -82,17 +89,13 @@ stdenvNoCC.mkDerivation {
       --replace-fail '#!/usr/bin/env python3' '#!${python3}/bin/python3'
     chmod 0755 "$out/libexec/devc-audit-slug"
 
-    # Deliberately do NOT ship upstream's install.sh as `devc`. Its up/./template
-    # subcommands read a repository's own .devcontainer (executing its
-    # initializeCommand on the host and honoring attacker-supplied mounts), and
-    # its self-install/update paths escape this pin. The agent-fleet/agent-audit
-    # wrappers never use it; they stage the audited templates and call the
-    # devcontainer CLI directly. This guard replaces it so a stray `devc ...`
-    # fails loudly instead of taking an unsafe path.
+    # Guard in place of upstream's `devc` (see header), so stray calls fail loudly.
     install -Dm0755 ${./devc-guard.sh} "$out/bin/devc"
 
     runHook postInstall
   '';
+
+  passthru = { inherit templateFiles; };
 
   meta = {
     description = "Hardened devcontainers for Claude Code and Codex";

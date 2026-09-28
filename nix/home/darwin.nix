@@ -93,11 +93,8 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       # Audited third-party spoon, pinned and stripped of binary blobs (see
       # the derivation); loaded by modules/vim.lua.
       ".hammerspoon/Spoons/VimMode.spoon".source = pkgs.callPackage ../packages/vimmode-spoon.nix { };
+      # The volume is case-insensitive, so this also answers to `obsidian`.
       ".local/bin/Obsidian" = {
-        text = obsidianCli;
-        executable = true;
-      };
-      ".local/bin/obsidian" = {
         text = obsidianCli;
         executable = true;
       };

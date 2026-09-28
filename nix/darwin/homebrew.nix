@@ -7,7 +7,6 @@
 }:
 
 let
-  brews = [ ];
   casks = [
     "karabiner-elements"
     "hammerspoon"
@@ -19,11 +18,10 @@ let
     "firefox@developer-edition"
     "google-drive"
   ];
-  homebrewEnabled = brews != [ ] || casks != [ ];
 in
 {
   nix-homebrew = {
-    enable = homebrewEnabled;
+    enable = true;
     enableRosetta = pkgs.stdenv.hostPlatform.isAarch64;
     user = username;
     autoMigrate = true;
@@ -38,12 +36,12 @@ in
   };
 
   homebrew = {
-    enable = homebrewEnabled;
+    enable = true;
     user = username;
     enableZshIntegration = true;
 
     taps = builtins.attrNames config.nix-homebrew.taps;
-    inherit brews casks;
+    inherit casks;
 
     global.autoUpdate = false;
     onActivation = {
