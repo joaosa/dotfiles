@@ -8,14 +8,14 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
+from typing import NoReturn
 from urllib.parse import unquote, urlsplit
-
 
 COMPONENT = re.compile(r"^[A-Za-z0-9._-]+$")
 SCHEMES = {"git", "http", "https", "ssh"}
 
 
-def fail(message: str) -> "NoReturn":
+def fail(message: str) -> NoReturn:
     raise ValueError(message)
 
 
@@ -104,7 +104,9 @@ def prepare_target(root: Path, value: str) -> Path:
         ensure_owned_directory(destination)
         git_dir = destination / ".git"
         if not git_dir.is_dir() or git_dir.is_symlink():
-            fail(f"existing audit destination is not a safe Git checkout: {destination}")
+            fail(
+                f"existing audit destination is not a safe Git checkout: {destination}"
+            )
         return destination
 
     subprocess.run(["git", "clone", "--", value, str(destination)], check=True)
