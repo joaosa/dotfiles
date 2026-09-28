@@ -57,9 +57,15 @@
     "/share/pkgconfig"
   ];
   environment.shells = [ pkgs.zsh ];
-  # System zsh integration left off so nix-darwin does not manage /etc/zshrc;
-  # Home Manager owns the user-level zsh config (~/.zshrc, plugins, starship).
-  programs.zsh.enable = false;
+  # nix-darwin owns /etc/zshenv, which puts the Nix profiles on PATH and sets
+  # NIX_PROFILES for every zsh; /etc/zshrc is kept inert since Home Manager
+  # owns the interactive config (~/.zshrc, plugins, starship).
+  programs.zsh = {
+    enable = true;
+    enableCompletion = false;
+    enableBashCompletion = false;
+    enableGlobalCompInit = false;
+  };
 
   # Stock SauceCodePro patched with the Legacy Computing glyphs chafa needs;
   # see the derivation for why a separate fallback font cannot work here.
