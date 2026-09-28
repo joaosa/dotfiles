@@ -85,9 +85,17 @@ stdenvNoCC.mkDerivation {
     chmod 0644 "$templates/audit.devcontainer.json" "$templates/fleet.devcontainer.json"
 
     mkdir -p "$out/libexec"
-    substitute ${./devc-audit-slug.py} "$out/libexec/devc-audit-slug" \
-      --replace-fail '#!/usr/bin/env python3' '#!${python3}/bin/python3'
-    chmod 0755 "$out/libexec/devc-audit-slug"
+    ${lib.concatMapStrings
+      (helper: ''
+        substitute ${./. + "/${helper}.py"} "$out/libexec/${helper}" \
+          --replace-fail '#!/usr/bin/env python3' '#!${python3}/bin/python3'
+        chmod 0755 "$out/libexec/${helper}"
+      '')
+      [
+        "devc-audit-slug"
+        "devc-git-guard"
+      ]
+    }
 
     # Guard in place of upstream's `devc` (see header), so stray calls fail loudly.
     install -Dm0755 ${./devc-guard.sh} "$out/bin/devc"

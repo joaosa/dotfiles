@@ -17,6 +17,10 @@ ipv4_re="^${ipv4_octet}(\.${ipv4_octet}){3}\$"
 ipv4_cidr_re="^${ipv4_octet}(\.${ipv4_octet}){3}/([0-9]|[12][0-9]|3[0-2])\$"
 firewall_ready=0
 
+# Local resolver for everything but its own uid; see "DNS filter" below.
+dns_user=agent-dns
+dns_conf=/etc/agent-devcontainer/dnsmasq.conf
+
 # shellcheck source=firewall-lockdown.sh
 . /usr/local/lib/firewall-lockdown.sh
 fail_closed() {
@@ -99,42 +103,51 @@ if [ -n "$docker_dns_rules" ]; then
   done <<< "$docker_dns_rules"
 fi
 
-# DNS only to the resolvers this container actually uses, not to any host: a
-# wide-open port 53 is a data-exfiltration tunnel that bypasses the domain
-# allowlist entirely. Derive them from resolv.conf rather than hardcoding
-# Docker's embedded resolver, which only exists on user-defined networks:
-# colima's default bridge points resolv.conf at the VM resolver instead, and
-# hardcoding 127.0.0.11 there kills DNS the moment the DROP policy lands. Each
-# of these forwards to upstream either way, so the exfil surface is unchanged.
-# Inbound replies ride the ESTABLISHED,RELATED rule below, so no --sport 53
-# INPUT rule (which any peer could match by choosing source port 53) is needed.
-dns_endpoints=0
+# Upstream DNS (from resolv.conf) only for the filter uid: any other uid
+# reaching a resolver, on any port, could tunnel data out as lookups.
+nameservers=()
 while IFS= read -r nameserver; do
   # IPv6 resolvers are unusable here: IPv6 egress is default-deny below.
   if [[ ! "$nameserver" =~ $ipv4_re ]]; then
     echo "[devcontainer] Ignoring non-IPv4 nameserver: $nameserver" >&2
     continue
   fi
-  iptables -A OUTPUT -p udp -d "$nameserver" --dport 53 -j ACCEPT
-  iptables -A OUTPUT -p tcp -d "$nameserver" --dport 53 -j ACCEPT
-  dns_endpoints=$((dns_endpoints + 1))
-  echo "[devcontainer] DNS allowed to $nameserver"
+  for proto in udp tcp; do
+    iptables -A OUTPUT -p "$proto" -d "$nameserver" --dport 53 -m owner --uid-owner "$dns_user" -j ACCEPT
+  done
+  iptables -A OUTPUT -d "$nameserver" -m owner ! --uid-owner "$dns_user" -j REJECT
+  nameservers+=("$nameserver")
+  echo "[devcontainer] DNS upstream $nameserver"
 done < <(awk '$1 == "nameserver" { print $2 }' /etc/resolv.conf | sort -u)
-if [ "$dns_endpoints" -eq 0 ]; then
+if [ "${#nameservers[@]}" -eq 0 ]; then
   echo "ERROR: no IPv4 nameserver in /etc/resolv.conf; DNS would be dead" >&2
   exit 1
 fi
+
+# DNS filter: dnsmasq forwards only allowlisted names (and subdomains) and adds
+# each answer to the ipset; every other uid's port-53 traffic is sent to it.
+ipset create allowed-domains hash:net
+domains="$(IFS=/; echo "${allowed_domains[*]}")"
+{
+  printf '%s\n' no-resolv no-poll bind-interfaces listen-address=127.0.0.1 \
+    "user=$dns_user" "group=$dns_user" "ipset=/$domains/allowed-domains"
+  for nameserver in "${nameservers[@]}"; do
+    printf 'server=/%s/%s\n' "$domains" "$nameserver"
+  done
+} > "$dns_conf"
+chmod 0444 "$dns_conf"
+dnsmasq --conf-file="$dns_conf"
+# Matched by address: after the DNAT reroute the filter does not see -o lo.
+for proto in udp tcp; do
+  iptables -t nat -I OUTPUT 1 -p "$proto" --dport 53 -m owner ! --uid-owner "$dns_user" \
+    -j DNAT --to-destination 127.0.0.1:53
+  iptables -A OUTPUT -p "$proto" -d 127.0.0.1 --dport 53 -j ACCEPT
+done
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
-ipset create allowed-domains hash:net
-# Entries accumulate here and load in one `ipset restore` at the end: a fork
-# per entry adds seconds once GitHub's meta ranges (hundreds of CIDRs) join.
-ipset_batch="$(mktemp)"
-
-# Resolve concurrently: serial digs cost seconds on every start, and a single
-# slow resolver retry would stall the whole list. Domains are safe as file
-# names: apply-firewall.sh validated them against [a-zA-Z0-9.-].
+# Resolve concurrently through the filter, which fills the ipset; this only
+# asserts each name resolves. Domains are validated, so safe as file names.
 echo "[devcontainer] Resolving ${#allowed_domains[@]} allowlisted domains"
 resolve_dir="$(mktemp -d)"
 for domain in "${allowed_domains[@]}"; do
@@ -142,33 +155,27 @@ for domain in "${allowed_domains[@]}"; do
 done
 wait
 for domain in "${allowed_domains[@]}"; do
-  # `dig +short A` may print the CNAME chain before the final addresses.
-  ips="$(grep -E "$ipv4_re" "$resolve_dir/$domain" || true)"
-  if [ -z "$ips" ]; then
-    # One serial retry: the parallel burst can overrun the embedded resolver,
-    # and a single dropped reply must not brick the start fail-closed.
-    ips="$(dig +short A "$domain" | grep -E "$ipv4_re" || true)"
-  fi
-  if [ -z "$ips" ]; then
+  grep -qE "$ipv4_re" "$resolve_dir/$domain" && continue
+  # One serial retry: a dropped reply in the burst must not brick the start.
+  if ! dig +short A "$domain" | grep -qE "$ipv4_re"; then
     echo "ERROR: failed to resolve $domain" >&2
     exit 1
   fi
-  while IFS= read -r ip; do
-    printf 'add allowed-domains %s\n' "$ip" >> "$ipset_batch"
-  done <<< "$ips"
 done
+rm -rf "$resolve_dir"
 
 if [ "$include_github_meta_ranges" = 1 ]; then
+  # One `ipset restore`: a fork per CIDR adds seconds for hundreds of ranges.
+  ipset_batch="$(mktemp)"
   github_meta="$(curl -fsSL --connect-timeout 10 https://api.github.com/meta)"
   echo "$github_meta" | jq -e '.web and .api and .git' >/dev/null
   while IFS= read -r cidr; do
     [ -z "$cidr" ] && continue
     [[ "$cidr" == *:* ]] || add_ipv4_cidr "$cidr"
   done < <(echo "$github_meta" | jq -r '((.web // []) + (.api // []) + (.git // []))[]' | sort -u)
+  ipset -exist restore < "$ipset_batch"
+  rm -f "$ipset_batch"
 fi
-
-ipset -exist restore < "$ipset_batch"
-rm -rf "$resolve_dir" "$ipset_batch"
 
 iptables -P INPUT DROP
 iptables -P FORWARD DROP
@@ -181,11 +188,16 @@ iptables -A OUTPUT -j REJECT --reject-with icmp-admin-prohibited
 iptables -A FORWARD -j REJECT --reject-with icmp-admin-prohibited
 configure_ipv6_default_deny
 
-# Assert DNS survived the DROP policy before trusting the negative checks: with
-# resolution dead, every curl below fails for the wrong reason and a firewall
-# that blocks everything would look like one that blocks exactly the right hosts.
-if ! dig +short A example.com | grep -qE "$ipv4_re"; then
+# Allowlisted DNS must survive the DROP policy, or the checks below mislead.
+if ! dig +short A "${allowed_domains[0]}" | grep -qE "$ipv4_re"; then
   echo "ERROR: DNS resolution is broken under the firewall policy" >&2
+  exit 1
+fi
+# Unlisted names must not resolve, even when a query names the upstream itself.
+if dig +short +time=3 +tries=1 A example.com | grep -qE "$ipv4_re" \
+  || setpriv --reuid=nobody --regid=nogroup --clear-groups \
+    dig +short +time=3 +tries=1 A example.com "@${nameservers[0]}" | grep -qE "$ipv4_re"; then
+  echo "ERROR: DNS filter resolved a non-allowlisted name" >&2
   exit 1
 fi
 
@@ -200,9 +212,9 @@ probe_dir="$(mktemp -d)"
 probe() { curl --connect-timeout 5 "$@" >/dev/null 2>&1 && echo reachable; }
 
 # Negative checks are the security-critical assertions: a non-allowlisted host
-# and any IPv6 egress must be blocked. These fail the firewall hard.
-probe https://example.com > "$probe_dir/neg-v4" &
-probe -6 https://example.com > "$probe_dir/neg-v6" &
+# and any IPv6 egress must be blocked. Literal IPs: DNS would fail them anyway.
+probe https://1.1.1.1 > "$probe_dir/neg-v4" &
+probe -6 'https://[2606:4700:4700::1111]' > "$probe_dir/neg-v6" &
 
 # Positive check: confirm at least one configured domain is reachable, drawn
 # from the allowlist rather than hardcoded endpoints. A single domain whose CDN

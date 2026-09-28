@@ -122,6 +122,7 @@ both Claude Code and Codex; `agent-*` is the canonical wrapper and the
 agent-fleet <org>                              # trusted org, main Claude account
 agent-fleet --claude-profile alt <org>         # same org, isolated alt-account container
 agent-fleet-rebuild [--claude-profile alt] <org>
+agent-fleet-trust <org>                        # accept reviewed .git hook/config changes
 agent-audit <repo-path-or-url>                 # untrusted repo: isolated logins, strict egress
 
 claude-fleet <org>                 # aliases of agent-fleet
@@ -152,6 +153,17 @@ repository's `.devcontainer`, and URL audit destinations are parsed into safe
 
 The fleet profile is only for trusted organizations. It shares one workspace
 across that organization and forwards the host SSH agent for commit signing.
+Its checkouts are read-write on the host too, so anything the agent writes into
+a `.git` — hooks, exec-capable config such as `core.fsmonitor`, a `commondir`
+redirect — runs under host Git as you. Mounts cannot prevent that while the
+agent can still commit, so `agent-fleet` detects it instead: before launch and
+when the container shell exits, it compares each repository's executable Git
+state against a baseline and warns until you inspect and run
+`agent-fleet-trust <org>`. Changes you make yourself, such as
+`pre-commit install`, need the same acceptance. The container outlives the
+shell, so anything still running in it (a backgrounded agent, a second
+`agent-fleet` shell) can write after the exit check; host Git run meanwhile,
+including from an IDE or prompt, is not covered.
 Its `main` and `alt` Claude profiles use different containers and named volumes,
 so credentials, onboarding state, and histories stay isolated. `main` remains
 the default and retains the original fleet container identity. The selected
@@ -197,33 +209,42 @@ published web/api/git IP ranges so SSH pushes through the forwarded agent do
 not depend on a DNS snapshot of `github.com`. Both profiles' lists are defined
 once in [`nix/packages/devc.nix`](./nix/packages/devc.nix) — currently
 identical, since fleet's Serena launch pulled PyPI into the shared base; audit
-is where ecosystems fleet has no use for would go — and are substituted
-into the staged configs by `make switch`. The agent refresh runs before the
-firewall lands, so it can still fetch outside the allowlist; everything after
-container start is confined. The trade-off is that in-fleet web browsing
-(Claude's WebFetch/WebSearch) only reaches allowlisted hosts — extend the
-allowlist when a task legitimately needs more. The firewall limits credential
-exfiltration to attacker infrastructure; it cannot stop misuse of a forwarded
-token against an allowlisted service such as `api.github.com`.
+is where ecosystems fleet has no use for would go — and are substituted into
+the staged configs by `make switch`. The root entrypoint arms the firewall
+before anything else runs, so the agent refresh is confined too. DNS goes
+through a local `dnsmasq` that forwards only allowlisted names (and their
+subdomains) and refuses the rest, so lookups such as `<secret>.attacker.tld`
+cannot tunnel data out; every other uid's port-53 traffic is redirected to it,
+and its answers extend the IP allowlist as CDN addresses rotate. The trade-off
+is that in-fleet web browsing (Claude's WebFetch/WebSearch) only reaches
+allowlisted hosts — extend the allowlist when a task legitimately needs more.
+The firewall limits credential exfiltration to attacker infrastructure; it
+cannot stop misuse of a forwarded token against an allowlisted service such as
+`api.github.com`.
 
 The audit profile does not forward `CLAUDE_CODE_OAUTH_TOKEN`,
 `ANTHROPIC_API_KEY`, `CODEX_API_KEY`, `OPENAI_API_KEY`, or the SSH agent. It
 uses distinct per-repository Claude, Codex, and `gh` volumes, leaves Claude
-permission prompts enabled, mounts Git config/hooks read-only, disables
-inherited commit signing,
-and applies an outbound domain allowlist. Authenticate inside it as
-needed; for Codex on a headless container, use:
+permission prompts enabled, mounts the checkout's whole `.git` read-only,
+disables inherited commit signing, and applies an outbound domain allowlist. A
+writable `.git` would let the container plant hooks, config such as
+`core.fsmonitor`, or a `commondir` redirect that host Git then executes, so
+audit containers can inspect history but not commit; review and commit their
+worktree changes on the host. Authenticate inside it as needed; for Codex on a
+headless container, use:
 
 ```bash
 codex login --device-auth
 ```
 
-No profile grants capabilities beyond `NET_ADMIN`/`NET_RAW` for the firewall,
-and none relaxes Docker's default seccomp or AppArmor confinement: the
-container boundary is the sandbox. Codex therefore uses the devcontainer as its
-external sandbox in every profile — its nested Bubblewrap sandbox, which would
-need `SYS_ADMIN`, `SYS_PTRACE`, and an unconfined seccomp profile, stays
-disabled — and audit retains its approval prompts.
+Capabilities are dropped to the few the root entrypoint needs (`NET_ADMIN`/
+`NET_RAW` for the firewall, ownership fixes, and the user switch); the agent
+runs as a non-root user with no sudo grant under `no-new-privileges`, so it
+holds none of them. No profile relaxes Docker's default seccomp or AppArmor
+confinement: the container boundary is the sandbox. Codex therefore uses the
+devcontainer as its external sandbox in every profile — its nested Bubblewrap
+sandbox, which would need `SYS_ADMIN`, `SYS_PTRACE`, and an unconfined seccomp
+profile, stays disabled — and audit retains its approval prompts.
 
 The firewall is defense in depth, not a substitute for the container boundary
 or reviewing requested approvals. Extend the domain lists in

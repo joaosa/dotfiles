@@ -658,6 +658,33 @@ in
           }
 
           # One trusted container over every repository in an organization. It
+          # Fleet .git changes run under host Git; detect them before launch and on exit.
+          _agent_fleet_dir() {
+            local org="$1"
+            [[ -n "$org" && "$org" != *[^A-Za-z0-9._-]* && "$org" != . && "$org" != .. ]] \
+              || { echo "org must be one safe path component: $org" >&2; return 1; }
+            local fleet_dir="${homeDir}/ghq/github.com/$org"
+            [[ -d "$fleet_dir" && ! -L "$fleet_dir" ]] \
+              || { echo "no safe org directory: $fleet_dir" >&2; return 1; }
+            print -r -- "$fleet_dir"
+          }
+
+          _agent_fleet_git_guard() {
+            local action="$1" org="$2" fleet_dir rc
+            fleet_dir="$(_agent_fleet_dir "$org")" || return 1
+            ${devc}/libexec/devc-git-guard "$action" "$fleet_dir" \
+              "${homeDir}/.local/state/agent-devcontainer/git-guard/$org.json"
+            rc=$?
+            (( rc != 1 )) \
+              || echo "If you made these changes yourself, accept them with: agent-fleet-trust $org" >&2
+            return "$rc"
+          }
+
+          agent-fleet-trust() {
+            (( $# == 1 )) || { echo "usage: agent-fleet-trust <org>" >&2; return 1; }
+            _agent_fleet_git_guard accept "$1"
+          }
+
           # carries both Claude and Codex, profile-specific login volumes, gh
           # auth, and the forwarded signing agent. Only use this over
           # organizations you trust.
@@ -702,12 +729,8 @@ in
             [[ -n "$claude_service" ]] \
               || { echo "unknown Claude profile '$claude_profile' (use ${lib.concatStringsSep "|" (lib.attrNames claudeProfiles)})" >&2; return 1; }
 
-            local org="$1"
-            [[ "$org" != *[^A-Za-z0-9._-]* && "$org" != . && "$org" != .. ]] \
-              || { echo "org must be one safe path component: $org" >&2; return 1; }
-            local fleet_dir="${homeDir}/ghq/github.com/$org"
-            [[ -d "$fleet_dir" && ! -L "$fleet_dir" ]] \
-              || { echo "no safe org directory: $fleet_dir" >&2; return 1; }
+            local org="$1" fleet_dir rc
+            fleet_dir="$(_agent_fleet_dir "$org")" || return 1
 
             _agent_devcontainer_preflight || return 1
             local signing_key="${homeDir}/.ssh/id_ed25519"
@@ -717,8 +740,12 @@ in
             colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
               || { echo "colima has no SSH agent socket; run: colima stop && agent-fleet $org" >&2; return 1; }
             _agent_devcontainer_launch \
+            _agent_fleet_git_guard check "$org"
               "$fleet_dir" fleet "$rebuild" "$claude_profile" "$claude_service"
           }
+            rc=$?
+            _agent_fleet_git_guard check "$org"
+            return "$rc"
 
           agent-fleet-rebuild() { agent-fleet --rebuild "$@"; }
           claude-fleet() { agent-fleet "$@"; }

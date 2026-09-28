@@ -243,6 +243,15 @@ COPY --chmod=0500 entrypoint.sh /usr/local/bin/entrypoint.sh
 USER root
 ARG AGENT_ALLOWED_DOMAINS=""
 ARG AGENT_INCLUDE_GITHUB_META_RANGES=1
+# DNS filter for init-firewall.sh; its uid alone may reach the upstream
+# resolver. Below the toolchains, above the often-edited COPYs.
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends dnsmasq-base \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd --system --user-group --no-create-home --shell /usr/sbin/nologin agent-dns
+USER vscode
+
 RUN install -d -m 0755 /etc/agent-devcontainer && \
   printf '%s\n' "$AGENT_ALLOWED_DOMAINS" > /etc/agent-devcontainer/allowed-domains.in && \
   printf '%s\n' "$AGENT_INCLUDE_GITHUB_META_RANGES" > /etc/agent-devcontainer/include-github-meta && \
