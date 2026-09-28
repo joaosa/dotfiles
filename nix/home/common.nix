@@ -414,6 +414,12 @@ in
       enable = true;
       dotDir = config.home.homeDirectory;
       enableCompletion = true;
+      # One dump per zsh binary, keyed by the store/prefix dir that owns its
+      # functions (fpath[-1]); Apple's and Nix's zsh have different fpaths, so a
+      # shared dump is rebuilt whenever the other one starts.
+      completionInit = ''
+        autoload -U compinit && compinit -d "$HOME/.zcompdump-''${fpath[-1]:h:h:h:h:t}"
+      '';
       autocd = false;
       defaultKeymap = "viins";
 
