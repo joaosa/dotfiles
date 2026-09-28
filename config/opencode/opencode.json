@@ -20,7 +20,7 @@
     },
     "context7": {
       "type": "local",
-      "command": ["npx", "-y", "@upstash/context7-mcp@4.0.2"]
+      "command": ["context7-mcp"]
     }
   },
   "model": "ollama/muse-glimmer:30b-mlx",

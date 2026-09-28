@@ -148,6 +148,7 @@
   pkgs.libheif.dev
 
   # Local derivations for tools missing from nixpkgs at the version we want.
+  (pkgs.callPackage ./packages/context7-mcp.nix { })
   (pkgs.callPackage ./packages/devc.nix { })
   (pkgs.callPackage ./packages/ollmcp.nix { })
   (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
