@@ -7,9 +7,6 @@
     "serena": {
       "type": "local",
       "command": [
-        "uvx",
-        "--from",
-        "git+https://github.com/oraios/serena",
         "serena",
         "start-mcp-server",
         "--context",
@@ -17,16 +14,17 @@
         "--enable-web-dashboard",
         "false",
         "--project",
-        "/Users/joao-sousa-andrade/ghq/github.com/joaosa/dotfiles"
+        "."
       ],
-      "timeout": 120000
+      "timeout": 30000
     },
     "context7": {
       "type": "local",
-      "command": ["npx", "-y", "@upstash/context7-mcp"]
+      "command": ["npx", "-y", "@upstash/context7-mcp@4.0.2"]
     }
   },
   "model": "ollama/muse-glimmer:30b-mlx",
+  "small_model": "ollama/qwen3:0.6b",
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
@@ -55,6 +53,14 @@
             "output": [
               "text"
             ]
+          }
+        },
+        "qwen3:0.6b": {
+          "name": "Qwen3 0.6B (titles/summaries)",
+          "reasoning": true,
+          "limit": {
+            "context": 32768,
+            "output": 4096
           }
         }
       }
