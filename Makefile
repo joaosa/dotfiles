@@ -1,5 +1,6 @@
 # Dotfiles tasks - run `make` or `make help` to see all recipes
-NIX := /nix/var/nix/profiles/default/bin/nix
+# Flakes enabled explicitly so recipes work before nix-darwin configures nix.conf.
+NIX := /nix/var/nix/profiles/default/bin/nix --extra-experimental-features "nix-command flakes"
 NIX_ENV := /nix/var/nix/profiles/default/bin/nix-env
 # Host entry from flake.nix to build/switch; override with `make switch HOST=...`
 HOST ?= Mac
@@ -21,7 +22,7 @@ help:
 .PHONY: switch
 switch:
 	@set -eu; \
-	system_path="$$( $(NIX) --extra-experimental-features "nix-command flakes" build ".#darwinConfigurations.$(HOST).system" --no-link --print-out-paths )"; \
+	system_path="$$( $(NIX) build ".#darwinConfigurations.$(HOST).system" --no-link --print-out-paths )"; \
 	sudo -H $(NIX_ENV) -p /nix/var/nix/profiles/system --set "$$system_path"; \
 	sudo -H "$$system_path/sw/bin/darwin-rebuild" activate
 
