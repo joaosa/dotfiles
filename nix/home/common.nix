@@ -494,9 +494,10 @@ in
       };
 
       # .zshenv is re-sourced by every zsh (even inside a stale tmux server whose
-      # inherited hm-session-vars guard skips sessionVariables), so anything a
-      # `colima start` from an interactive shell must see goes here, not there.
+      # inherited hm-session-vars guard skips sessionVariables). Refresh the
+      # managed pkg-config paths and Colima setting on every shell startup.
       envExtra = ''
+        export PKG_CONFIG_PATH=${lib.escapeShellArg config.home.sessionVariables.PKG_CONFIG_PATH}
         export COLIMA_SAVE_CONFIG=false
       '';
 
@@ -663,7 +664,6 @@ in
             )
           }
 
-          # One trusted container over every repository in an organization. It
           # Fleet .git changes run under host Git; detect them before launch and on exit.
           _agent_fleet_dir() {
             local org="$1"
@@ -691,6 +691,7 @@ in
             _agent_fleet_git_guard accept "$1"
           }
 
+          # One trusted container over every repository in an organization. It
           # carries both Claude and Codex, profile-specific login volumes, gh
           # auth, and the forwarded signing agent. Only use this over
           # organizations you trust.
@@ -745,13 +746,13 @@ in
               || { echo "could not load signing key: $signing_key" >&2; return 1; }
             colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
               || { echo "colima has no SSH agent socket; run: colima stop && agent-fleet $org" >&2; return 1; }
-            _agent_devcontainer_launch \
             _agent_fleet_git_guard check "$org"
+            _agent_devcontainer_launch \
               "$fleet_dir" fleet "$rebuild" "$claude_profile" "$claude_service"
-          }
             rc=$?
             _agent_fleet_git_guard check "$org"
             return "$rc"
+          }
 
           agent-fleet-rebuild() { agent-fleet --rebuild "$@"; }
           claude-fleet() { agent-fleet "$@"; }
