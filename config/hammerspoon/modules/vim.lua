@@ -2,7 +2,7 @@
 -- System-wide Vim Mode (VimMode.spoon)
 -----------------------------------------------
 
-local log = hs.logger.new('vim', 'info')
+local log = hs.logger.new("vim", "info")
 
 local function setup()
     local ok, VimMode = pcall(hs.loadSpoon, "VimMode")

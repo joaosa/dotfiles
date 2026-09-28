@@ -8,7 +8,6 @@ local hyper = keys.hyper
 local altCmd = keys.altCmd
 local bindWindowOp = windowLib.bindWindowOp
 
-
 -- Window frame definitions
 local frames = {
     rightTopQuarter = "[100,50,50,0]",
@@ -58,7 +57,7 @@ local function setup()
         k = "focusWindowNorth",
         j = "focusWindowSouth",
         l = "focusWindowEast",
-        h = "focusWindowWest"
+        h = "focusWindowWest",
     }
 
     for key, action in pairs(windowFocusBindings) do

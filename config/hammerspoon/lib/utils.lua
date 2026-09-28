@@ -3,14 +3,10 @@
 -----------------------------------------------
 
 -- Trim whitespace from string
-local function trim(str)
-    return str:gsub("^%s+", ""):gsub("%s+$", "")
-end
+local function trim(str) return str:gsub("^%s+", ""):gsub("%s+$", "") end
 
 -- Pluralize string based on count
-local function pluralize(count, singular, plural)
-    return count == 1 and singular or (plural or singular .. "s")
-end
+local function pluralize(count, singular, plural) return count == 1 and singular or (plural or singular .. "s") end
 
 -- Find a binary in the nix profile dirs, module-specific extra paths, or via
 -- a fallback command. Hammerspoon does not inherit the shell PATH, so the
@@ -65,7 +61,9 @@ end
 local function debounce(fn, delay)
     local timer = nil
     return function()
-        if timer then timer:stop() end
+        if timer then
+            timer:stop()
+        end
         timer = hs.timer.doAfter(delay, fn)
     end
 end

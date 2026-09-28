@@ -9,7 +9,7 @@ local keys = require("config.keybindings")
 local altCmd = keys.altCmd
 
 local ax = require("hs.axuielement")
-local log = hs.logger.new('element-hints', 'info')
+local log = hs.logger.new("element-hints", "info")
 
 local HINT_CHARS = "asdfghjklqwertyuiopzxcvbnm"
 -- Traversal budget so huge accessibility trees (Electron) stay responsive
@@ -68,16 +68,19 @@ local function collectClickable(winEl, winFrame)
     local found = {}
     local visited = 0
     local function walk(el)
-        if visited >= MAX_VISITED then return end
+        if visited >= MAX_VISITED then
+            return
+        end
         visited = visited + 1
 
         -- One IPC round-trip per node instead of one per attribute
         local ok, attrs = pcall(function() return el:allAttributeValues() end)
-        if not ok or not attrs then return end
+        if not ok or not attrs then
+            return
+        end
 
         local frame = attrs.AXFrame
-        local visible = frame and frame.w > 2 and frame.h > 2
-            and hs.geometry(frame):intersect(winFrame).area > 0
+        local visible = frame and frame.w > 2 and frame.h > 2 and hs.geometry(frame):intersect(winFrame).area > 0
         if visible and isPressable(el) then
             found[#found + 1] = { element = el, frame = frame }
         end
@@ -99,9 +102,7 @@ end
 
 -- Hints whose labels start with the typed prefix
 local function matching()
-    return hs.fnutils.filter(state.hints, function(hint)
-        return hint.label:sub(1, #state.typed) == state.typed
-    end)
+    return hs.fnutils.filter(state.hints, function(hint) return hint.label:sub(1, #state.typed) == state.typed end)
 end
 
 local function canvasElements(hints)
@@ -129,9 +130,7 @@ local function canvasElements(hints)
     return elements
 end
 
-local function render(hints)
-    state.canvas:replaceElements(canvasElements(hints))
-end
+local function render(hints) state.canvas:replaceElements(canvasElements(hints)) end
 
 local function startTap()
     local types = hs.eventtap.event.types
@@ -181,8 +180,14 @@ local function show()
     local started = hs.timer.secondsSinceEpoch()
     local winFrame = hs.geometry(win:frame())
     local found, visited = collectClickable(ax.windowElement(win), winFrame)
-    log.i(string.format("found %d clickable of %d visited in %.2fs",
-        #found, visited, hs.timer.secondsSinceEpoch() - started))
+    log.i(
+        string.format(
+            "found %d clickable of %d visited in %.2fs",
+            #found,
+            visited,
+            hs.timer.secondsSinceEpoch() - started
+        )
+    )
 
     if #found == 0 then
         hs.alert.show("No clickable elements")
@@ -203,9 +208,7 @@ local function show()
     return #found
 end
 
-local function setup()
-    hs.hotkey.bind(altCmd, ".", show)
-end
+local function setup() hs.hotkey.bind(altCmd, ".", show) end
 
 return {
     setup = setup,

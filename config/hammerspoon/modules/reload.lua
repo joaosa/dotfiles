@@ -7,7 +7,7 @@ local utils = require("lib.utils")
 local TIMING = config.TIMING
 
 -- Logger for debugging
-local log = hs.logger.new('reload', 'info')
+local log = hs.logger.new("reload", "info")
 
 -- Module-level reference so the watcher is not garbage-collected
 local watcher = nil

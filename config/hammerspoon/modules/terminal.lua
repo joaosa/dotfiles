@@ -20,9 +20,8 @@ local function focusAndSleep(window)
     hs.timer.usleep(50000)
 end
 
-
 -- Logger for debugging
-local log = hs.logger.new('terminal', 'info')
+local log = hs.logger.new("terminal", "info")
 
 local launching = false
 
@@ -39,15 +38,15 @@ local terminalConfigs = {
         frame = frames.pulldown,
         raise = true,
         mods = { "alt" },
-        key = "space"
+        key = "space",
     },
     fullscreen = {
         frame = frames.full,
         raise = false,
         hideOther = "pulldown",
         mods = altCmd,
-        key = "a"
-    }
+        key = "a",
+    },
 }
 
 -- Get all Alacritty windows across all instances
@@ -93,13 +92,17 @@ local function getWindowByFrame(targetFrame, screen)
         end
     end
 
-    if exactMatch then return exactMatch, true end
+    if exactMatch then
+        return exactMatch, true
+    end
     return approximateMatch, false
 end
 
 -- Focus window with optional raise (without activating the app which can switch screens)
 local function focusWindow(window, raise)
-    if raise then window:raise() end
+    if raise then
+        window:raise()
+    end
     window:focus()
 end
 
@@ -154,33 +157,27 @@ local function toggleTerminal(type)
 
     -- Create window if it doesn't exist anywhere
     if not window then
-        if launching then return end
+        if launching then
+            return
+        end
         launching = true
         log.i("Creating", type, "window on screen", currentScreen:name())
         local windowCountBefore = #getAllTerminalWindows()
 
-        hs.task.new("/usr/bin/open", nil, {"-n", "/Applications/Alacritty.app"}):start()
+        hs.task.new("/usr/bin/open", nil, { "-n", "/Applications/Alacritty.app" }):start()
 
-        local launchTimeout = hs.timer.doAfter(5, function()
-            launching = false
-        end)
+        local launchTimeout = hs.timer.doAfter(5, function() launching = false end)
 
         -- Wait for new window to appear
-        hs.timer.waitUntil(
-            function()
-                return #getAllTerminalWindows() > windowCountBefore
-            end,
-            function()
-                launchTimeout:stop()
-                launching = false
-                local wins = getAllTerminalWindows()
-                local newest = wins[#wins]
-                if newest then
-                    placeWindow(newest, currentScreen, cfg.frame, cfg.raise)
-                end
-            end,
-            0.05
-        )
+        hs.timer.waitUntil(function() return #getAllTerminalWindows() > windowCountBefore end, function()
+            launchTimeout:stop()
+            launching = false
+            local wins = getAllTerminalWindows()
+            local newest = wins[#wins]
+            if newest then
+                placeWindow(newest, currentScreen, cfg.frame, cfg.raise)
+            end
+        end, 0.05)
         return
     end
 
@@ -205,9 +202,9 @@ end
 -- Find matching terminal config for a window
 local function findMatchedTerminalConfig(window, windowScreen)
     local unit = window:frame():toUnitRect(windowScreen:frame())
-    for configName, config in pairs(terminalConfigs) do
-        if frameMatches(unit, hs.geometry(config.frame)) then
-            return { name = configName, config = config }
+    for configName, terminal in pairs(terminalConfigs) do
+        if frameMatches(unit, hs.geometry(terminal.frame)) then
+            return { name = configName, config = terminal }
         end
     end
     return nil
@@ -215,13 +212,24 @@ end
 
 -- Proportionally resize unmanaged window
 local function resizeUnmanagedWindow(window, oldFrame, windowScreenFrame, screenFrame, i)
-    log.i("Resizing window", i, "from", windowScreenFrame.w, "x", windowScreenFrame.h, "to", screenFrame.w, "x", screenFrame.h)
+    log.i(
+        "Resizing window",
+        i,
+        "from",
+        windowScreenFrame.w,
+        "x",
+        windowScreenFrame.h,
+        "to",
+        screenFrame.w,
+        "x",
+        screenFrame.h
+    )
 
     local targetFrame = {
         x = screenFrame.x + (oldFrame.x / windowScreenFrame.w * screenFrame.w),
         y = screenFrame.y + (oldFrame.y / windowScreenFrame.h * screenFrame.h),
         w = oldFrame.w / windowScreenFrame.w * screenFrame.w,
-        h = oldFrame.h / windowScreenFrame.h * screenFrame.h
+        h = oldFrame.h / windowScreenFrame.h * screenFrame.h,
     }
 
     focusAndSleep(window)
@@ -263,17 +271,18 @@ local function resizeTerminals()
     end
 
     if resizedCount > 0 then
-        hs.alert.show(string.format("Resized %d %s", resizedCount, pluralize(resizedCount, "terminal")), TIMING.ALERT_SHORT)
+        hs.alert.show(
+            string.format("Resized %d %s", resizedCount, pluralize(resizedCount, "terminal")),
+            TIMING.ALERT_SHORT
+        )
         log.i("Resized", resizedCount, "terminal window(s)")
     end
 end
 
 local function setup()
     -- Register hotkeys for terminal toggling
-    for type, config in pairs(terminalConfigs) do
-        hs.hotkey.bind(config.mods, config.key, function()
-            toggleTerminal(type)
-        end)
+    for kind, terminal in pairs(terminalConfigs) do
+        hs.hotkey.bind(terminal.mods, terminal.key, function() toggleTerminal(kind) end)
     end
 
     -- Auto-resize on screen changes

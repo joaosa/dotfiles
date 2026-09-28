@@ -17,16 +17,18 @@ end
 
 -- Bind hotkey for window operation
 local function bindWindowOp(mods, key, operation, errorMsg)
-    hs.hotkey.bind(mods, key, function()
-        safeWindowOperation(operation, errorMsg)
-    end)
+    hs.hotkey.bind(mods, key, function() safeWindowOperation(operation, errorMsg) end)
 end
 
 -- Restore window context and execute action
 local function withWindowRestore(app, window, action)
-    if app then app:activate() end
+    if app then
+        app:activate()
+    end
     hs.timer.doAfter(TIMING.WINDOW_FOCUS_DELAY, function()
-        if window and window:isVisible() then window:focus() end
+        if window and window:isVisible() then
+            window:focus()
+        end
         hs.timer.doAfter(TIMING.PASTE_DELAY, action)
     end)
 end

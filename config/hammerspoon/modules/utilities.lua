@@ -12,8 +12,11 @@ local function setup()
     hotkey.bindHotkeys(hyper, {
         w = function() -- Show WiFi network
             local wifi = hs.wifi.currentNetwork()
-            hs.alert.show(wifi and ("WiFi: " .. wifi) or "No WiFi connected", {},
-                wifi and TIMING.ALERT_LONG or TIMING.ALERT_MEDIUM)
+            hs.alert.show(
+                wifi and ("WiFi: " .. wifi) or "No WiFi connected",
+                {},
+                wifi and TIMING.ALERT_LONG or TIMING.ALERT_MEDIUM
+            )
         end,
         l = hs.caffeinate.lockScreen,
         z = hs.caffeinate.systemSleep,

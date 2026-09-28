@@ -14,21 +14,31 @@ local pollTimer = nil
 
 local function isSleepFocusActive()
     local home = os.getenv("HOME")
-    if not home then return false end
+    if not home then
+        return false
+    end
 
     local dbPath = home .. "/Library/DoNotDisturb/DB/Assertions.json"
     local file = io.open(dbPath, "r")
-    if not file then return false end
+    if not file then
+        return false
+    end
     local output = file:read("*a")
     file:close()
 
-    if not output or output == "" then return false end
+    if not output or output == "" then
+        return false
+    end
 
     local ok, data = pcall(hs.json.decode, output)
-    if not ok or not data or not data.data or not data.data[1] then return false end
+    if not ok or not data or not data.data or not data.data[1] then
+        return false
+    end
 
     local records = data.data[1].storeAssertionRecords
-    if not records then return false end
+    if not records then
+        return false
+    end
 
     for _, record in ipairs(records) do
         if record and record.assertionDetails then

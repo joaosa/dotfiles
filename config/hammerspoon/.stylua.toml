@@ -1,0 +1,5 @@
+# Hammerspoon keeps 4-space indent and compact inline callbacks.
+indent_type = "Spaces"
+indent_width = 4
+column_width = 120
+collapse_simple_statement = "FunctionOnly"

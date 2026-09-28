@@ -14,7 +14,7 @@ local withWindowRestore = windowLib.withWindowRestore
 local pasteString = utils.pasteString
 
 -- Logger for debugging
-local log = hs.logger.new('asr', 'info')
+local log = hs.logger.new("asr", "info")
 
 local asr = {
     recording = nil,
@@ -34,12 +34,14 @@ local function startRecording()
     asr.tempFile = os.tmpname() .. ".wav"
     hs.alert.show("🎤 Recording...")
 
-    asr.recording = hs.task.new(asr.sox, function(code)
-        -- sox exits with 0 on success, 2 on SIGINT (normal stop)
-        if code ~= 0 and code ~= 2 then
-            hs.alert.show("❌ Recording failed")
-        end
-    end, {"-d", "-r", "16000", "-c", "1", "-b", "16", "-e", "signed-integer", asr.tempFile}):start()
+    asr.recording = hs.task
+        .new(asr.sox, function(code)
+            -- sox exits with 0 on success, 2 on SIGINT (normal stop)
+            if code ~= 0 and code ~= 2 then
+                hs.alert.show("❌ Recording failed")
+            end
+        end, { "-d", "-r", "16000", "-c", "1", "-b", "16", "-e", "signed-integer", asr.tempFile })
+        :start()
 end
 
 local function stopRecordingAndTranscribe()
@@ -61,29 +63,29 @@ local function stopRecordingAndTranscribe()
     end)
 
     -- Transcribe
-    asr.task = hs.task.new(asr.binary, function(code, stdout)
-        timeout:stop()
-        asr.task = nil
-        pcall(os.remove, asr.tempFile)
+    asr.task = hs.task
+        .new(asr.binary, function(code, stdout)
+            timeout:stop()
+            asr.task = nil
+            pcall(os.remove, asr.tempFile)
 
-        if code == 0 then
-            local text = trim(stdout)
-            if text ~= "" then
-                local preview = text:sub(1, 40)
-                if text:len() > 40 then
-                    preview = preview .. "..."
+            if code == 0 then
+                local text = trim(stdout)
+                if text ~= "" then
+                    local preview = text:sub(1, 40)
+                    if text:len() > 40 then
+                        preview = preview .. "..."
+                    end
+                    hs.alert.show("✓ " .. preview)
+                    withWindowRestore(app, win, function() pasteString(text) end)
+                else
+                    hs.alert.show("❌ No speech\nCheck mic permissions")
                 end
-                hs.alert.show("✓ " .. preview)
-                withWindowRestore(app, win, function()
-                    pasteString(text)
-                end)
             else
-                hs.alert.show("❌ No speech\nCheck mic permissions")
+                hs.alert.show(string.format("❌ Failed (code %d)", code))
             end
-        else
-            hs.alert.show(string.format("❌ Failed (code %d)", code))
-        end
-    end, { "-d", asr.modelDir, "-i", asr.tempFile, "--silent" }):start()
+        end, { "-d", asr.modelDir, "-i", asr.tempFile, "--silent" })
+        :start()
 end
 
 local function setup()
@@ -96,7 +98,7 @@ local function setup()
     local missing = missingDeps({
         ["qwen-asr"] = asr.binary,
         ["sox"] = asr.sox,
-        ["model"] = hs.fs.attributes(asr.modelDir)
+        ["model"] = hs.fs.attributes(asr.modelDir),
     })
     if missing then
         log.e("ASR setup failed - missing: " .. missing)

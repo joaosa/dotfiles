@@ -26,7 +26,9 @@ local function setup()
     chooser = hs.chooser.new(function(choice)
         if choice then
             local app = hs.application.get(choice.bundleID)
-            if app then app:activate() end
+            if app then
+                app:activate()
+            end
         end
     end)
 
