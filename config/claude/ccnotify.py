@@ -4,47 +4,41 @@ Claude Code Notify
 https://github.com/dazuiba/CCNotify
 """
 
+import json
+import logging
 import os
 import shlex
-import sys
-import json
 import sqlite3
 import subprocess
-import logging
-from logging.handlers import TimedRotatingFileHandler
+import sys
 from datetime import datetime
+from logging.handlers import TimedRotatingFileHandler
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class ClaudePromptTracker:
     def __init__(self):
         """Initialize the prompt tracker with database setup"""
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.db_path = os.path.join(script_dir, "ccnotify.db")
+        self.db_path = os.path.join(SCRIPT_DIR, "ccnotify.db")
         self.setup_logging()
         self.init_database()
 
     def setup_logging(self):
         """Setup logging to file with daily rotation"""
-
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        log_path = os.path.join(script_dir, "ccnotify.log")
-
-        # Create a timed rotating file handler
         handler = TimedRotatingFileHandler(
-            log_path,
+            os.path.join(SCRIPT_DIR, "ccnotify.log"),
             when="midnight",  # Rotate at midnight
             interval=1,  # Every 1 day
-            backupCount=1,  # Keep 1 days of logs
+            backupCount=1,  # Keep 1 day of logs
             encoding="utf-8",
         )
 
-        # Set the log format
         formatter = logging.Formatter(
             "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
         handler.setFormatter(formatter)
 
-        # Configure the root logger
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
         logger.addHandler(handler)
@@ -100,7 +94,7 @@ class ClaudePromptTracker:
             )
             conn.commit()
 
-        logging.info(f"Recorded prompt for session {session_id}")
+        logging.info("Recorded prompt for session %s", session_id)
 
     def handle_stop(self, data):
         """Handle Stop event - update completion time and send notification"""
@@ -110,7 +104,7 @@ class ClaudePromptTracker:
             # Find the latest unfinished record for this session
             cursor = conn.execute(
                 """
-                SELECT id, created_at, cwd
+                SELECT id, cwd
                 FROM prompt
                 WHERE session_id = ? AND stoped_at IS NULL
                 ORDER BY created_at DESC
@@ -121,7 +115,7 @@ class ClaudePromptTracker:
 
             row = cursor.fetchone()
             if row:
-                record_id, created_at, cwd = row
+                record_id, cwd = row
 
                 # Update completion time
                 conn.execute(
@@ -149,7 +143,10 @@ class ClaudePromptTracker:
                 )
 
                 logging.info(
-                    f"Task completed for session {session_id}, job#{seq}, duration: {duration}"
+                    "Task completed for session %s, job#%s, duration: %s",
+                    session_id,
+                    seq,
+                    duration,
                 )
 
     def handle_notification(self, data):
@@ -159,7 +156,7 @@ class ClaudePromptTracker:
         cwd = data.get("cwd", "")
 
         # Log all notifications for debugging
-        logging.info(f"[NOTIFICATION] session={session_id}, message='{message}'")
+        logging.info("[NOTIFICATION] session=%s, message=%r", session_id, message)
 
         # Determine notification type and subtitle
         message_lower = message.lower()
@@ -173,9 +170,8 @@ class ClaudePromptTracker:
         ):
             subtitle = "Waiting for input"
             should_update_db = True
-            should_notify = (
-                False  # Suppress notification - Stop handler will send "job done"
-            )
+            # The Stop handler sends "job done" instead.
+            should_notify = False
         elif "permission" in message_lower:
             subtitle = "Permission Required"
         elif "approval" in message_lower or "choose an option" in message_lower:
@@ -187,7 +183,7 @@ class ClaudePromptTracker:
         # Update database for waiting notifications
         if should_update_db:
             with sqlite3.connect(self.db_path) as conn:
-                # Fix: Use subquery instead of ORDER BY/LIMIT in UPDATE
+                # Subquery, since SQLite's UPDATE lacks ORDER BY/LIMIT by default
                 conn.execute(
                     """
                     UPDATE prompt
@@ -202,7 +198,7 @@ class ClaudePromptTracker:
                     (session_id,),
                 )
                 conn.commit()
-            logging.info(f"Updated lastWaitUserAt for session {session_id}")
+            logging.info("Updated lastWaitUserAt for session %s", session_id)
 
         # Send notification only if should_notify is True
         if should_notify:
@@ -211,10 +207,10 @@ class ClaudePromptTracker:
                 subtitle=subtitle,
                 cwd=cwd,
             )
-            logging.info(f"Notification sent for session {session_id}: {subtitle}")
+            logging.info("Notification sent for session %s: %s", session_id, subtitle)
         else:
             logging.info(
-                f"Notification suppressed for session {session_id}: {subtitle}"
+                "Notification suppressed for session %s: %s", session_id, subtitle
             )
 
     def calculate_duration_from_db(self, record_id):
@@ -238,43 +234,23 @@ class ClaudePromptTracker:
     def calculate_duration(self, start_time, end_time):
         """Calculate human-readable duration between two timestamps"""
         try:
-            if isinstance(start_time, str):
-                start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
-            else:
-                start_dt = datetime.fromisoformat(start_time)
-
-            if isinstance(end_time, str):
-                end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
-            else:
-                end_dt = datetime.fromisoformat(end_time)
-
-            duration = end_dt - start_dt
-            total_seconds = int(duration.total_seconds())
-
-            if total_seconds < 60:
-                return f"{total_seconds}s"
-            elif total_seconds < 3600:
-                minutes = total_seconds // 60
-                seconds = total_seconds % 60
-                if seconds > 0:
-                    return f"{minutes}m{seconds}s"
-                else:
-                    return f"{minutes}m"
-            else:
-                hours = total_seconds // 3600
-                minutes = (total_seconds % 3600) // 60
-                if minutes > 0:
-                    return f"{hours}h{minutes}m"
-                else:
-                    return f"{hours}h"
-        except Exception as e:
-            logging.error(f"Error calculating duration: {e}")
+            start_dt = datetime.fromisoformat(start_time)
+            end_dt = datetime.fromisoformat(end_time)
+        except (TypeError, ValueError):
+            logging.exception("Error calculating duration")
             return "Unknown"
+
+        total_seconds = int((end_dt - start_dt).total_seconds())
+        if total_seconds < 60:
+            return f"{total_seconds}s"
+        if total_seconds < 3600:
+            minutes, seconds = divmod(total_seconds, 60)
+            return f"{minutes}m{seconds}s" if seconds else f"{minutes}m"
+        hours, minutes = divmod(total_seconds // 60, 60)
+        return f"{hours}h{minutes}m" if minutes else f"{hours}h"
 
     def send_notification(self, title, subtitle, cwd=None):
         """Send macOS notification using terminal-notifier"""
-        from datetime import datetime
-
         current_time = datetime.now().strftime("%B %d, %Y at %H:%M")
 
         try:
@@ -294,11 +270,11 @@ class ClaudePromptTracker:
                 cmd.extend(["-execute", f"/usr/local/bin/code {shlex.quote(cwd)}"])
 
             subprocess.run(cmd, check=False, capture_output=True)
-            logging.info(f"Notification sent: {title} - {subtitle}")
+            logging.info("Notification sent: %s - %s", title, subtitle)
         except FileNotFoundError:
             logging.warning("terminal-notifier not found, notification skipped")
-        except Exception as e:
-            logging.error(f"Error sending notification: {e}")
+        except OSError:
+            logging.exception("Error sending notification")
 
 
 def validate_input_data(data, expected_event_name):
@@ -318,18 +294,16 @@ def validate_input_data(data, expected_event_name):
             f"Event name mismatch: expected {expected_event_name}, got {data.get('hook_event_name')}"
         )
 
-    # Check required fields
-    missing_fields = []
-    for field in required_fields[expected_event_name]:
-        if field not in data or data[field] is None:
-            missing_fields.append(field)
+    missing_fields = [
+        field
+        for field in required_fields[expected_event_name]
+        if data.get(field) is None
+    ]
 
     if missing_fields:
         raise ValueError(
             f"Missing required fields for {expected_event_name}: {missing_fields}"
         )
-
-    return True
 
 
 def main():
@@ -341,11 +315,15 @@ def main():
             return
 
         expected_event_name = sys.argv[1]
-        valid_events = ["UserPromptSubmit", "Stop", "Notification"]
+        handlers = {
+            "UserPromptSubmit": ClaudePromptTracker.handle_user_prompt_submit,
+            "Stop": ClaudePromptTracker.handle_stop,
+            "Notification": ClaudePromptTracker.handle_notification,
+        }
 
-        if expected_event_name not in valid_events:
-            logging.error(f"Invalid hook type: {expected_event_name}")
-            logging.error(f"Valid hook types: {', '.join(valid_events)}")
+        if expected_event_name not in handlers:
+            logging.error("Invalid hook type: %s", expected_event_name)
+            logging.error("Valid hook types: %s", ", ".join(handlers))
             sys.exit(1)
 
         # Read JSON data from stdin
@@ -356,26 +334,17 @@ def main():
 
         data = json.loads(input_data)
 
-        # Validate input data
         validate_input_data(data, expected_event_name)
-
-        tracker = ClaudePromptTracker()
-
-        if expected_event_name == "UserPromptSubmit":
-            tracker.handle_user_prompt_submit(data)
-        elif expected_event_name == "Stop":
-            tracker.handle_stop(data)
-        elif expected_event_name == "Notification":
-            tracker.handle_notification(data)
+        handlers[expected_event_name](ClaudePromptTracker(), data)
 
     except json.JSONDecodeError as e:
-        logging.error(f"JSON decode error: {e}")
+        logging.error("JSON decode error: %s", e)
         sys.exit(1)
     except ValueError as e:
-        logging.error(f"Validation error: {e}")
+        logging.error("Validation error: %s", e)
         sys.exit(1)
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
+    except Exception:
+        logging.exception("Unexpected error")
         sys.exit(1)
 
 
