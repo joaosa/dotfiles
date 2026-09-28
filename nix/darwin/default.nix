@@ -65,6 +65,9 @@
     enableCompletion = false;
     enableBashCompletion = false;
     enableGlobalCompInit = false;
+    # /etc/zshrc sets SAVEHIST from this; a shell that skips ~/.zshrc would
+    # otherwise rewrite the shared history file truncated to 2000 entries.
+    histSize = 1000000;
   };
 
   # Stock SauceCodePro patched with the Legacy Computing glyphs chafa needs;
