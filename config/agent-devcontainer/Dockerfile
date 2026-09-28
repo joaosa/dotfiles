@@ -14,19 +14,24 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # and this profile blocks the user namespaces unprivileged bwrap needs anyway.
 # Only packages the base image lacks (EDITOR=nano ships in the base).
 # libclang-dev: leptess bindgen; libsqlite3-dev: rusqlite link (mtg tools).
+# cmake + libde265-dev + libx265-dev: build deps and HEVC codecs for the
+# pinned libheif source build below (media tools).
 RUN apt-get update && apt-get install -y --no-install-recommends \
   fd-find \
   ripgrep \
   zsh \
   jq \
+  cmake \
   dnsutils \
   ipset \
   iptables \
   iproute2 \
   libclang-dev \
+  libde265-dev \
   libleptonica-dev \
   libsqlite3-dev \
   libtesseract-dev \
+  libx265-dev \
   pkg-config \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -193,6 +198,28 @@ RUN ARCH=$(dpkg --print-architecture) && \
   rm /tmp/go.tgz
 ENV PATH="/home/vscode/.local/go/bin:/home/vscode/go/bin:$PATH"
 
+# libheif >= 1.20 (media tools' libheif-rs v1_20 feature): noble ships 1.17,
+# so build the pinned release from source. Shared lib into /usr/local so
+# pkg-config and the loader find it without env overrides; flag set mirrors
+# libheif-sys's embedded build, plus the apt-provided HEVC codecs above so
+# HEIC actually decodes at runtime. Kept below the Rust/Go chain so a version
+# bump only rebuilds the cheap layers that follow.
+ARG LIBHEIF_VERSION=1.21.2
+ARG LIBHEIF_SHA256=75f530b7154bc93e7ecf846edfc0416bf5f490612de8c45983c36385aa742b42
+RUN curl -fsSL "https://github.com/strukturag/libheif/releases/download/v${LIBHEIF_VERSION}/libheif-${LIBHEIF_VERSION}.tar.gz" -o /tmp/libheif.tar.gz && \
+  echo "${LIBHEIF_SHA256}  /tmp/libheif.tar.gz" | sha256sum -c - && \
+  tar -xzf /tmp/libheif.tar.gz -C /tmp && \
+  cmake -S "/tmp/libheif-${LIBHEIF_VERSION}" -B /tmp/libheif-build \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_INSTALL_LIBDIR=lib \
+    -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DBUILD_DOCUMENTATION=OFF \
+    -DWITH_EXAMPLES=OFF -DWITH_EXAMPLE_HEIF_THUMB=OFF -DWITH_EXAMPLE_HEIF_VIEW=OFF \
+    -DWITH_GDK_PIXBUF=OFF -DENABLE_EXPERIMENTAL_FEATURES=OFF -DENABLE_PLUGIN_LOADING=OFF \
+    -DWITH_REDUCED_VISIBILITY=ON && \
+  cmake --build /tmp/libheif-build -j"$(nproc)" && \
+  cmake --install /tmp/libheif-build && \
+  ldconfig && \
+  rm -rf /tmp/libheif.tar.gz "/tmp/libheif-${LIBHEIF_VERSION}" /tmp/libheif-build
+
 # Below the Rust chain: CODEX_VERSION is the most-bumped pin, and above it a
 # bump forced a rustup reinstall plus three source compiles.
 ARG NODE_VERSION=22
@@ -215,6 +242,15 @@ RUN curl -fsSL "https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH
   echo "${ZSH_IN_DOCKER_SHA256}  /tmp/zid.sh" | sha256sum -c - && \
   sh /tmp/zid.sh -p git -x && \
   rm /tmp/zid.sh
+
+# DNS filter for init-firewall.sh; its uid alone may reach the upstream
+# resolver. Below the toolchains, above the often-edited COPYs.
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends dnsmasq-base \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd --system --user-group --no-create-home --shell /usr/sbin/nologin agent-dns
+USER vscode
 
 COPY --chown=vscode:vscode .zshrc /home/vscode/.zshrc.custom
 RUN echo 'source ~/.zshrc.custom' >> /home/vscode/.zshrc
@@ -243,15 +279,6 @@ COPY --chmod=0500 entrypoint.sh /usr/local/bin/entrypoint.sh
 USER root
 ARG AGENT_ALLOWED_DOMAINS=""
 ARG AGENT_INCLUDE_GITHUB_META_RANGES=1
-# DNS filter for init-firewall.sh; its uid alone may reach the upstream
-# resolver. Below the toolchains, above the often-edited COPYs.
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends dnsmasq-base \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/* \
-  && useradd --system --user-group --no-create-home --shell /usr/sbin/nologin agent-dns
-USER vscode
-
 RUN install -d -m 0755 /etc/agent-devcontainer && \
   printf '%s\n' "$AGENT_ALLOWED_DOMAINS" > /etc/agent-devcontainer/allowed-domains.in && \
   printf '%s\n' "$AGENT_INCLUDE_GITHUB_META_RANGES" > /etc/agent-devcontainer/include-github-meta && \
