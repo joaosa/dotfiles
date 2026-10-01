@@ -29,6 +29,9 @@ local launching = false
 -- Treat windows within 5% of a configured unit frame as the same terminal.
 local FRAME_TOLERANCE = 0.05
 
+-- Pixel slack when deciding a window is already where it should be
+local PIXEL_TOLERANCE = 2
+
 -- Module-level reference so the watcher is not garbage-collected
 local screenWatcher = nil
 
@@ -60,11 +63,12 @@ local function getAllTerminalWindows()
     return allWindows
 end
 
-local function frameMatches(unit, target)
-    return math.abs(unit.x - target.x) <= FRAME_TOLERANCE
-        and math.abs(unit.y - target.y) <= FRAME_TOLERANCE
-        and math.abs(unit.w - target.w) <= FRAME_TOLERANCE
-        and math.abs(unit.h - target.h) <= FRAME_TOLERANCE
+local function frameMatches(a, b, tolerance)
+    tolerance = tolerance or FRAME_TOLERANCE
+    return math.abs(a.x - b.x) <= tolerance
+        and math.abs(a.y - b.y) <= tolerance
+        and math.abs(a.w - b.w) <= tolerance
+        and math.abs(a.h - b.h) <= tolerance
 end
 
 -- Find window by frame, optionally restricted to a specific screen
@@ -109,15 +113,20 @@ end
 -- Place a window on a screen's active space at the given unit frame, then
 -- focus it. Used by both the toggle and screen-change paths; a plain
 -- moveToScreen targets the screen but not its active space, which can leave
--- the window invisible on another space.
+-- the window invisible on another space. Returns false, without touching the
+-- window, when it is already in place.
 local function placeWindow(window, targetScreen, frame, raise)
+    local targetFrame = targetScreen:fromUnitRect(hs.geometry(frame))
     -- Move across spaces only when needed: the move is the slow/flaky
     -- private-API call, checking membership is a read.
     local targetSpace = hs.spaces.activeSpaceOnScreen(targetScreen)
-    if not hs.fnutils.contains(hs.spaces.windowSpaces(window) or {}, targetSpace) then
+    if hs.fnutils.contains(hs.spaces.windowSpaces(window) or {}, targetSpace) then
+        if frameMatches(window:frame(), targetFrame, PIXEL_TOLERANCE) then
+            return false
+        end
+    else
         hs.spaces.moveWindowToSpace(window, targetSpace)
     end
-    local targetFrame = targetScreen:fromUnitRect(hs.geometry(frame))
     window:setFrame(targetFrame)
     hs.timer.doAfter(0.1, function()
         -- Moving between Spaces is asynchronous. Reapply the destination
@@ -125,6 +134,7 @@ local function placeWindow(window, targetScreen, frame, raise)
         window:setFrame(targetFrame)
         focusWindow(window, raise)
     end)
+    return true
 end
 
 -- Toggle terminal window
@@ -140,7 +150,9 @@ local function toggleTerminal(type)
     -- but it still needs to be normalized to this screen's configured frame.
     if window and not exactFrame then
         log.i("Resizing", type, "window to screen", currentScreen:name())
-        placeWindow(window, currentScreen, cfg.frame, cfg.raise)
+        if not placeWindow(window, currentScreen, cfg.frame, cfg.raise) then
+            focusWindow(window, cfg.raise)
+        end
         return
     end
 
@@ -210,6 +222,16 @@ local function findMatchedTerminalConfig(window, windowScreen)
     return nil
 end
 
+-- Identifies the display layout so no-op watcher events can be ignored
+local function screenLayout()
+    local parts = {}
+    for _, screen in ipairs(hs.screen.allScreens()) do
+        table.insert(parts, screen:id() .. "=" .. screen:frame().string)
+    end
+    table.sort(parts)
+    return table.concat(parts, ";")
+end
+
 -- Proportionally resize unmanaged window
 local function resizeUnmanagedWindow(window, oldFrame, windowScreenFrame, screenFrame, i)
     log.i(
@@ -233,7 +255,7 @@ local function resizeUnmanagedWindow(window, oldFrame, windowScreenFrame, screen
     }
 
     focusAndSleep(window)
-    window:setFrame(targetFrame, 0.2)
+    window:setFrame(targetFrame)
 end
 
 local function resizeTerminals()
@@ -258,9 +280,10 @@ local function resizeTerminals()
             local matchedConfig = findMatchedTerminalConfig(window, windowScreen)
 
             if matchedConfig then
-                log.i("Window", i, "ensuring", matchedConfig.name, "placement on", currentScreen:name())
-                placeWindow(window, currentScreen, matchedConfig.config.frame, false)
-                resizedCount = resizedCount + 1
+                if placeWindow(window, currentScreen, matchedConfig.config.frame, false) then
+                    log.i("Window", i, "placed as", matchedConfig.name, "on", currentScreen:name())
+                    resizedCount = resizedCount + 1
+                end
             elseif windowScreen:id() ~= currentScreen:id() then
                 local windowScreenFrame = windowScreen:frame()
                 local oldFrame = window:frame()
@@ -286,7 +309,16 @@ local function setup()
     end
 
     -- Auto-resize on screen changes
-    local debouncedResizeTerminals = debounce(resizeTerminals, 0.5)
+    local lastLayout = screenLayout()
+    local debouncedResizeTerminals = debounce(function()
+        local layout = screenLayout()
+        if layout == lastLayout then
+            log.d("Screen event without layout change, skipping")
+            return
+        end
+        lastLayout = layout
+        resizeTerminals()
+    end, 0.5)
     screenWatcher = hs.screen.watcher.new(debouncedResizeTerminals)
     screenWatcher:start()
 end
