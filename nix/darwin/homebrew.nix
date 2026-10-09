@@ -1,7 +1,6 @@
 {
   config,
   inputs,
-  pkgs,
   username,
   ...
 }:
@@ -17,12 +16,12 @@ let
     "spotify"
     "firefox@developer-edition"
     "google-drive"
+    "vlc"
   ];
 in
 {
   nix-homebrew = {
     enable = true;
-    enableRosetta = pkgs.stdenv.hostPlatform.isAarch64;
     user = username;
     autoMigrate = true;
     # Taps are pinned flake inputs and `brew tap` is disabled; nix-homebrew
