@@ -274,7 +274,7 @@ cannot be invoked.
 │   │   └── Mac.nix        # Per-host overrides (one file per machine)
 │   ├── darwin/
 │   │   ├── default.nix    # nix-darwin system configuration
-│   │   ├── homebrew.nix   # nix-homebrew with pinned taps + declarative casks
+│   │   ├── homebrew.nix   # nix-homebrew install + declarative casks
 │   │   └── tailscale.nix  # Tailscale launchd daemon
 │   └── home/
 │       ├── default.nix    # Home Manager composer (platform-aware homeDir)
@@ -305,8 +305,7 @@ cannot be invoked.
 
 - Fixed-output hashes for downloaded assets and model data
 - Flake-pinned Nix inputs via `flake.lock`
-- Homebrew taps pinned as flake inputs (`brew tap` and API installs disabled)
-- Homebrew auto-update and activation upgrades disabled under nix-darwin
+- Homebrew activation upgrades disabled under nix-darwin; casks self-update
 
 ### Idempotency
 

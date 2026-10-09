@@ -1,9 +1,4 @@
-{
-  config,
-  inputs,
-  username,
-  ...
-}:
+{ username, ... }:
 
 let
   casks = [
@@ -24,14 +19,6 @@ in
     enable = true;
     user = username;
     autoMigrate = true;
-    # Taps are pinned flake inputs and `brew tap` is disabled; nix-homebrew
-    # sets HOMEBREW_NO_INSTALL_FROM_API so brew installs from these pinned
-    # taps instead of the live API, making casks follow flake.lock.
-    mutableTaps = false;
-    taps = {
-      "homebrew/homebrew-core" = inputs.homebrew-core;
-      "homebrew/homebrew-cask" = inputs.homebrew-cask;
-    };
   };
 
   homebrew = {
@@ -39,12 +26,12 @@ in
     user = username;
     enableZshIntegration = true;
 
-    taps = builtins.attrNames config.nix-homebrew.taps;
     inherit casks;
 
     global.autoUpdate = false;
     onActivation = {
-      autoUpdate = false;
+      # Refresh the API index on switch so new casks resolve; apps self-update.
+      autoUpdate = true;
       upgrade = false;
       # Everything brew-installed is declared above, so removing an entry
       # from the list uninstalls it on the next switch.
