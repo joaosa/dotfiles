@@ -4,6 +4,7 @@
 
 local log = hs.logger.new("vim", "info")
 local ax = require("lib.ax")
+local nav = require("modules.nav")
 
 -- Kept at module scope so the watchers are not garbage collected.
 local appWatcher, keyTap
@@ -22,18 +23,24 @@ local function setup()
     vim:disableForApp("Obsidian")
     vim:disableForApp("Firefox Developer Edition")
 
-    -- Karabiner sends f17 then escape on a lone caps_lock tap. The tap sees both in order before any app:
-    -- f17 is always consumed (so it never leaks into disabled apps) and, when a text field has focus in
-    -- insert mode, enters normal mode and swallows the escape that follows so the app does not also act
-    -- on it (Slack closes a thread on escape). Otherwise the escape passes through as a plain escape.
+    -- Karabiner sends f17 then escape on a lone caps_lock tap; the tap sees both in order before any app.
+    -- f17 is always consumed. In a disabled app or while the spoon is already in normal/visual mode the
+    -- escape passes through untouched. In a text field: enter NORMAL and swallow the escape (Slack closes
+    -- a thread on escape). Anywhere else: toggle NAV and let the escape through so one tap still dismisses.
     local swallowEscape = false
     local f17, escape = hs.keycodes.map.f17, hs.keycodes.map.escape
     keyTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
         local key = event:getKeyCode()
         if key == f17 then
-            swallowEscape = vim.enabled and vim:isMode("insert") and ax.focusedTextField() and true or false
-            if swallowEscape then
-                vim:enter()
+            swallowEscape = false
+            if vim.enabled and vim:isMode("insert") then
+                if ax.focusedTextField() then
+                    nav.exit()
+                    vim:enter()
+                    swallowEscape = true
+                else
+                    nav.toggle()
+                end
             end
             return true
         end
@@ -44,10 +51,11 @@ local function setup()
     keyTap:start()
 
     -- The spoon only leaves normal mode on a focus change inside the app, and that observer fails for
-    -- Electron apps, so a stray normal mode would follow an app switch. Exit is a no-op in insert mode.
+    -- Electron apps, so a stray mode would follow an app switch. Both exits are no-ops when inactive.
     appWatcher = hs.application.watcher.new(function(_, event)
         if event == hs.application.watcher.activated then
             vim:exit()
+            nav.exit()
         end
     end)
     appWatcher:start()
