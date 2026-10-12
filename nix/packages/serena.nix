@@ -9,9 +9,13 @@ let
   # darwin, which nixpkgs does not package, failing the runtime-deps check.
   # Serena only needs `import webview` to succeed; its GUI log window is
   # unsupported on macOS, so the missing framework is never reached.
-  pywebview = python3Packages.pywebview.overridePythonAttrs {
+  pywebview = python3Packages.pywebview.overridePythonAttrs (old: {
     dontCheckRuntimeDeps = true;
-  };
+    # nixpkgs marks it broken on darwin, but the import Serena needs still builds.
+    meta = old.meta // {
+      broken = false;
+    };
+  });
 in
 python3Packages.buildPythonApplication rec {
   pname = "serena-agent";

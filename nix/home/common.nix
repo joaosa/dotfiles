@@ -327,10 +327,14 @@ in
         "--color=fg:#ebdbb2,header:#928374,info:#8ec07c,pointer:#fb4934"
         "--color=marker:#fb4934,fg+:#ebdbb2,prompt:#fb4934,hl+:#fb4934"
       ];
-      fileWidgetCommand = fdFiles;
-      fileWidgetOptions = [ "--preview-window right:50%" ];
-      changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-      changeDirWidgetOptions = [ "--preview 'ls -1 {}'" ];
+      fileWidget = {
+        command = fdFiles;
+        options = [ "--preview-window right:50%" ];
+      };
+      changeDirWidget = {
+        command = "fd --type d --hidden --follow --exclude .git";
+        options = [ "--preview 'ls -1 {}'" ];
+      };
     };
 
     direnv = {

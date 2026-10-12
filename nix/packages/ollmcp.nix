@@ -25,9 +25,10 @@ python3Packages.buildPythonApplication rec {
     typer
   ];
 
-  # Upstream pins rich <14.3 and typer ~=0.21; nixpkgs carries newer minor
-  # versions that are API-compatible for this client's usage.
+  # Upstream pins mcp <1.28, rich <14.3 and typer ~=0.21; nixpkgs carries newer
+  # minor versions that are API-compatible for this client's usage.
   pythonRelaxDeps = [
+    "mcp"
     "rich"
     "typer"
   ];
