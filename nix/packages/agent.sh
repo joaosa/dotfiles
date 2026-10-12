@@ -300,11 +300,12 @@ yaml_value() {
 cmd_doctor() {
   (($# == 0)) || die "usage: $DOCTOR_USAGE"
   local failures=0 config="$HOME/.colima/default/colima.yaml"
+  # report <status> <text>[|<fix>]: the fix is shown only on failure.
   report() {
     if (($1 == 0)); then
-      echo "ok    $2"
+      echo "ok    ${2%%|*}"
     else
-      echo "FAIL  $2"
+      if [[ "$2" == *"|"* ]]; then echo "FAIL  ${2%%|*} (${2#*|})"; else echo "FAIL  $2"; fi
       failures=$((failures + 1))
     fi
   }
@@ -328,24 +329,24 @@ cmd_doctor() {
 
   check "devcontainer CLI installed" command -v devcontainer
   [[ ! -e /run/current-system ]] \
-    || check "latest system generation is active (else rerun make switch)" same_generation
+    || check "latest system generation is active|rerun make switch" same_generation
   [[ -r "$config" ]] || report 1 "colima config readable: $config"
 
   local vm location mounts
   if ! vm="$(colima list --json 2>/dev/null)" || [[ "$(jq -r .status <<<"$vm")" != Running ]]; then
-    report 1 "colima VM running (start it with: colima start --ssh-agent)"
+    report 1 "colima VM running|colima start --ssh-agent"
   else
     report 0 "colima VM running"
-    check "VM resources match colima.yaml (restart colima after changing them)" vm_resources_match "$vm"
+    check "VM resources match colima.yaml|restart colima after changing them" vm_resources_match "$vm"
     mounts="$(colima ssh -- mount 2>/dev/null | awk '$5 == "virtiofs" { print $3 }')"
     while read -r location; do
       location="${location/#\~/$HOME}"
-      check "VM mounts $location (restart colima after changing mounts)" grep -qxF -- "$location" <<<"$mounts"
+      check "VM mounts $location|restart colima after changing mounts" grep -qxF -- "$location" <<<"$mounts"
     done < <(sed -n 's/^[[:space:]]*-[[:space:]]*location:[[:space:]]*//p' "$config" 2>/dev/null)
-    check "host ~/.ssh hidden from the VM" ssh_hidden
-    check "SSH agent socket forwarded into the VM" colima ssh -- test -S "$AGENT_SOCK"
+    check "host ~/.ssh hidden from the VM|drop it from the colima.yaml mounts" ssh_hidden
+    check "SSH agent socket forwarded into the VM|colima stop && colima start --ssh-agent" colima ssh -- test -S "$AGENT_SOCK"
   fi
-  check "signing key loaded in ssh-agent (agent fleet loads it on launch)" signing_key_loaded
+  check "signing key loaded in ssh-agent|agent fleet loads it on launch" signing_key_loaded
 
   # Optional secrets, so only warn; without -w they are never read.
   local service

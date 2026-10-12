@@ -147,7 +147,8 @@ called "docker stop c1 c2"
 expect 0 "no agent containers" -- stop acme
 
 # Doctor: optional secrets warn, mismatches fail.
-expect 1 "FAIL  VM mounts $HOME/sandbox" -- doctor
+expect 1 "FAIL  VM mounts $HOME/sandbox (restart colima after changing mounts)" -- doctor
+has "ok    colima VM running"$'\n'
 has "ok    VM resources match colima.yaml"
 has "ok    VM mounts $HOME/ghq"
 has "ok    host ~/.ssh hidden from the VM"
@@ -156,7 +157,10 @@ has "ok    signing key loaded"
 has "ok    keychain item svc-alt"
 has "warn  keychain item codex-api-key missing"
 has "1 check(s) failed"
-VM_CPUS=2 expect 1 "FAIL  VM resources match colima.yaml" -- doctor
+mv "$HOME/.colima/default/colima.yaml" "$work/colima.yaml"
+expect 1 "FAIL  colima config readable: $HOME/.colima/default/colima.yaml"$'\n' -- doctor
+mv "$work/colima.yaml" "$HOME/.colima/default/colima.yaml"
+VM_CPUS=2 expect 1 "FAIL  VM resources match colima.yaml (restart colima after changing them)" -- doctor
 
 if ((fails)); then
   echo "$fails agent test(s) failed" >&2
