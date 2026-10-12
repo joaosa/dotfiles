@@ -78,4 +78,16 @@
   fonts.packages = [
     (pkgs.callPackage ../packages/sauce-code-pro-legacy-glyphs.nix { })
   ];
+
+  # fontd keeps resolving families to font files the fonts rsync deleted and
+  # only rescans on restart (atsutil is gone since macOS 14; the launchd label
+  # is com.apple.xtyped). /run/current-system is still the previous generation
+  # at this point, so the comparison only fires when the fonts closure changed.
+  system.activationScripts.postActivation.text = ''
+    if [ "$(readlink -f /run/current-system/Library/Fonts)" != "$(readlink -f "$systemConfig/Library/Fonts")" ]; then
+      printf >&2 'fonts changed, restarting fontd for ${username}...\n'
+      launchctl kickstart -k "gui/$(id -u ${username})/com.apple.xtyped" \
+        || printf >&2 'could not restart fontd; relaunch GUI apps once logged in\n'
+    fi
+  '';
 }
