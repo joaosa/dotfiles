@@ -17,6 +17,8 @@ local function setup()
     end
 
     local vim = VimMode:new()
+    -- A reload fires no activation for the app already in front.
+    ax.wake(hs.application.frontmostApplication())
 
     -- Apps with native vim bindings; the spoon's app watcher clears vim.enabled while they are frontmost.
     vim:disableForApp("Alacritty")
@@ -54,10 +56,13 @@ local function setup()
 
     -- The spoon only leaves normal mode on a focus change inside the app, and that observer fails for
     -- Electron apps, so a stray mode would follow an app switch. Both exits are no-ops when inactive.
-    appWatcher = hs.application.watcher.new(function(_, event)
+    appWatcher = hs.application.watcher.new(function(_, event, app)
         if event == hs.application.watcher.activated then
             vim:exit()
             nav.exit()
+        end
+        if event == hs.application.watcher.activated or event == hs.application.watcher.launched then
+            ax.wake(app)
         end
     end)
     appWatcher:start()

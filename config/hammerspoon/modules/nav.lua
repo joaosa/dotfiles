@@ -8,6 +8,7 @@ local keys = require("config.keybindings")
 local altCmd = keys.altCmd
 
 local ax = require("hs.axuielement")
+local axlib = require("lib.ax")
 local log = hs.logger.new("element-hints", "info")
 
 local HINT_CHARS = "asdfghjklqwertyuiopzxcvbnm"
@@ -173,10 +174,7 @@ local function showHints()
         return 0
     end
 
-    -- Wake up accessibility trees in Electron apps before walking
-    local app = win:application()
-    local appEl = ax.applicationElement(app)
-    pcall(function() appEl:setAttributeValue("AXManualAccessibility", true) end)
+    axlib.wake(win:application())
 
     local started = hs.timer.secondsSinceEpoch()
     local winFrame = hs.geometry(win:frame())
@@ -212,8 +210,6 @@ end
 -----------------------------------------------
 -- NAV modal
 -----------------------------------------------
-
-local ax = require("lib.ax")
 
 local BADGE = { w = 125, h = 25 }
 
@@ -313,7 +309,7 @@ local function stroke(mods, key) hs.eventtap.keyStroke(mods, key, 0) end
 -- on a still-enabled hotkey cancels it, so exiting the modal synchronously leaks repeats into the field.
 local function action(mods, key, fn)
     return function()
-        if ax.focusedTextField() then
+        if axlib.focusedTextField() then
             hs.timer.doAfter(0, function()
                 exit()
                 stroke(mods, key)
