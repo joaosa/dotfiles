@@ -121,6 +121,31 @@
             deadnix --fail ${nixSrc}
             touch $out
           '';
+          # Runs `agent` against stub host tools; ShellCheck covers the script itself.
+          agent =
+            let
+              agent = pkgs.callPackage ./nix/packages/agent.nix {
+                devc = pkgs.callPackage ./nix/packages/devc.nix { };
+                dotfilesPath = "/dotfiles";
+                profiles = {
+                  main = "svc-main";
+                  alt = "svc-alt";
+                };
+                defaultProfile = "main";
+              };
+            in
+            pkgs.runCommand "agent-test"
+              {
+                nativeBuildInputs = [
+                  pkgs.git
+                  pkgs.shellcheck
+                ];
+              }
+              ''
+                shellcheck ${./nix/packages/agent-test.sh}
+                bash ${./nix/packages/agent-test.sh} ${lib.getExe agent}
+                touch $out
+              '';
         }
       );
 

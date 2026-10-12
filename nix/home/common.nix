@@ -18,8 +18,7 @@ let
     inherit pkgs;
   };
   qwen3AsrModel = import ./qwen3-asr.nix { inherit pkgs; };
-  # Same derivation that puts `devc` on PATH; used below to locate its bundled
-  # container templates (Dockerfile/post_install.py/.zshrc) by store path.
+  # Same derivation that puts `devc` on PATH; `agent` stages its templates.
   devc = pkgs.callPackage ../packages/devc.nix { };
   fdFiles = "fd --type f --hidden --follow --exclude .git";
   # Config files for cross-platform tools, symlinked out-of-store from this repo
@@ -150,6 +149,11 @@ let
   # cc<first letter> per profile: ccm/cca — the only launchers; no bare `cc`,
   # which would shadow the C compiler. Kept next to claudeProfileDirs so a
   # profile rename can't leave a stale alias behind.
+  agent = pkgs.callPackage ../packages/agent.nix {
+    inherit devc dotfilesPath;
+    profiles = claudeProfileKeychainServices;
+    defaultProfile = claudeDefaultProfile;
+  };
   claudeProfileAliases = lib.mapAttrs' (
     profile: _: lib.nameValuePair "cc${lib.substring 0 1 profile}" "_claude_launch ${profile}"
   ) claudeProfileDirs;
@@ -158,7 +162,7 @@ in
   xdg.enable = true;
 
   home = {
-    packages = homePackages;
+    packages = homePackages ++ [ agent ];
 
     sessionPath = [
       "${homeDir}/.local/bin"
@@ -560,258 +564,6 @@ in
             done
           done
 
-          # Agent devcontainers use trusted configs staged outside each checkout.
-          # Repository-owned .devcontainer files are never read, overwritten, or
-          # followed as symlinks by these wrappers.
-          _agent_devcontainer_preflight() {
-            command -v devcontainer &>/dev/null \
-              || { echo "devcontainer CLI not installed (run make switch)" >&2; return 1; }
-            colima status &>/dev/null || colima start --ssh-agent
-          }
-
-          _agent_devcontainer_stage() {
-            local profile="$1"
-            local cache="${homeDir}/.cache"
-            local root="$cache/agent-devcontainer"
-            local stage="$root/$profile"
-            # Not `path`: zsh ties that name to $PATH, so a plain `local path`
-            # loop would clobber PATH and make mkdir/install unresolvable.
-            local p file
-
-            for p in "$cache" "$root" "$stage"; do
-              [[ ! -L "$p" ]] \
-                || { echo "refusing symlinked agent cache path: $p" >&2; return 1; }
-              if [[ -e "$p" ]]; then
-                [[ -d "$p" && -O "$p" ]] \
-                  || { echo "agent cache path is not an owned directory: $p" >&2; return 1; }
-              else
-                mkdir "$p" || return 1
-              fi
-            done
-
-            for file in ${lib.concatStringsSep " " devc.templateFiles}; do
-              [[ ! -L "$stage/$file" ]] \
-                || { echo "refusing symlinked staged file: $stage/$file" >&2; return 1; }
-              install -m0644 "${devc}/share/agent-devcontainer/$file" "$stage/$file" || return 1
-            done
-            [[ ! -L "$stage/devcontainer.json" ]] \
-              || { echo "refusing symlinked staged config: $stage/devcontainer.json" >&2; return 1; }
-            install -m0644 \
-              "${devc}/share/agent-devcontainer/$profile.devcontainer.json" \
-              "$stage/devcontainer.json" || return 1
-            print -r -- "$stage/devcontainer.json"
-          }
-
-          # Export one keychain-held credential into the fleet container, or
-          # unset it and say so.
-          _agent_devcontainer_export_secret() {
-            local var="$1" service="$2" agent="$3" secret
-            secret=$(security find-generic-password -a "$USER" -s "$service" -w 2>/dev/null)
-            if [[ "''${#secret}" -ge 20 ]]; then
-              export "$var=$secret"
-            else
-              unset "$var"
-              echo "$agent keychain secret missing or malformed ($service); use interactive login in the fleet container" >&2
-            fi
-          }
-
-          _agent_devcontainer_launch() {
-            local dir="$1" profile="$2" rebuild="''${3:-0}"
-            local claude_profile="''${4:-}" claude_service="''${5:-}" config
-            local identity_profile="$profile"
-            local -a account_identity_args identity_args up_args
-            # Docker binds an unmounted source as an empty VM dir; fail instead.
-            colima ssh -- test -d "$dir" &>/dev/null \
-              || { echo "workspace not mounted in the Colima VM (see colima.yaml mounts): $dir" >&2; return 1; }
-            config="$(_agent_devcontainer_stage "$profile")" || return 1
-
-            # Preserve the pre-multi-account identity for main. Every other
-            # Claude profile gets a distinct profile value as well as an
-            # account label. The distinct value matters: a lookup for the two
-            # legacy main labels must not also match an alt container carrying
-            # those same labels plus one more. devcontainerId is a hash of the
-            # full label set, so all named volumes are isolated too.
-            if [[ -n "$claude_profile" && "$claude_profile" != ${claudeDefaultProfile} ]]; then
-              identity_profile="$profile-$claude_profile"
-              account_identity_args=(
-                --id-label "agent.devcontainer.claude-profile=$claude_profile"
-              )
-            fi
-            identity_args=(
-              --id-label "devcontainer.local_folder=$dir"
-              --id-label "agent.devcontainer.profile=$identity_profile"
-              "''${account_identity_args[@]}"
-            )
-            if [[ "$rebuild" == 1 ]]; then
-              up_args+=(--remove-existing-container)
-            fi
-
-            (
-              export DOTFILES_PATH="${dotfilesPath}"
-              if [[ "$profile" == audit ]]; then
-                unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
-                unset OPENAI_API_KEY CODEX_API_KEY AGENT_CLAUDE_PROFILE
-              else
-                export AGENT_CLAUDE_PROFILE="$claude_profile"
-                # Anthropic API credentials outrank CLAUDE_CODE_OAUTH_TOKEN;
-                # do not let ambient host state defeat the explicit account.
-                unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
-                _agent_devcontainer_export_secret \
-                  CLAUDE_CODE_OAUTH_TOKEN "$claude_service" "Claude ($claude_profile)"
-                _agent_devcontainer_export_secret \
-                  CODEX_API_KEY codex-api-key Codex
-              fi
-
-              cd "$dir" || return 1
-              devcontainer up \
-                --workspace-folder "$dir" \
-                --config "$config" \
-                "''${identity_args[@]}" \
-                "''${up_args[@]}" \
-                || return 1
-              devcontainer exec \
-                --workspace-folder "$dir" \
-                --config "$config" \
-                "''${identity_args[@]}" \
-                zsh
-            )
-          }
-
-          # Fleet .git changes run under host Git; detect them before launch and on exit.
-          _agent_fleet_dir() {
-            local org="$1"
-            [[ -n "$org" && "$org" != *[^A-Za-z0-9._-]* && "$org" != . && "$org" != .. ]] \
-              || { echo "org must be one safe path component: $org" >&2; return 1; }
-            local fleet_dir="${homeDir}/ghq/github.com/$org"
-            [[ -d "$fleet_dir" && ! -L "$fleet_dir" ]] \
-              || { echo "no safe org directory: $fleet_dir" >&2; return 1; }
-            print -r -- "$fleet_dir"
-          }
-
-          _agent_fleet_git_guard() {
-            local action="$1" org="$2" fleet_dir rc
-            fleet_dir="$(_agent_fleet_dir "$org")" || return 1
-            ${devc}/libexec/devc-git-guard "$action" "$fleet_dir" \
-              "${homeDir}/.local/state/agent-devcontainer/git-guard/$org.json"
-            rc=$?
-            (( rc != 1 )) \
-              || echo "If you made these changes yourself, accept them with: agent trust $org" >&2
-            return "$rc"
-          }
-
-          _agent_trust() {
-            (( $# == 1 )) || { echo "usage: agent trust <org>" >&2; return 1; }
-            _agent_fleet_git_guard accept "$1"
-          }
-
-          # One trusted container over every repository in an organization. It
-          # carries both Claude and Codex, profile-specific login volumes, gh
-          # auth, and the forwarded signing agent. Only use this over
-          # organizations you trust.
-          _agent_fleet() {
-            local rebuild=0 claude_profile=${claudeDefaultProfile}
-            local usage="usage: agent fleet [--rebuild] [--alt | -p <profile>] <org>"
-            while (( $# )); do
-              case "$1" in
-                --rebuild)
-                  rebuild=1
-                  shift
-                  ;;
-                --alt)
-                  claude_profile=alt
-                  shift
-                  ;;
-                -p | --profile)
-                  (( $# >= 2 )) \
-                    || { echo "$usage" >&2; return 1; }
-                  claude_profile="$2"
-                  shift 2
-                  ;;
-                --)
-                  shift
-                  break
-                  ;;
-                -*)
-                  echo "unknown agent fleet option: $1" >&2
-                  echo "$usage" >&2
-                  return 1
-                  ;;
-                *)
-                  break
-                  ;;
-              esac
-            done
-
-            (( $# == 1 )) || { echo "$usage" >&2; return 1; }
-            [[ -n "$claude_profile" && "$claude_profile" != *[^A-Za-z0-9_-]* ]] \
-              || { echo "invalid Claude profile: $claude_profile" >&2; return 1; }
-            local claude_service="''${CLAUDE_PROFILE_KEYCHAIN_SERVICES[$claude_profile]:-}"
-            [[ -n "$claude_service" ]] \
-              || { echo "unknown Claude profile '$claude_profile' (use ${lib.concatStringsSep "|" (lib.attrNames claudeProfiles)})" >&2; return 1; }
-
-            local org="$1" fleet_dir rc
-            fleet_dir="$(_agent_fleet_dir "$org")" || return 1
-
-            _agent_devcontainer_preflight || return 1
-            local signing_key="${homeDir}/.ssh/id_ed25519"
-            ssh-add --apple-load-keychain 2>/dev/null
-            ssh-add "$signing_key" 2>/dev/null \
-              || { echo "could not load signing key: $signing_key" >&2; return 1; }
-            colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
-              || { echo "colima has no SSH agent socket; run: colima stop && agent fleet $org" >&2; return 1; }
-            _agent_fleet_git_guard check "$org"
-            _agent_devcontainer_launch \
-              "$fleet_dir" fleet "$rebuild" "$claude_profile" "$claude_service"
-            rc=$?
-            _agent_fleet_git_guard check "$org"
-            return "$rc"
-          }
-
-          # Per-repository audit containers receive no host AI/API credentials or
-          # SSH agent. URL destinations are validated and created by the pinned
-          # helper, and the trusted config lives outside the checkout.
-          _agent_audit() {
-            local target="$1" dir
-            (( $# == 1 )) \
-              || { echo "usage: agent audit <repo-path-or-url>" >&2; return 1; }
-            if [[ "$target" == *://* || "$target" == *@*:* ]]; then
-              dir="$(${devc}/libexec/devc-audit-slug --prepare "${homeDir}/sandbox/audit" "$target")" \
-                || return 1
-            else
-              # Reject a symlinked target on the raw path: `:A` resolves
-              # symlinks, so testing -L after it would always pass.
-              [[ ! -L "$target" ]] \
-                || { echo "refusing symlinked target: $target" >&2; return 1; }
-              dir="''${target:A}"
-              [[ -d "$dir" && ! -L "$dir" ]] \
-                || { echo "no safe directory: $dir" >&2; return 1; }
-              [[ -d "$dir/.git" ]] \
-                || { echo "not a git checkout (audit mounts .git read-only): $dir" >&2; return 1; }
-            fi
-
-            _agent_devcontainer_preflight || return 1
-            echo "Audit profile: no host AI/API credentials or SSH agent are forwarded." >&2
-            echo "Use 'codex login --device-auth' or interactive Claude login inside this isolated container." >&2
-            _agent_devcontainer_launch "$dir" audit
-          }
-
-          # Single entry point for the devcontainer profiles.
-          agent() {
-            local cmd="''${1:-}"
-            (( $# )) && shift
-            case "$cmd" in
-              fleet) _agent_fleet "$@" ;;
-              trust) _agent_trust "$@" ;;
-              audit) _agent_audit "$@" ;;
-              *)
-                echo "usage: agent fleet [--rebuild] [--alt | -p <profile>] <org>" >&2
-                echo "       agent trust <org>" >&2
-                echo "       agent audit <repo-path-or-url>" >&2
-                return 1
-                ;;
-            esac
-          }
-
           # Multi-account Claude Code: each profile is an isolated
           # CLAUDE_CONFIG_DIR, so credentials and session state never cross
           # accounts. Shared config (CLAUDE.md/commands/agents/skills) is
@@ -829,11 +581,6 @@ in
           typeset -gA CLAUDE_PROFILES=(${
             lib.concatStringsSep " " (
               lib.mapAttrsToList (profile: dir: "${profile} \"${dir}\"") claudeProfileDirs
-            )
-          })
-          typeset -gA CLAUDE_PROFILE_KEYCHAIN_SERVICES=(${
-            lib.concatStringsSep " " (
-              lib.mapAttrsToList (profile: service: "${profile} \"${service}\"") claudeProfileKeychainServices
             )
           })
 
