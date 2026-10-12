@@ -3,17 +3,10 @@
 -----------------------------------------------
 
 local log = hs.logger.new("vim", "info")
-
--- Roles VimMode.spoon's own axUtils.isTextField treats as editable text.
-local textRoles = { AXTextField = true, AXTextArea = true, AXComboBox = true }
+local ax = require("lib.ax")
 
 -- Kept at module scope so the watchers are not garbage collected.
 local appWatcher, keyTap
-
-local function focusedTextField()
-    local element = hs.axuielement.systemWideElement():attributeValue("AXFocusedUIElement")
-    return element and textRoles[element:attributeValue("AXRole")]
-end
 
 local function setup()
     local ok, VimMode = pcall(hs.loadSpoon, "VimMode")
@@ -38,7 +31,7 @@ local function setup()
     keyTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
         local key = event:getKeyCode()
         if key == f17 then
-            swallowEscape = vim.enabled and vim:isMode("insert") and focusedTextField() and true or false
+            swallowEscape = vim.enabled and vim:isMode("insert") and ax.focusedTextField() and true or false
             if swallowEscape then
                 vim:enter()
             end
