@@ -8,11 +8,22 @@
 cpu: 8
 memory: 32
 disk: 100
+# colima treats a config without runtime as empty and silently uses defaults.
+runtime: docker
 
 vmType: vz
 rosetta: true
 mountType: virtiofs
 mountInotify: true
+
+# Only devcontainer bind sources, so a VM escape cannot reach ~/.ssh or rc files.
+mounts:
+  - location: ~/ghq
+    writable: true
+  - location: ~/sandbox
+    writable: true
+  - location: ~/.claude-shared/skills
+    writable: false
 
 # Forward the host SSH agent into the VM; lima pins it at
 # /run/host-services/ssh-auth.sock, which the fleet devcontainer mounts for

@@ -616,6 +616,9 @@ in
             local claude_profile="''${4:-}" claude_service="''${5:-}" config
             local identity_profile="$profile"
             local -a account_identity_args identity_args up_args
+            # Docker binds an unmounted source as an empty VM dir; fail instead.
+            colima ssh -- test -d "$dir" &>/dev/null \
+              || { echo "workspace not mounted in the Colima VM (see colima.yaml mounts): $dir" >&2; return 1; }
             config="$(_agent_devcontainer_stage "$profile")" || return 1
 
             # Preserve the pre-multi-account identity for main. Every other

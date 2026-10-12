@@ -246,6 +246,15 @@ devcontainer as its external sandbox in every profile — its nested Bubblewrap
 sandbox, which would need `SYS_ADMIN`, `SYS_PTRACE`, and an unconfined seccomp
 profile, stays disabled — and audit retains its approval prompts.
 
+Docker runs inside the Colima VM, so a container escape lands in the VM's Linux
+rather than on macOS. [`config/colima/colima.yaml`](./config/colima/colima.yaml)
+replaces Colima's default read-write home mount with only the devcontainer bind
+sources, so `~/.ssh` and shell rc files are never shared with the VM; fleet
+binds the signing pubkey from `config/git/id_ed25519.pub`. This applies to all
+Docker use: a host path outside those mounts binds as an empty VM directory,
+which the wrappers detect and refuse for their workspaces. Mount changes need
+`colima stop && colima start`.
+
 The firewall is defense in depth, not a substitute for the container boundary
 or reviewing requested approvals. Extend the domain lists in
 [`nix/packages/devc.nix`](./nix/packages/devc.nix) when a project legitimately
