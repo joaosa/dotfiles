@@ -115,35 +115,21 @@ rather than Cargo's install registry or this flake. Those symlinks live in
 
 The pinned Trail of Bits `devc` CLI is paired with repo-owned templates under
 [`config/agent-devcontainer`](./config/agent-devcontainer). The image contains
-both Claude Code and Codex; `agent-*` is the canonical wrapper and the
-`claude-*` / `codex-*` names are compatibility aliases:
+both Claude Code and Codex, and `agent` is the single entry point:
 
 ```bash
-agent-fleet <org>                              # trusted org, main Claude account
-agent-fleet --claude-profile alt <org>         # same org, isolated alt-account container
-agent-fleet-rebuild [--claude-profile alt] <org>
-agent-fleet-trust <org>                        # accept reviewed .git hook/config changes
-agent-audit <repo-path-or-url>                 # untrusted repo: isolated logins, strict egress
-
-claude-fleet <org>                 # aliases of agent-fleet
-codex-fleet <org>
-claude-audit <repo-path-or-url>    # aliases of agent-audit
-codex-audit <repo-path-or-url>
+agent fleet <org>              # trusted org, main Claude account
+agent fleet --alt <org>        # same org, isolated alt-account container
+agent fleet -p <profile> <org> # any profile from claudeProfiles
+agent trust <org>              # accept reviewed .git hook/config changes
+agent audit <repo-path-or-url> # untrusted repo: isolated logins, strict egress
 ```
 
-After changing the devcontainer image or its allowlist, rebuild from the host:
-
-```bash
-make devc-rebuild ORG=<org>                       # main
-make devc-rebuild ORG=<org> CLAUDE_PROFILE=alt    # alt
-```
-
-This applies the current Nix configuration, removes only the matching fleet
+After changing the devcontainer image or its allowlist, run `make switch`, then
+`agent fleet --rebuild [--alt] <org>`. That removes only the matching fleet
 container, rebuilds it using Docker's layer cache, and opens a shell in the new
 container. Named history and login volumes are preserved; changes made only to
-the old container filesystem are discarded. If the current configuration is
-already activated, `agent-fleet-rebuild [--claude-profile alt] <org>` is the
-lower-level equivalent.
+the old container filesystem are discarded.
 
 Wrappers stage the trusted Dockerfile and profile in
 `~/.cache/agent-devcontainer`, outside the checkout, then pass the config path
@@ -156,13 +142,13 @@ across that organization and forwards the host SSH agent for commit signing.
 Its checkouts are read-write on the host too, so anything the agent writes into
 a `.git` — hooks, exec-capable config such as `core.fsmonitor`, a `commondir`
 redirect — runs under host Git as you. Mounts cannot prevent that while the
-agent can still commit, so `agent-fleet` detects it instead: before launch and
+agent can still commit, so `agent fleet` detects it instead: before launch and
 when the container shell exits, it compares each repository's executable Git
 state against a baseline and warns until you inspect and run
-`agent-fleet-trust <org>`. Changes you make yourself, such as
+`agent trust <org>`. Changes you make yourself, such as
 `pre-commit install`, need the same acceptance. The container outlives the
 shell, so anything still running in it (a backgrounded agent, a second
-`agent-fleet` shell) can write after the exit check; host Git run meanwhile,
+`agent fleet` shell) can write after the exit check; host Git run meanwhile,
 including from an IDE or prompt, is not covered.
 Its `main` and `alt` Claude profiles use different containers and named volumes,
 so credentials, onboarding state, and histories stay isolated. `main` remains
@@ -266,8 +252,8 @@ from a root-owned file the agent cannot rewrite.
 The package that stages these templates lives in
 [`nix/packages/devc.nix`](./nix/packages/devc.nix). The pinned `CODEX_VERSION`
 lives in the Dockerfile.
-Use `make switch` to install updates. The `agent-fleet` and `agent-audit`
-wrappers are the only entry points; a bare `devc` is a guard that refuses to run
+Use `make switch` to install updates. The `agent` wrapper is the only
+entry point; a bare `devc` is a guard that refuses to run
 so upstream's unsafe `up` / `template` / `self-install` / `update` subcommands
 cannot be invoked.
 

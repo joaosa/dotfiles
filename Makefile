@@ -43,9 +43,3 @@ hooks:
 	$(NIX) develop -c prek install
 	$(NIX) develop -c prek install --hook-type pre-push
 
-## devc-rebuild: Apply config, rebuild fleet, and enter it (ORG=<org> [CLAUDE_PROFILE=main|alt])
-.PHONY: devc-rebuild
-devc-rebuild:
-	@test -n "$$ORG" || { echo "usage: make devc-rebuild ORG=<github-org>" >&2; exit 2; }
-	$(MAKE) switch
-	zsh -lic 'agent-fleet-rebuild --claude-profile "$$CLAUDE_PROFILE" "$$ORG"'

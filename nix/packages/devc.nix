@@ -7,7 +7,7 @@
 # Repo-owned Claude Code + Codex devcontainer templates, adapted from Trail of
 # Bits' claude-code-devcontainer. Upstream's self-installing `devc` CLI is not
 # shipped: its subcommands read a repo's own .devcontainer and escape the pin,
-# and the agent-fleet/agent-audit wrappers use the templates directly. This
+# and the `agent` wrapper uses the templates directly. This
 # derivation only stages the audited templates and helpers into the store and
 # installs a guard as `devc`, making `make switch` the only install/update path.
 let

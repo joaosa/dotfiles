@@ -695,12 +695,12 @@ in
               "${homeDir}/.local/state/agent-devcontainer/git-guard/$org.json"
             rc=$?
             (( rc != 1 )) \
-              || echo "If you made these changes yourself, accept them with: agent-fleet-trust $org" >&2
+              || echo "If you made these changes yourself, accept them with: agent trust $org" >&2
             return "$rc"
           }
 
-          agent-fleet-trust() {
-            (( $# == 1 )) || { echo "usage: agent-fleet-trust <org>" >&2; return 1; }
+          _agent_trust() {
+            (( $# == 1 )) || { echo "usage: agent trust <org>" >&2; return 1; }
             _agent_fleet_git_guard accept "$1"
           }
 
@@ -708,31 +708,31 @@ in
           # carries both Claude and Codex, profile-specific login volumes, gh
           # auth, and the forwarded signing agent. Only use this over
           # organizations you trust.
-          agent-fleet() {
+          _agent_fleet() {
             local rebuild=0 claude_profile=${claudeDefaultProfile}
-            local usage="usage: agent-fleet [--rebuild] [--claude-profile <profile>] <org>"
+            local usage="usage: agent fleet [--rebuild] [--alt | -p <profile>] <org>"
             while (( $# )); do
               case "$1" in
                 --rebuild)
                   rebuild=1
                   shift
                   ;;
-                --claude-profile)
+                --alt)
+                  claude_profile=alt
+                  shift
+                  ;;
+                -p | --profile)
                   (( $# >= 2 )) \
                     || { echo "$usage" >&2; return 1; }
                   claude_profile="$2"
                   shift 2
-                  ;;
-                --claude-profile=*)
-                  claude_profile="''${1#*=}"
-                  shift
                   ;;
                 --)
                   shift
                   break
                   ;;
                 -*)
-                  echo "unknown agent-fleet option: $1" >&2
+                  echo "unknown agent fleet option: $1" >&2
                   echo "$usage" >&2
                   return 1
                   ;;
@@ -758,7 +758,7 @@ in
             ssh-add "$signing_key" 2>/dev/null \
               || { echo "could not load signing key: $signing_key" >&2; return 1; }
             colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
-              || { echo "colima has no SSH agent socket; run: colima stop && agent-fleet $org" >&2; return 1; }
+              || { echo "colima has no SSH agent socket; run: colima stop && agent fleet $org" >&2; return 1; }
             _agent_fleet_git_guard check "$org"
             _agent_devcontainer_launch \
               "$fleet_dir" fleet "$rebuild" "$claude_profile" "$claude_service"
@@ -767,17 +767,13 @@ in
             return "$rc"
           }
 
-          agent-fleet-rebuild() { agent-fleet --rebuild "$@"; }
-          claude-fleet() { agent-fleet "$@"; }
-          codex-fleet() { agent-fleet "$@"; }
-
           # Per-repository audit containers receive no host AI/API credentials or
           # SSH agent. URL destinations are validated and created by the pinned
           # helper, and the trusted config lives outside the checkout.
-          agent-audit() {
+          _agent_audit() {
             local target="$1" dir
-            [[ -n "$target" ]] \
-              || { echo "usage: agent-audit <repo-path-or-url>" >&2; return 1; }
+            (( $# == 1 )) \
+              || { echo "usage: agent audit <repo-path-or-url>" >&2; return 1; }
             if [[ "$target" == *://* || "$target" == *@*:* ]]; then
               dir="$(${devc}/libexec/devc-audit-slug --prepare "${homeDir}/sandbox/audit" "$target")" \
                 || return 1
@@ -799,8 +795,22 @@ in
             _agent_devcontainer_launch "$dir" audit
           }
 
-          claude-audit() { agent-audit "$@"; }
-          codex-audit() { agent-audit "$@"; }
+          # Single entry point for the devcontainer profiles.
+          agent() {
+            local cmd="''${1:-}"
+            (( $# )) && shift
+            case "$cmd" in
+              fleet) _agent_fleet "$@" ;;
+              trust) _agent_trust "$@" ;;
+              audit) _agent_audit "$@" ;;
+              *)
+                echo "usage: agent fleet [--rebuild] [--alt | -p <profile>] <org>" >&2
+                echo "       agent trust <org>" >&2
+                echo "       agent audit <repo-path-or-url>" >&2
+                return 1
+                ;;
+            esac
+          }
 
           # Multi-account Claude Code: each profile is an isolated
           # CLAUDE_CONFIG_DIR, so credentials and session state never cross
