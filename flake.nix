@@ -121,6 +121,15 @@
             deadnix --fail ${nixSrc}
             touch $out
           '';
+          # colima treats a config without runtime as empty and boots defaults,
+          # and reuses missing numerics as 0 for an existing VM.
+          colima-config = pkgs.runCommand "colima-config" { } ''
+            for key in cpu memory disk runtime; do
+              grep -q "^$key:" ${./config/colima/colima.yaml} \
+                || { echo "config/colima/colima.yaml must set $key" >&2; exit 1; }
+            done
+            touch $out
+          '';
           # Runs `agent` against stub host tools; ShellCheck covers the script itself.
           agent =
             let

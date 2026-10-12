@@ -4,12 +4,6 @@ NIX := /nix/var/nix/profiles/default/bin/nix --extra-experimental-features "nix-
 NIX_ENV := /nix/var/nix/profiles/default/bin/nix-env
 # Host entry from flake.nix to build/switch; override with `make switch HOST=...`
 HOST ?= Mac
-# GitHub organization mounted by the fleet devcontainer targets.
-ORG ?=
-export ORG
-# Claude account profile selected for the fleet devcontainer.
-CLAUDE_PROFILE ?= main
-export CLAUDE_PROFILE
 
 .DEFAULT_GOAL := help
 
@@ -30,6 +24,18 @@ switch:
 .PHONY: build
 build:
 	$(NIX) build .#darwinConfigurations.$(HOST).system --no-link
+
+## update: Update flake inputs, restoring the old lock if the system stops building
+.PHONY: update
+update:
+	@cp flake.lock flake.lock.bak
+	@if $(NIX) flake update && $(MAKE) build; then \
+		rm flake.lock.bak; \
+	else \
+		mv flake.lock.bak flake.lock; \
+		echo "flake update broke the build; flake.lock restored" >&2; \
+		exit 1; \
+	fi
 
 ## check: Run flake checks and formatting check
 .PHONY: check
