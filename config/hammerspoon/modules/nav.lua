@@ -345,6 +345,35 @@ nav.modal:bind({}, "escape", function()
     stroke({}, "escape")
 end)
 
+-- gg jumps to top; g alone waits 500 ms for the second g.
+bind({}, "g", function()
+    if nav.pendingG then
+        clearPendingG()
+        stroke({ "cmd" }, "up")
+        return
+    end
+    nav.pendingG = true
+    nav.pendingGTimer = hs.timer.doAfter(0.5, clearPendingG)
+end)
+bind({ "shift" }, "g", function() stroke({ "cmd" }, "down") end)
+bind({ "shift" }, "h", function() stroke({ "cmd" }, "[") end)
+bind({ "shift" }, "l", function() stroke({ "cmd" }, "]") end)
+bind({ "shift" }, "j", function() stroke({ "ctrl", "shift" }, "tab") end)
+bind({ "shift" }, "k", function() stroke({ "ctrl" }, "tab") end)
+bind({}, "r", function() stroke({ "cmd" }, "r") end)
+bind({}, "x", function() stroke({ "cmd" }, "w") end)
+bind({}, "t", function() stroke({ "cmd" }, "t") end)
+-- Find moves focus into a field, so leave NAV first.
+bind({}, "/", function()
+    exit()
+    stroke({ "cmd" }, "f")
+end)
+-- Hints run their own consuming tap; never keep both live.
+bind({}, "f", function()
+    exit()
+    showHints()
+end)
+
 local function setup() hs.hotkey.bind(altCmd, ".", showHints) end
 
 return {
