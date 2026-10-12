@@ -9,7 +9,7 @@ local altCmd = keys.altCmd
 
 local ax = require("hs.axuielement")
 local axlib = require("lib.ax")
-local log = hs.logger.new("element-hints", "info")
+local log = hs.logger.new("nav", "info")
 
 local HINT_CHARS = "asdfghjklqwertyuiopzxcvbnm"
 -- Traversal budget so huge accessibility trees (Electron) stay responsive
@@ -332,7 +332,7 @@ local function action(mods, key, fn)
             end)
             return
         end
-        if key ~= "g" then
+        if key ~= "g" or #mods > 0 then
             clearPendingG()
         end
         fn()
