@@ -27,8 +27,9 @@ local function setup()
 
     -- Karabiner sends f17 then escape on a lone caps_lock tap; the tap sees both in order before any app.
     -- f17 is always consumed. In a disabled app or while the spoon is already in normal/visual mode the
-    -- escape passes through untouched. In a text field: enter NORMAL and swallow the escape (Slack closes
-    -- a thread on escape). Anywhere else: toggle NAV; entering swallows the escape (the modal's own escape
+    -- escape passes through untouched. In a text field with text: enter NORMAL and swallow the escape (Slack
+    -- closes a thread on escape). Anywhere else, including an empty field (nothing to edit, and some apps
+    -- keep one focused while you read): toggle NAV; entering swallows the escape (the modal's own escape
     -- binding would exit again at once), leaving lets it through so a caps tap still dismisses popovers.
     local swallowEscape = false
     local f17, escape = hs.keycodes.map.f17, hs.keycodes.map.escape
@@ -37,7 +38,8 @@ local function setup()
         if key == f17 then
             swallowEscape = false
             if vim.enabled and vim:isMode("insert") then
-                if ax.focusedTextField() then
+                local field = ax.focusedTextField()
+                if field and ax.hasText(field) then
                     nav.exit()
                     vim:enter()
                     swallowEscape = true

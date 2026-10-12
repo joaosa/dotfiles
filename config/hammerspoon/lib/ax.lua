@@ -5,9 +5,18 @@
 -- Roles VimMode.spoon's own axUtils.isTextField treats as editable text.
 local textRoles = { AXTextField = true, AXTextArea = true, AXComboBox = true }
 
+-- The focused element when it is a text field, else nil.
 local function focusedTextField()
     local element = hs.axuielement.systemWideElement():attributeValue("AXFocusedUIElement")
-    return element and textRoles[element:attributeValue("AXRole")]
+    if element and textRoles[element:attributeValue("AXRole")] then
+        return element
+    end
+end
+
+-- Whitespace-only counts as empty: an empty Electron composer reports a lone newline.
+local function hasText(field)
+    local value = field:attributeValue("AXValue")
+    return type(value) == "string" and value:find("%S") ~= nil
 end
 
 -- Electron apps expose no accessibility tree until a client sets AXManualAccessibility, and the tree
@@ -26,4 +35,4 @@ local function wake(app)
     woken[pid] = ok and res ~= nil or nil
 end
 
-return { focusedTextField = focusedTextField, wake = wake }
+return { focusedTextField = focusedTextField, hasText = hasText, wake = wake }

@@ -222,6 +222,7 @@ local nav = {
     clickTap = nil,
     pendingG = false,
     pendingGTimer = nil,
+    entryFocus = nil,
 }
 
 local function clearPendingG()
@@ -264,6 +265,7 @@ local function exit()
         return
     end
     nav.active = false
+    nav.entryFocus = nil
     clearPendingG()
     nav.modal:exit()
     if nav.clickTap then
@@ -281,6 +283,7 @@ local function enter()
     end
     cancelHints()
     nav.active = true
+    nav.entryFocus = ax.systemWideElement():attributeValue("AXFocusedUIElement")
     nav.modal:enter()
     -- Clicking means mouse navigation; leave NAV and let the click through.
     nav.clickTap = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function()
@@ -303,13 +306,31 @@ local function isActive() return nav.active end
 
 local function stroke(mods, key) hs.eventtap.keyStroke(mods, key, 0) end
 
--- Wraps a NAV action: if a text field has quietly taken focus (the spoon's observer misses this in
--- Electron apps) leave NAV and re-post the key so the app receives it; otherwise run the action.
--- The exit is deferred: libhotkey starts the key-repeat timer after pressedfn returns and only stop()
--- on a still-enabled hotkey cancels it, so exiting the modal synchronously leaks repeats into the field.
+-- Scroll-wheel events reach the view under the pointer regardless of keyboard focus, so NAV scrolls
+-- even in apps that keep a text field focused while you read. The pointer is moved into the focused
+-- window when it is outside it. Positive is up/left; gg and G use a distance no view exceeds.
+local SCROLL = { step = 60, whole = 1e5 }
+local function scroll(dx, dy)
+    local win = hs.window.focusedWindow()
+    if win and not hs.geometry.point(hs.mouse.absolutePosition()):inside(win:frame()) then
+        hs.mouse.absolutePosition(win:frame().center)
+    end
+    hs.eventtap.scrollWheel({ dx, dy }, {}, "pixel")
+end
+local function halfPage()
+    local win = hs.window.focusedWindow()
+    return win and win:frame().h / 2 or 400
+end
+
+-- Wraps a NAV action: if focus has moved into a text field other than the one focused at entry (the
+-- spoon's observer misses focus changes in Electron apps) leave NAV and re-post the key so the app
+-- receives it; otherwise run the action. The exit is deferred: libhotkey starts the key-repeat timer
+-- after pressedfn returns and only stop() on a still-enabled hotkey cancels it, so exiting the modal
+-- synchronously leaks repeats into the field.
 local function action(mods, key, fn)
     return function()
-        if axlib.focusedTextField() then
+        local field = axlib.focusedTextField()
+        if field and field ~= nav.entryFocus then
             hs.timer.doAfter(0, function()
                 exit()
                 stroke(mods, key)
@@ -330,13 +351,12 @@ end
 
 local function bind(mods, key, fn) nav.modal:bind(mods, key, action(mods, key, fn)) end
 
--- Scrolling via arrow and page keys so it doubles as list navigation in Finder, Mail and Slack.
-bindRepeat({}, "j", function() stroke({}, "down") end)
-bindRepeat({}, "k", function() stroke({}, "up") end)
-bindRepeat({}, "h", function() stroke({}, "left") end)
-bindRepeat({}, "l", function() stroke({}, "right") end)
-bindRepeat({}, "d", function() stroke({}, "pagedown") end)
-bindRepeat({}, "u", function() stroke({}, "pageup") end)
+bindRepeat({}, "j", function() scroll(0, -SCROLL.step) end)
+bindRepeat({}, "k", function() scroll(0, SCROLL.step) end)
+bindRepeat({}, "h", function() scroll(SCROLL.step, 0) end)
+bindRepeat({}, "l", function() scroll(-SCROLL.step, 0) end)
+bindRepeat({}, "d", function() scroll(0, -halfPage()) end)
+bindRepeat({}, "u", function() scroll(0, halfPage()) end)
 -- Exit keys bypass the self-check so they never re-post into a field; escape is re-sent so the app
 -- sees it too, matching the caps path where Karabiner's escape passes through.
 nav.modal:bind({}, "i", exit)
@@ -349,13 +369,13 @@ end)
 bind({}, "g", function()
     if nav.pendingG then
         clearPendingG()
-        stroke({ "cmd" }, "up")
+        scroll(0, SCROLL.whole)
         return
     end
     nav.pendingG = true
     nav.pendingGTimer = hs.timer.doAfter(0.5, clearPendingG)
 end)
-bind({ "shift" }, "g", function() stroke({ "cmd" }, "down") end)
+bind({ "shift" }, "g", function() scroll(0, -SCROLL.whole) end)
 bind({ "shift" }, "h", function() stroke({ "cmd" }, "[") end)
 bind({ "shift" }, "l", function() stroke({ "cmd" }, "]") end)
 bind({ "shift" }, "j", function() stroke({ "ctrl", "shift" }, "tab") end)
