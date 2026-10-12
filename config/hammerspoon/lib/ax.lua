@@ -5,34 +5,31 @@
 -- Roles VimMode.spoon's own axUtils.isTextField treats as editable text.
 local textRoles = { AXTextField = true, AXTextArea = true, AXComboBox = true }
 
--- The focused element when it is a text field, else nil.
-local function focusedTextField()
+-- True when the focused element is a text field holding non-blank text: what a caps tap or a NAV key
+-- would otherwise be editing. Whitespace-only counts as empty (an empty Electron composer reports a
+-- lone newline). The character count is checked first so a large document is not copied over IPC.
+local function editing()
     local element = hs.axuielement.systemWideElement():attributeValue("AXFocusedUIElement")
-    if element and textRoles[element:attributeValue("AXRole")] then
-        return element
+    if not element or not textRoles[element:attributeValue("AXRole")] then
+        return false
     end
-end
-
--- Whitespace-only counts as empty: an empty Electron composer reports a lone newline.
-local function hasText(field)
-    local value = field:attributeValue("AXValue")
+    local count = element:attributeValue("AXNumberOfCharacters")
+    if count == 0 then
+        return false
+    elseif count and count > 16 then
+        return true
+    end
+    local value = element:attributeValue("AXValue")
     return type(value) == "string" and value:find("%S") ~= nil
 end
 
 -- Electron apps expose no accessibility tree until a client sets AXManualAccessibility, and the tree
--- takes seconds to come up, so it is set on launch/activation rather than when focusedTextField asks.
--- The set fails while an app is still launching and on native apps; only a success is memoised per
--- pid, so the next activation retries.
-local woken = {}
+-- takes seconds to come up, so it is set on launch and activation rather than when editing() asks.
+-- The set is idempotent and fails fast on native apps and on an app still launching (activation retries).
 local function wake(app)
-    local pid = app and app:pid()
-    if not pid or woken[pid] then
-        return
+    if app then
+        pcall(function() hs.axuielement.applicationElement(app):setAttributeValue("AXManualAccessibility", true) end)
     end
-    local ok, res = pcall(
-        function() return hs.axuielement.applicationElement(app):setAttributeValue("AXManualAccessibility", true) end
-    )
-    woken[pid] = ok and res ~= nil or nil
 end
 
-return { focusedTextField = focusedTextField, hasText = hasText, wake = wake }
+return { editing = editing, wake = wake }
