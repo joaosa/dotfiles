@@ -309,11 +309,15 @@ local function stroke(mods, key) hs.eventtap.keyStroke(mods, key, 0) end
 
 -- Wraps a NAV action: if a text field has quietly taken focus (the spoon's observer misses this in
 -- Electron apps) leave NAV and re-post the key so the app receives it; otherwise run the action.
+-- The exit is deferred: libhotkey starts the key-repeat timer after pressedfn returns and only stop()
+-- on a still-enabled hotkey cancels it, so exiting the modal synchronously leaks repeats into the field.
 local function action(mods, key, fn)
     return function()
         if ax.focusedTextField() then
-            exit()
-            stroke(mods, key)
+            hs.timer.doAfter(0, function()
+                exit()
+                stroke(mods, key)
+            end)
             return
         end
         if key ~= "g" then
@@ -374,7 +378,13 @@ bind({}, "f", function()
     showHints()
 end)
 
-local function setup() hs.hotkey.bind(altCmd, ".", showHints) end
+-- Hints and NAV are never live together, whichever way hints are opened.
+local function setup()
+    hs.hotkey.bind(altCmd, ".", function()
+        exit()
+        showHints()
+    end)
+end
 
 return {
     setup = setup,
