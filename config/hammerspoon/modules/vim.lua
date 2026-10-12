@@ -4,6 +4,14 @@
 
 local log = hs.logger.new("vim", "info")
 
+-- Roles VimMode.spoon's own axUtils.isTextField treats as editable text.
+local textRoles = { AXTextField = true, AXTextArea = true, AXComboBox = true }
+
+local function focusedTextField()
+    local element = hs.axuielement.systemWideElement():attributeValue("AXFocusedUIElement")
+    return element and textRoles[element:attributeValue("AXRole")]
+end
+
 local function setup()
     local ok, VimMode = pcall(hs.loadSpoon, "VimMode")
     if not ok then
@@ -13,17 +21,25 @@ local function setup()
 
     local vim = VimMode:new()
 
-    -- Apps with native vim bindings. Keep in sync with the caps_lock rule in
-    -- config/karabiner/karabiner.json, which skips the f17 trigger for these
-    -- (VimMode unbinds f17 in disabled apps, so it would leak into them as a
-    -- raw keypress - e.g. a "~" escape sequence in terminals).
+    -- Apps with native vim bindings; the spoon's app watcher clears vim.enabled while they are frontmost.
     vim:disableForApp("Alacritty")
     vim:disableForApp("Obsidian")
     vim:disableForApp("Firefox Developer Edition")
 
-    -- Karabiner sends f17 alongside escape when caps_lock is tapped alone,
-    -- so a caps tap enters normal mode (and still escapes in terminals).
-    vim:bindHotKeys({ enter = { {}, "f17" } })
+    -- Karabiner sends escape+f17 on a lone caps_lock tap. Bind f17 ourselves (not vim:bindHotKeys) so it is
+    -- always consumed and never leaks into disabled apps; enter normal mode only when a text field has focus
+    -- so escape elsewhere stays a plain escape. Deferred so the app handles the escape first (dismissing a
+    -- search box must not leave normal mode on the view behind it).
+    hs.hotkey.bind({}, "f17", function()
+        if not vim.enabled then
+            return
+        end
+        hs.timer.doAfter(0.02, function()
+            if focusedTextField() then
+                vim:enter()
+            end
+        end)
+    end)
 end
 
 return { setup = setup }
