@@ -61,7 +61,7 @@
                         ]
                     },
                     {
-                        "description": "Change caps_lock to control if pressed with other keys; alone, to escape (+f17, which Hammerspoon turns into the vim-mode trigger).",
+                        "description": "Change caps_lock to control if pressed with other keys; alone, to f17+escape (Hammerspoon swallows the escape when it enters vim normal mode).",
                         "manipulators": [
                             {
                                 "from": {
@@ -79,10 +79,10 @@
                                 ],
                                 "to_if_alone": [
                                     {
-                                        "key_code": "escape"
+                                        "key_code": "f17"
                                     },
                                     {
-                                        "key_code": "f17"
+                                        "key_code": "escape"
                                     }
                                 ],
                                 "type": "basic"
