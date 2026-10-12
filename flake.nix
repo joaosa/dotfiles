@@ -139,10 +139,12 @@
                 nativeBuildInputs = [
                   pkgs.git
                   pkgs.shellcheck
+                  pkgs.zsh
                 ];
               }
               ''
                 shellcheck ${./nix/packages/agent-test.sh}
+                zsh -n ${agent}/share/zsh/site-functions/_agent
                 bash ${./nix/packages/agent-test.sh} ${lib.getExe agent}
                 touch $out
               '';

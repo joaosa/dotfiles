@@ -118,18 +118,26 @@ The pinned Trail of Bits `devc` CLI is paired with repo-owned templates under
 both Claude Code and Codex, and `agent` is the single entry point:
 
 ```bash
-agent fleet <org>              # trusted org, main Claude account
-agent fleet --alt <org>        # same org, isolated alt-account container
-agent fleet -p <profile> <org> # any profile from claudeProfiles
-agent trust <org>              # accept reviewed .git hook/config changes
-agent audit <repo-path-or-url> # untrusted repo: isolated logins, strict egress
+agent fleet [<org>]              # trusted org, main Claude account
+agent fleet --alt [<org>]        # same org, isolated alt-account container
+agent fleet -p <profile> [<org>] # any profile from claudeProfiles
+agent fleet [<org>] -- claude    # run a command instead of a shell
+agent trust [<org>]              # accept reviewed .git hook/config changes
+agent audit [<repo-path-or-url>] # untrusted repo: isolated logins, strict egress
+agent ls                         # list agent containers
+agent stop [<org> | --all]       # stop an org's containers, or all of them
+agent doctor                     # check the VM, mounts, signing and keychain
 ```
 
-After changing the devcontainer image or its allowlist, run `make switch`, then
-`agent fleet --rebuild [--alt] <org>`. That removes only the matching fleet
-container, rebuilds it using Docker's layer cache, and opens a shell in the new
-container. Named history and login volumes are preserved; changes made only to
-the old container filesystem are discarded.
+Inside `~/ghq/github.com/<org>/…` the org can be left out, and `agent audit`
+defaults to the current directory. Zsh completes subcommands, orgs and
+profiles.
+
+Each container records the template package it was built from. When `make
+switch` changes the image or its allowlist, the next launch rebuilds that
+container using Docker's layer cache. Named history and login volumes are
+preserved; changes made only to the old container filesystem are discarded.
+`--rebuild` forces this.
 
 Wrappers stage the trusted Dockerfile and profile in
 `~/.cache/agent-devcontainer`, outside the checkout, then pass the config path
@@ -148,8 +156,9 @@ state against a baseline and warns until you inspect and run
 `agent trust <org>`. Changes you make yourself, such as
 `pre-commit install`, need the same acceptance. The container outlives the
 shell, so anything still running in it (a backgrounded agent, a second
-`agent fleet` shell) can write after the exit check; host Git run meanwhile,
-including from an IDE or prompt, is not covered.
+`agent fleet` shell) can write after the exit check; `agent fleet` warns when
+Claude or Codex is still running there, and `agent stop` ends it. Host Git run
+meanwhile, including from an IDE or prompt, is not covered.
 Its `main` and `alt` Claude profiles use different containers and named volumes,
 so credentials, onboarding state, and histories stay isolated. `main` remains
 the default and retains the original fleet container identity. The selected
