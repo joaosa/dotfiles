@@ -209,6 +209,142 @@ local function showHints()
     return #found
 end
 
+-----------------------------------------------
+-- NAV modal
+-----------------------------------------------
+
+local ax = require("lib.ax")
+
+local BADGE = { w = 125, h = 25 }
+
+-- hs.hotkey.modal intercepts only the keys bound below; everything else reaches the app.
+-- Module-level so the modal, badge and click tap are not garbage collected.
+local nav = {
+    active = false,
+    modal = hs.hotkey.modal.new(),
+    badge = nil,
+    clickTap = nil,
+    pendingG = false,
+    pendingGTimer = nil,
+}
+
+local function clearPendingG()
+    nav.pendingG = false
+    if nav.pendingGTimer then
+        nav.pendingGTimer:stop()
+        nav.pendingGTimer = nil
+    end
+end
+
+local function badge()
+    if nav.badge then
+        return nav.badge
+    end
+    nav.badge = hs.canvas.new({ x = 0, y = 0, w = BADGE.w, h = BADGE.h })
+    nav.badge:appendElements({
+        type = "rectangle",
+        action = "fill",
+        roundedRectRadii = { xRadius = 2, yRadius = 2 },
+        fillColor = { red = 76 / 255, green = 175 / 255, blue = 80 / 255, alpha = 0.95 },
+        strokeColor = { white = 1.0 },
+        strokeWidth = 3.0,
+        withShadow = true,
+    }, {
+        type = "text",
+        text = hs.styledtext.new("NAV", { font = { name = "Courier New", size = 14 }, color = { white = 1.0 } }),
+        frame = { x = "5%", y = "10%", h = "100%", w = "95%" },
+    })
+    nav.badge:level("overlay")
+    return nav.badge
+end
+
+local function showBadge()
+    local frame = hs.screen.mainScreen():frame()
+    badge():topLeft({ x = frame.x + (frame.w - BADGE.w) / 2, y = frame.y + frame.h - BADGE.h * 1.5 }):show()
+end
+
+local function exit()
+    if not nav.active then
+        return
+    end
+    nav.active = false
+    clearPendingG()
+    nav.modal:exit()
+    if nav.clickTap then
+        nav.clickTap:stop()
+        nav.clickTap = nil
+    end
+    if nav.badge then
+        nav.badge:hide()
+    end
+end
+
+local function enter()
+    if nav.active then
+        return
+    end
+    cancelHints()
+    nav.active = true
+    nav.modal:enter()
+    -- Clicking means mouse navigation; leave NAV and let the click through.
+    nav.clickTap = hs.eventtap.new({ hs.eventtap.event.types.leftMouseDown }, function()
+        exit()
+        return false
+    end)
+    nav.clickTap:start()
+    showBadge()
+end
+
+local function toggle()
+    if nav.active then
+        exit()
+    else
+        enter()
+    end
+end
+
+local function isActive() return nav.active end
+
+local function stroke(mods, key) hs.eventtap.keyStroke(mods, key, 0) end
+
+-- Wraps a NAV action: if a text field has quietly taken focus (the spoon's observer misses this in
+-- Electron apps) leave NAV and re-post the key so the app receives it; otherwise run the action.
+local function action(mods, key, fn)
+    return function()
+        if ax.focusedTextField() then
+            exit()
+            stroke(mods, key)
+            return
+        end
+        if key ~= "g" then
+            clearPendingG()
+        end
+        fn()
+    end
+end
+
+local function bindRepeat(mods, key, fn)
+    local wrapped = action(mods, key, fn)
+    nav.modal:bind(mods, key, wrapped, nil, wrapped)
+end
+
+local function bind(mods, key, fn) nav.modal:bind(mods, key, action(mods, key, fn)) end
+
+-- Scrolling via arrow and page keys so it doubles as list navigation in Finder, Mail and Slack.
+bindRepeat({}, "j", function() stroke({}, "down") end)
+bindRepeat({}, "k", function() stroke({}, "up") end)
+bindRepeat({}, "h", function() stroke({}, "left") end)
+bindRepeat({}, "l", function() stroke({}, "right") end)
+bindRepeat({}, "d", function() stroke({}, "pagedown") end)
+bindRepeat({}, "u", function() stroke({}, "pageup") end)
+-- Exit keys bypass the self-check so they never re-post into a field; escape is re-sent so the app
+-- sees it too, matching the caps path where Karabiner's escape passes through.
+nav.modal:bind({}, "i", exit)
+nav.modal:bind({}, "escape", function()
+    exit()
+    stroke({}, "escape")
+end)
+
 local function setup() hs.hotkey.bind(altCmd, ".", showHints) end
 
 return {
@@ -216,4 +352,8 @@ return {
     showHints = showHints,
     cancelHints = cancelHints,
     hintsActive = hintsActive,
+    enter = enter,
+    exit = exit,
+    toggle = toggle,
+    isActive = isActive,
 }
