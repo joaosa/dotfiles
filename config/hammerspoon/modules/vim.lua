@@ -33,13 +33,16 @@ local function setup()
     -- binding would exit again at once), leaving lets it through so a caps tap still dismisses popovers.
     local swallowEscape = false
     local f17, escape = hs.keycodes.map.f17, hs.keycodes.map.escape
+    local function editing()
+        local field = ax.focusedTextField()
+        return field ~= nil and ax.hasText(field)
+    end
     keyTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
         local key = event:getKeyCode()
         if key == f17 then
             swallowEscape = false
             if vim.enabled and vim:isMode("insert") then
-                local field = ax.focusedTextField()
-                if field and ax.hasText(field) then
+                if editing() then
                     nav.exit()
                     vim:enter()
                     swallowEscape = true
@@ -58,10 +61,18 @@ local function setup()
 
     -- The spoon only leaves normal mode on a focus change inside the app, and that observer fails for
     -- Electron apps, so a stray mode would follow an app switch. Both exits are no-ops when inactive.
+    -- Then the new app starts in NAV unless a field with text is focused, as a caps tap would decide;
+    -- focus settles a beat after activation, and the spoon's own watcher clears vim.enabled by then.
     appWatcher = hs.application.watcher.new(function(_, event, app)
         if event == hs.application.watcher.activated then
             vim:exit()
             nav.exit()
+            hs.timer.doAfter(0.15, function()
+                local front = hs.application.frontmostApplication()
+                if front and front:pid() == app:pid() and vim.enabled and vim:isMode("insert") and not editing() then
+                    nav.enter()
+                end
+            end)
         end
         if event == hs.application.watcher.activated or event == hs.application.watcher.launched then
             ax.wake(app)
