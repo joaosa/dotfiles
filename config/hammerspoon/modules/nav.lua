@@ -1,8 +1,7 @@
 -----------------------------------------------
--- Element Hints (vimium-style click targets)
--- altCmd+. labels every clickable element in the focused window; type the
--- label to AXPress it (mouse-click fallback). esc or a mouse click cancels,
--- backspace edits.
+-- NAV mode: Vimium-style navigation outside text fields, plus element hints.
+-- altCmd+. (or f in NAV) labels every clickable element in the focused window;
+-- type the label to AXPress it (mouse-click fallback). esc or a click cancels.
 -----------------------------------------------
 
 local keys = require("config.keybindings")
@@ -25,7 +24,7 @@ local state = {
     screenFrame = nil,
 }
 
-local function cancel()
+local function cancelHints()
     if state.canvas then
         state.canvas:delete()
         state.canvas = nil
@@ -38,6 +37,8 @@ local function cancel()
     state.typed = ""
     state.screenFrame = nil
 end
+
+local function hintsActive() return state.canvas ~= nil end
 
 -- Fixed-length labels (no label is a prefix of another): each index encoded
 -- as `len` base-#HINT_CHARS digits.
@@ -136,13 +137,13 @@ local function startTap()
     local types = hs.eventtap.event.types
     state.tap = hs.eventtap.new({ types.keyDown, types.leftMouseDown }, function(ev)
         if ev:getType() == types.leftMouseDown then
-            cancel()
+            cancelHints()
             return false -- let the click through
         end
 
         local key = hs.keycodes.map[ev:getKeyCode()]
         if key == "escape" then
-            cancel()
+            cancelHints()
         elseif key == "delete" then
             state.typed = state.typed:sub(1, -2)
             render(matching())
@@ -150,9 +151,9 @@ local function startTap()
             state.typed = state.typed .. key
             local m = matching()
             if #m == 0 then
-                cancel()
+                cancelHints()
             elseif #m == 1 and m[1].label == state.typed then
-                cancel()
+                cancelHints()
                 press(m[1])
             else
                 render(m)
@@ -163,8 +164,8 @@ local function startTap()
     state.tap:start()
 end
 
-local function show()
-    cancel()
+local function showHints()
+    cancelHints()
 
     local win = hs.window.focusedWindow()
     if not win then
@@ -208,10 +209,11 @@ local function show()
     return #found
 end
 
-local function setup() hs.hotkey.bind(altCmd, ".", show) end
+local function setup() hs.hotkey.bind(altCmd, ".", showHints) end
 
 return {
     setup = setup,
-    show = show,
-    cancel = cancel,
+    showHints = showHints,
+    cancelHints = cancelHints,
+    hintsActive = hintsActive,
 }
