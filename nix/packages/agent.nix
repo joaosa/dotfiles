@@ -13,6 +13,8 @@
   # Claude profile name -> keychain service holding its OAuth token.
   profiles,
   defaultProfile,
+  # Org checkouts live in ~/<orgsSubdir>/<org>.
+  orgsSubdir ? "ghq/github.com",
 }:
 
 # `agent`: single entry point for the Claude Code + Codex devcontainers.
@@ -31,6 +33,8 @@ let
       AGENT_DEVC=${devc}
       AGENT_DOTFILES=${lib.escapeShellArg dotfilesPath}
       AGENT_DEFAULT_PROFILE=${lib.escapeShellArg defaultProfile}
+      AGENT_ORGS_SUBDIR=${lib.escapeShellArg orgsSubdir}
+      AGENT_PROFILE_NAMES=(${lib.escapeShellArgs (lib.attrNames profiles)})
       AGENT_TEMPLATE_FILES=(${lib.escapeShellArgs devc.templateFiles})
       declare -A AGENT_PROFILES=(${
         lib.concatStringsSep " " (
@@ -41,9 +45,10 @@ let
     + builtins.readFile ./agent.sh;
   };
   completion = writeTextDir "share/zsh/site-functions/_agent" (
-    lib.replaceStrings [ "@PROFILES@" ] [ (lib.concatStringsSep " " (lib.attrNames profiles)) ] (
-      builtins.readFile ./agent-completion.zsh
-    )
+    lib.replaceStrings
+      [ "@PROFILES@" "@ORGS_SUBDIR@" ]
+      [ (lib.concatStringsSep " " (lib.attrNames profiles)) orgsSubdir ]
+      (builtins.readFile ./agent-completion.zsh)
   );
 in
 symlinkJoin {

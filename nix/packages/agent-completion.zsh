@@ -1,9 +1,9 @@
 #compdef agent
-# agent.nix substitutes the configured Claude profile names.
+# agent.nix substitutes the Claude profile names and the orgs root.
 
 _agent_orgs() {
   local -a orgs
-  orgs=(~/ghq/github.com/*(N/:t))
+  orgs=(~/@ORGS_SUBDIR@/*(N/:t))
   _describe -t orgs org orgs
 }
 

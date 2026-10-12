@@ -1,18 +1,16 @@
 # shellcheck shell=bash
-# Body of `agent`; agent.nix prepends AGENT_DEVC, AGENT_DOTFILES,
-# AGENT_DEFAULT_PROFILE, AGENT_TEMPLATE_FILES and AGENT_PROFILES.
-# Host tools (colima, docker, devcontainer, security, ssh-add) come from the
-# caller's PATH: Apple's ssh-add is the one that knows --apple-load-keychain.
-#
-# Agent devcontainers use trusted configs staged outside each checkout.
-# Repository-owned .devcontainer files are never read, overwritten, or
-# followed as symlinks.
+# Body of `agent`; agent.nix prepends the AGENT_* settings. Host tools come from the caller's PATH.
 
-ORGS_ROOT="$HOME/ghq/github.com"
-STATE_DIR="$HOME/.local/state/agent-devcontainer"
-FLEET_USAGE="usage: agent fleet [--rebuild] [--alt | -p <profile>] [<org>] [-- <cmd>...]"
-AUDIT_USAGE="usage: agent audit [<repo-path-or-url>] [-- <cmd>...]"
-STOP_USAGE="usage: agent stop [<org> | --all]"
+ORGS_ROOT="$HOME/$AGENT_ORGS_SUBDIR"
+SIGNING_KEY="$HOME/.ssh/id_ed25519"
+AGENT_SOCK=/run/host-services/ssh-auth.sock
+CODEX_SERVICE=codex-api-key
+FLEET_USAGE="agent fleet [--rebuild] [--alt | -p <profile>] [<org>] [-- <cmd>...]"
+TRUST_USAGE="agent trust [<org>]"
+AUDIT_USAGE="agent audit [<repo-path-or-url>] [-- <cmd>...]"
+LS_USAGE="agent ls"
+STOP_USAGE="agent stop [<org> | --all]"
+DOCTOR_USAGE="agent doctor"
 
 die() {
   echo "$*" >&2
@@ -20,12 +18,8 @@ die() {
 }
 
 usage() {
-  echo "$FLEET_USAGE" >&2
-  echo "       agent trust [<org>]" >&2
-  echo "       ${AUDIT_USAGE#usage: }" >&2
-  echo "       agent ls" >&2
-  echo "       ${STOP_USAGE#usage: }" >&2
-  echo "       agent doctor" >&2
+  printf 'usage: %s\n' "$FLEET_USAGE" >&2
+  printf '       %s\n' "$TRUST_USAGE" "$AUDIT_USAGE" "$LS_USAGE" "$STOP_USAGE" "$DOCTOR_USAGE" >&2
   exit 1
 }
 
@@ -34,14 +28,17 @@ preflight() {
   colima status &>/dev/null || colima start --ssh-agent
 }
 
-stage() {
-  local profile="$1"
-  local cache="$HOME/.cache"
-  local root="$cache/agent-devcontainer"
-  local dir="$root/$profile"
-  local p file
+# put <src> <dst>: install a staged file, never through a symlink.
+put() {
+  [[ ! -L "$2" ]] || { echo "refusing symlinked staged file: $2" >&2; return 1; }
+  install -m0644 "$1" "$2"
+}
 
-  for p in "$cache" "$root" "$dir"; do
+# Stage the trusted templates outside the checkout; prints the config path.
+stage() {
+  local profile="$1" cache="$HOME/.cache" p file
+  local dir="$cache/agent-devcontainer/$profile"
+  for p in "$cache" "${dir%/*}" "$dir"; do
     [[ ! -L "$p" ]] || { echo "refusing symlinked agent cache path: $p" >&2; return 1; }
     if [[ -e "$p" ]]; then
       [[ -d "$p" && -O "$p" ]] || { echo "agent cache path is not an owned directory: $p" >&2; return 1; }
@@ -49,15 +46,10 @@ stage() {
       mkdir "$p" || return 1
     fi
   done
-
   for file in "${AGENT_TEMPLATE_FILES[@]}"; do
-    [[ ! -L "$dir/$file" ]] || { echo "refusing symlinked staged file: $dir/$file" >&2; return 1; }
-    install -m0644 "$AGENT_DEVC/share/agent-devcontainer/$file" "$dir/$file" || return 1
+    put "$AGENT_DEVC/share/agent-devcontainer/$file" "$dir/$file" || return 1
   done
-  [[ ! -L "$dir/devcontainer.json" ]] \
-    || { echo "refusing symlinked staged config: $dir/devcontainer.json" >&2; return 1; }
-  install -m0644 "$AGENT_DEVC/share/agent-devcontainer/$profile.devcontainer.json" \
-    "$dir/devcontainer.json" || return 1
+  put "$AGENT_DEVC/share/agent-devcontainer/$profile.devcontainer.json" "$dir/devcontainer.json" || return 1
   printf '%s\n' "$dir/devcontainer.json"
 }
 
@@ -73,7 +65,7 @@ export_secret() {
   fi
 }
 
-# Container ids carrying the given identity labels (label=value ...).
+# containers <label=value>...: ids of agent containers carrying every label.
 containers() {
   local -a filters=(--filter label=agent.devcontainer.profile)
   local label
@@ -81,108 +73,104 @@ containers() {
   docker ps -aq "${filters[@]}"
 }
 
-# The identity profile label: the default profile keeps the pre-multi-account
-# value, so its container and named volumes survive.
+# The default profile keeps the pre-multi-account label so its volumes survive.
 identity_profile() {
-  local profile="$1" claude_profile="${2:-}"
-  if [[ -n "$claude_profile" && "$claude_profile" != "$AGENT_DEFAULT_PROFILE" ]]; then
-    printf '%s\n' "$profile-$claude_profile"
+  if [[ -n "${2:-}" && "$2" != "$AGENT_DEFAULT_PROFILE" ]]; then
+    printf '%s\n' "$1-$2"
   else
-    printf '%s\n' "$profile"
+    printf '%s\n' "$1"
   fi
 }
 
-# launch <dir> <profile> <rebuild> <claude-profile> <claude-service> <cmd>...
-launch() {
-  local dir="$1" profile="$2" rebuild="$3" claude_profile="$4" claude_service="$5"
-  shift 5
-  local -a cmd=("$@")
-  ((${#cmd[@]})) || cmd=(zsh)
-  local config identity stamp
-  local -a identity_args=() up_args=()
-  # Docker binds an unmounted source as an empty VM dir; fail instead.
-  colima ssh -- test -d "$dir" &>/dev/null \
-    || { echo "workspace not mounted in the Colima VM (see colima.yaml mounts): $dir" >&2; return 1; }
-  config="$(stage "$profile")" || return 1
-
-  # devcontainerId hashes the full id-label set, so the extra account label
-  # also isolates every named volume between Claude profiles.
-  identity="$(identity_profile "$profile" "$claude_profile")"
-  identity_args=(
-    --id-label "devcontainer.local_folder=$dir"
-    --id-label "agent.devcontainer.profile=$identity"
-  )
-  if [[ "$identity" != "$profile" ]]; then
-    identity_args+=(--id-label "agent.devcontainer.claude-profile=$claude_profile")
-  fi
-
-  # The devc store path changes with any template or allowlist change. It is
-  # kept outside the id-labels so a rebuild keeps the login volumes.
-  stamp="$STATE_DIR/templates/$(printf '%s' "$identity:$dir" | sha256sum | cut -c1-16)"
-  if [[ "$rebuild" != 1 && -n "$(containers "devcontainer.local_folder=$dir" "agent.devcontainer.profile=$identity")" \
-    && "$(cat "$stamp" 2>/dev/null)" != "$AGENT_DEVC" ]]; then
-    echo "Container templates changed since it was built; rebuilding (logins and history are kept, other container changes are not)." >&2
-    rebuild=1
-  fi
-  if [[ "$rebuild" == 1 ]]; then
-    up_args+=(--remove-existing-container)
-  fi
-
-  (
-    export DOTFILES_PATH="$AGENT_DOTFILES"
-    if [[ "$profile" == audit ]]; then
-      unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
-      unset OPENAI_API_KEY CODEX_API_KEY AGENT_CLAUDE_PROFILE
-    else
-      export AGENT_CLAUDE_PROFILE="$claude_profile"
-      # Anthropic API credentials outrank CLAUDE_CODE_OAUTH_TOKEN;
-      # do not let ambient host state defeat the explicit account.
-      unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
-      export_secret CLAUDE_CODE_OAUTH_TOKEN "$claude_service" "Claude ($claude_profile)"
-      export_secret CODEX_API_KEY codex-api-key Codex
-    fi
-
-    cd "$dir" || exit 1
-    devcontainer up \
-      --workspace-folder "$dir" \
-      --config "$config" \
-      "${identity_args[@]}" \
-      "${up_args[@]}" \
-      || exit 1
-    mkdir -p "${stamp%/*}" && printf '%s\n' "$AGENT_DEVC" >"$stamp"
-    devcontainer exec \
-      --workspace-folder "$dir" \
-      --config "$config" \
-      "${identity_args[@]}" \
-      "${cmd[@]}"
-  )
-}
-
-# The org owning the current directory, for commands run inside a checkout.
-infer_org() {
-  local here root rel
-  here="$(pwd -P)"
+# The org a path sits in under ORGS_ROOT, or nothing.
+org_of() {
+  local root rel
   root="$(realpath -m -- "$ORGS_ROOT")"
-  rel="${here#"$root"/}"
-  [[ "$rel" != "$here" && -n "$rel" ]] \
-    || die "no org given, and $PWD is not under ${ORGS_ROOT/#"$HOME"/\~}/<org>"
-  printf '%s\n' "${rel%%/*}"
+  rel="${1#"$root"/}"
+  [[ "$rel" == "$1" ]] || printf '%s\n' "${rel%%/*}"
+}
+
+infer_org() {
+  local org
+  org="$(org_of "$(pwd -P)")"
+  [[ -n "$org" ]] || die "no org given, and $PWD is not under ~/$AGENT_ORGS_SUBDIR/<org>"
+  printf '%s\n' "$org"
 }
 
 fleet_dir() {
   local org="$1"
   [[ -n "$org" && "$org" != *[^A-Za-z0-9._-]* && "$org" != . && "$org" != .. ]] \
     || { echo "org must be one safe path component: $org" >&2; return 1; }
-  local dir="$ORGS_ROOT/$org"
-  [[ -d "$dir" && ! -L "$dir" ]] || { echo "no safe org directory: $dir" >&2; return 1; }
-  printf '%s\n' "$dir"
+  [[ -d "$ORGS_ROOT/$org" && ! -L "$ORGS_ROOT/$org" ]] \
+    || { echo "no safe org directory: $ORGS_ROOT/$org" >&2; return 1; }
+  printf '%s\n' "$ORGS_ROOT/$org"
+}
+
+# launch <dir> <profile> <claude-profile> [<cmd>...]; REBUILD=1 recreates the container.
+launch() {
+  local dir="$1" profile="$2" claude_profile="$3"
+  shift 3
+  local -a cmd=("$@")
+  ((${#cmd[@]})) || cmd=(zsh)
+  local config identity id="" built="" rc=0
+  local -a identity_args up_args=()
+
+  # One VM round-trip: Docker binds an unmounted source as an empty dir.
+  # shellcheck disable=SC2016
+  colima ssh -- sh -c 'test -d "$1" || exit 3; [ -z "$2" ] || test -S "$2" || exit 4' _ \
+    "$dir" "$([[ "$profile" == fleet ]] && echo "$AGENT_SOCK")" &>/dev/null || rc=$?
+  case "$rc" in
+    0) ;;
+    4) { echo "colima has no SSH agent socket; run: colima stop && colima start --ssh-agent" >&2; return 1; } ;;
+    *) { echo "workspace not mounted in the Colima VM (see colima.yaml mounts): $dir" >&2; return 1; } ;;
+  esac
+  config="$(stage "$profile")" || return 1
+
+  # devcontainerId hashes the id-labels, so the account label isolates the volumes too.
+  identity="$(identity_profile "$profile" "$claude_profile")"
+  identity_args=(
+    --id-label "devcontainer.local_folder=$dir"
+    --id-label "agent.devcontainer.profile=$identity"
+  )
+  [[ "$identity" == "$profile" ]] \
+    || identity_args+=(--id-label "agent.devcontainer.claude-profile=$claude_profile")
+
+  read -r id built < <(docker ps -a --filter "label=devcontainer.local_folder=$dir" \
+    --filter "label=agent.devcontainer.profile=$identity" \
+    --format '{{.ID}} {{.Label "agent.devcontainer.devc"}}') || true
+  if [[ "${REBUILD:-0}" != 1 && -n "$id" && "$built" != "$AGENT_DEVC" ]]; then
+    echo "Container templates changed since it was built; rebuilding (logins and history are kept, other container changes are not)." >&2
+    REBUILD=1
+  fi
+  [[ "${REBUILD:-0}" != 1 ]] || up_args+=(--remove-existing-container)
+
+  (
+    export DOTFILES_PATH="$AGENT_DOTFILES" AGENT_DEVC
+    AGENT_ORG="$(org_of "$dir")"
+    export AGENT_ORG
+    if [[ "$profile" == audit ]]; then
+      unset CLAUDE_CODE_OAUTH_TOKEN ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
+      unset OPENAI_API_KEY CODEX_API_KEY AGENT_CLAUDE_PROFILE
+    else
+      export AGENT_CLAUDE_PROFILE="$claude_profile"
+      # Anthropic API credentials outrank the OAuth token; keep the explicit account.
+      unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
+      export_secret CLAUDE_CODE_OAUTH_TOKEN "${AGENT_PROFILES[$claude_profile]}" "Claude ($claude_profile)"
+      export_secret CODEX_API_KEY "$CODEX_SERVICE" Codex
+    fi
+
+    cd "$dir" || exit 1
+    devcontainer up --workspace-folder "$dir" --config "$config" \
+      "${identity_args[@]}" "${up_args[@]}" || exit 1
+    devcontainer exec --workspace-folder "$dir" --config "$config" \
+      "${identity_args[@]}" "${cmd[@]}"
+  )
 }
 
 # Fleet .git changes run under host Git; detect them before launch and on exit.
 git_guard() {
-  local action="$1" org="$2" dir rc=0
-  dir="$(fleet_dir "$org")" || return 1
-  "$AGENT_DEVC/libexec/devc-git-guard" "$action" "$dir" "$STATE_DIR/git-guard/$org.json" || rc=$?
+  local action="$1" org="$2" dir="$3" rc=0
+  "$AGENT_DEVC/libexec/devc-git-guard" "$action" "$dir" "$HOME/.local/state/agent-devcontainer/git-guard/$org.json" || rc=$?
   ((rc != 1)) || echo "If you made these changes yourself, accept them with: agent trust $org" >&2
   return "$rc"
 }
@@ -199,101 +187,77 @@ warn_running_agents() {
 }
 
 cmd_trust() {
-  (($# <= 1)) || die "usage: agent trust [<org>]"
-  local org="${1:-}"
+  (($# <= 1)) || die "usage: $TRUST_USAGE"
+  local org="${1:-}" dir
   [[ -n "$org" ]] || org="$(infer_org)"
-  git_guard accept "$org"
+  dir="$(fleet_dir "$org")"
+  git_guard accept "$org" "$dir"
 }
 
-# One trusted container over every repository in an organization. It carries
-# both Claude and Codex, profile-specific login volumes, gh auth, and the
-# forwarded signing agent. Only use this over organizations you trust.
+# One trusted container per org: both agents, per-profile logins, gh auth and the signing agent.
 cmd_fleet() {
-  local rebuild=0 claude_profile="$AGENT_DEFAULT_PROFILE" org=""
+  local claude_profile="$AGENT_DEFAULT_PROFILE" org="" dir rc=0
   local -a cmd=()
   while (($#)); do
     case "$1" in
-      --rebuild)
-        rebuild=1
-        shift
-        ;;
-      --alt)
-        claude_profile=alt
-        shift
-        ;;
+      --rebuild) REBUILD=1 ;;
+      --alt) claude_profile=alt ;;
       -p | --profile)
-        (($# >= 2)) || die "$FLEET_USAGE"
+        (($# >= 2)) || die "usage: $FLEET_USAGE"
         claude_profile="$2"
-        shift 2
+        shift
         ;;
       --)
         shift
         cmd=("$@")
         break
         ;;
-      -*)
-        echo "unknown agent fleet option: $1" >&2
-        die "$FLEET_USAGE"
-        ;;
+      -*) die "unknown agent fleet option: $1"$'\n'"usage: $FLEET_USAGE" ;;
       *)
-        [[ -z "$org" ]] || die "$FLEET_USAGE"
+        [[ -z "$org" ]] || die "usage: $FLEET_USAGE"
         org="$1"
-        shift
         ;;
     esac
+    shift
   done
 
   [[ -n "$claude_profile" && "$claude_profile" != *[^A-Za-z0-9_-]* ]] \
     || die "invalid Claude profile: $claude_profile"
-  local claude_service="${AGENT_PROFILES[$claude_profile]:-}"
-  [[ -n "$claude_service" ]] \
-    || die "unknown Claude profile '$claude_profile' (use $(printf '%s\n' "${!AGENT_PROFILES[@]}" | sort | paste -sd'|'))"
+  [[ -n "${AGENT_PROFILES[$claude_profile]:-}" ]] \
+    || die "unknown Claude profile '$claude_profile' (use $(
+      IFS='|'
+      echo "${AGENT_PROFILE_NAMES[*]}"
+    ))"
   [[ -n "$org" ]] || org="$(infer_org)"
-
-  local dir rc=0
-  dir="$(fleet_dir "$org")" || exit 1
+  dir="$(fleet_dir "$org")"
 
   preflight
-  local signing_key="$HOME/.ssh/id_ed25519"
   ssh-add --apple-load-keychain &>/dev/null || true
-  ssh-add "$signing_key" &>/dev/null || die "could not load signing key: $signing_key"
-  colima ssh -- test -S /run/host-services/ssh-auth.sock &>/dev/null \
-    || die "colima has no SSH agent socket; run: colima stop && agent fleet $org"
-  git_guard check "$org" || true
-  launch "$dir" fleet "$rebuild" "$claude_profile" "$claude_service" "${cmd[@]}" || rc=$?
-  git_guard check "$org" || true
+  ssh-add "$SIGNING_KEY" &>/dev/null || die "could not load signing key: $SIGNING_KEY"
+  git_guard check "$org" "$dir" || true
+  launch "$dir" fleet "$claude_profile" "${cmd[@]}" || rc=$?
+  git_guard check "$org" "$dir" || true
   warn_running_agents "$org" "$dir" "$(identity_profile fleet "$claude_profile")"
   exit "$rc"
 }
 
-# Per-repository audit containers receive no host AI/API credentials or SSH
-# agent. URL destinations are validated and created by the pinned helper, and
-# the trusted config lives outside the checkout.
+# Per-repository containers with no host credentials or SSH agent.
 cmd_audit() {
-  local target="" dir rc=0
-  local -a cmd=()
-  while (($#)); do
-    case "$1" in
-      --)
-        shift
-        cmd=("$@")
-        break
-        ;;
-      -*) die "$AUDIT_USAGE" ;;
-      *)
-        [[ -z "$target" ]] || die "$AUDIT_USAGE"
-        target="$1"
-        shift
-        ;;
-    esac
-  done
-  [[ -n "$target" ]] || target=.
+  local target="." dir
+  if [[ $# -gt 0 && "$1" != -- ]]; then
+    [[ "$1" != -* ]] || die "usage: $AUDIT_USAGE"
+    target="$1"
+    shift
+  fi
+  if (($#)); then
+    [[ "$1" == -- ]] || die "usage: $AUDIT_USAGE"
+    shift
+  fi
 
   if [[ "$target" == *://* || "$target" == *@*:* ]]; then
-    dir="$("$AGENT_DEVC/libexec/devc-audit-slug" --prepare "$HOME/sandbox/audit" "$target")" || exit 1
+    dir="$("$AGENT_DEVC/libexec/devc-audit-slug" --prepare "$HOME/sandbox/audit" "$target")"
   else
-    # Reject a symlinked target on the raw path: realpath resolves symlinks,
-    # so testing -L after it would always pass.
+    # Check -L before realpath, which resolves symlinks.
     [[ ! -L "$target" ]] || die "refusing symlinked target: $target"
     dir="$(realpath -m -- "$target")"
     [[ -d "$dir" && ! -L "$dir" ]] || die "no safe directory: $dir"
@@ -303,27 +267,25 @@ cmd_audit() {
   preflight
   echo "Audit profile: no host AI/API credentials or SSH agent are forwarded." >&2
   echo "Use 'codex login --device-auth' or interactive Claude login inside this isolated container." >&2
-  launch "$dir" audit 0 "" "" "${cmd[@]}" || rc=$?
-  exit "$rc"
+  launch "$dir" audit "" "$@"
 }
 
 cmd_ls() {
-  (($# == 0)) || die "usage: agent ls"
+  (($# == 0)) || die "usage: $LS_USAGE"
   docker ps -a --filter label=agent.devcontainer.profile \
-    --format 'table {{.ID}}\t{{.Label "agent.devcontainer.profile"}}\t{{.Status}}\t{{.Label "devcontainer.local_folder"}}'
+    --format 'table {{.ID}}\t{{.Label "agent.devcontainer.profile"}}\t{{.Label "agent.devcontainer.org"}}\t{{.Status}}\t{{.Label "devcontainer.local_folder"}}'
 }
 
 cmd_stop() {
+  (($# <= 1)) || die "usage: $STOP_USAGE"
   local -a ids=()
   if [[ "${1:-}" == --all ]]; then
-    (($# == 1)) || die "$STOP_USAGE"
     mapfile -t ids < <(containers)
   else
-    (($# <= 1)) || die "$STOP_USAGE"
-    local org="${1:-}" dir
+    local org="${1:-}"
     [[ -n "$org" ]] || org="$(infer_org)"
-    dir="$(fleet_dir "$org")" || exit 1
-    mapfile -t ids < <(containers "devcontainer.local_folder=$dir")
+    fleet_dir "$org" >/dev/null
+    mapfile -t ids < <(containers "agent.devcontainer.org=$org")
   fi
   ((${#ids[@]})) || { echo "no agent containers to stop" >&2; return 0; }
   docker stop "${ids[@]}" >/dev/null
@@ -336,90 +298,66 @@ yaml_value() {
 }
 
 cmd_doctor() {
-  (($# == 0)) || die "usage: agent doctor"
+  (($# == 0)) || die "usage: $DOCTOR_USAGE"
   local failures=0 config="$HOME/.colima/default/colima.yaml"
-  ok() { echo "ok    $*"; }
-  bad() {
-    echo "FAIL  $*"
-    failures=$((failures + 1))
+  report() {
+    if (($1 == 0)); then
+      echo "ok    $2"
+    else
+      echo "FAIL  $2"
+      failures=$((failures + 1))
+    fi
   }
-  warn() { echo "warn  $*"; }
   check() {
     local label="$1"
     shift
-    if "$@" &>/dev/null; then ok "$label"; else bad "$label"; fi
+    if "$@" &>/dev/null; then report 0 "$label"; else report 1 "$label"; fi
   }
+  same_generation() { [[ "$(readlink -f /run/current-system)" == "$(readlink -f /nix/var/nix/profiles/system)" ]]; }
+  signing_key_loaded() {
+    local fingerprint
+    fingerprint="$(ssh-keygen -lf "$SIGNING_KEY.pub" | cut -d' ' -f2)"
+    [[ -n "$fingerprint" ]] && ssh-add -l | grep -qF -- "$fingerprint"
+  }
+  vm_resources_match() {
+    local cpus mem
+    read -r cpus mem < <(jq -r '"\(.cpus) \(.memory / 1073741824)"' <<<"$1")
+    [[ "$cpus" == "$(yaml_value cpu "$config")" && "$mem" == "$(yaml_value memory "$config")" ]]
+  }
+  ssh_hidden() { ! colima ssh -- test -e "$HOME/.ssh"; }
 
   check "devcontainer CLI installed" command -v devcontainer
-  if [[ -e /run/current-system && -e /nix/var/nix/profiles/system ]]; then
-    if [[ "$(readlink -f /run/current-system)" == "$(readlink -f /nix/var/nix/profiles/system)" ]]; then
-      ok "latest system generation is active"
-    else
-      bad "latest system generation is not active (activation failed? rerun make switch)"
-    fi
-  fi
+  [[ ! -e /run/current-system ]] \
+    || check "latest system generation is active (else rerun make switch)" same_generation
+  [[ -r "$config" ]] || report 1 "colima config readable: $config"
 
-  if [[ ! -r "$config" ]]; then
-    bad "colima config readable: $config"
-  elif [[ -z "$(yaml_value runtime "$config")" ]]; then
-    bad "colima.yaml sets runtime (without it colima ignores the whole file)"
-  else
-    ok "colima.yaml sets runtime"
-  fi
-
-  local vm
+  local vm location mounts
   if ! vm="$(colima list --json 2>/dev/null)" || [[ "$(jq -r .status <<<"$vm")" != Running ]]; then
-    bad "colima VM running (start it with: colima start --ssh-agent)"
+    report 1 "colima VM running (start it with: colima start --ssh-agent)"
   else
-    ok "colima VM running"
-    local want_cpu want_mem
-    want_cpu="$(yaml_value cpu "$config" 2>/dev/null)"
-    want_mem="$(yaml_value memory "$config" 2>/dev/null)"
-    if [[ -n "$want_cpu" && "$(jq -r .cpus <<<"$vm")" != "$want_cpu" ]] \
-      || [[ -n "$want_mem" && "$(jq -r '.memory / 1073741824' <<<"$vm")" != "$want_mem" ]]; then
-      bad "VM resources match colima.yaml (want ${want_cpu:-?} CPUs, ${want_mem:-?} GiB; restart colima)"
-    else
-      ok "VM resources match colima.yaml"
-    fi
-
-    local mounts location
+    report 0 "colima VM running"
+    check "VM resources match colima.yaml (restart colima after changing them)" vm_resources_match "$vm"
     mounts="$(colima ssh -- mount 2>/dev/null | awk '$5 == "virtiofs" { print $3 }')"
     while read -r location; do
       location="${location/#\~/$HOME}"
-      if grep -qxF -- "$location" <<<"$mounts"; then
-        ok "VM mounts $location"
-      else
-        bad "VM mounts $location (restart colima after changing mounts)"
-      fi
+      check "VM mounts $location (restart colima after changing mounts)" grep -qxF -- "$location" <<<"$mounts"
     done < <(sed -n 's/^[[:space:]]*-[[:space:]]*location:[[:space:]]*//p' "$config" 2>/dev/null)
-    if colima ssh -- test -e "$HOME/.ssh" &>/dev/null; then
-      bad "host ~/.ssh hidden from the VM"
-    else
-      ok "host ~/.ssh hidden from the VM"
-    fi
-    check "SSH agent socket forwarded into the VM" colima ssh -- test -S /run/host-services/ssh-auth.sock
+    check "host ~/.ssh hidden from the VM" ssh_hidden
+    check "SSH agent socket forwarded into the VM" colima ssh -- test -S "$AGENT_SOCK"
   fi
+  check "signing key loaded in ssh-agent (agent fleet loads it on launch)" signing_key_loaded
 
-  local signing_key="$HOME/.ssh/id_ed25519" fingerprint
-  if fingerprint="$(ssh-keygen -lf "$signing_key.pub" 2>/dev/null | cut -d' ' -f2)" && [[ -n "$fingerprint" ]] \
-    && ssh-add -l 2>/dev/null | grep -qF -- "$fingerprint"; then
-    ok "signing key loaded in ssh-agent"
-  else
-    bad "signing key loaded in ssh-agent (agent fleet loads it on launch)"
-  fi
-
-  # Optional secrets, so only warn. Presence only: without -w they are never read.
-  local name service
-  for name in $(printf '%s\n' "${!AGENT_PROFILES[@]}" | sort) codex; do
-    service="${AGENT_PROFILES[$name]:-codex-api-key}"
+  # Optional secrets, so only warn; without -w they are never read.
+  local service
+  for service in "${AGENT_PROFILES[@]}" "$CODEX_SERVICE"; do
     if security find-generic-password -a "$USER" -s "$service" &>/dev/null; then
-      ok "keychain item $service"
+      echo "ok    keychain item $service"
     else
-      warn "keychain item $service missing; that agent falls back to interactive login"
+      echo "warn  keychain item $service missing; that agent falls back to interactive login"
     fi
   done
 
-  ((failures == 0)) || { echo "$failures check(s) failed" >&2; exit 1; }
+  ((failures == 0)) || die "$failures check(s) failed"
 }
 
 subcommand="${1:-}"

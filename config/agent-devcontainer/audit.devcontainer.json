@@ -23,7 +23,9 @@
     "--cap-add=NET_ADMIN",
     "--cap-add=NET_RAW",
     "--pids-limit=2048",
-    "--security-opt=no-new-privileges"
+    "--security-opt=no-new-privileges",
+    "--label=agent.devcontainer.devc=${localEnv:AGENT_DEVC}",
+    "--label=agent.devcontainer.org=${localEnv:AGENT_ORG}"
   ],
   "init": true,
   "overrideCommand": false,

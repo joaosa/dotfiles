@@ -4,6 +4,7 @@
 set -euo pipefail
 
 agent="$1"
+devc="$(sed -n 's/^AGENT_DEVC=//p' "$(realpath "$agent")")"
 work="$(mktemp -d)"
 export HOME="$work/home" USER=tester
 log="$work/calls.log"
@@ -33,6 +34,7 @@ stub colima 'echo "colima $*" >>"$LOG"
 case "$1" in
   ssh)
     shift 2
+    [[ "$1" == sh ]] && exec "${@//\/run\/host-services\/ssh-auth.sock/}"
     [[ "$1" == test && "$3" == /run/* ]] && exit 0
     [[ "$1" == test && "$3" == */.ssh ]] && exit 1
     [[ "$1" == mount ]] && { echo "x on $HOME/ghq type virtiofs (rw)"; exit 0; }
@@ -42,10 +44,14 @@ esac'
 stub ssh-add 'echo "ssh-add $*" >>"$LOG"; [[ "$1" == -l ]] && echo "256 SHA256:fp key (ED25519)"; exit 0'
 stub ssh-keygen 'echo "256 SHA256:fp key (ED25519)"'
 stub security 'echo "security $*" >>"$LOG"; [[ "$*" == *codex* ]] && exit 44; echo "token-for-${*: -2:1}-padded-to-twenty-chars"'
-stub devcontainer 'echo "devcontainer $* | token=${CLAUDE_CODE_OAUTH_TOKEN:-none} dotfiles=${DOTFILES_PATH:-}" >>"$LOG"; [[ "$1" == exec ]] && exit "${EXEC_RC:-0}"; exit 0'
+stub devcontainer 'echo "devcontainer $* | token=${CLAUDE_CODE_OAUTH_TOKEN:-none} dotfiles=${DOTFILES_PATH:-} org=${AGENT_ORG:-} devc=${AGENT_DEVC:-}" >>"$LOG"; [[ "$1" == exec ]] && exit "${EXEC_RC:-0}"; exit 0'
 stub docker 'echo "docker $*" >>"$LOG"
 case "$1" in
-  ps) [[ "$*" == *-aq* ]] && { [[ -n "${DOCKER_PS:-}" ]] && echo "$DOCKER_PS"; exit 0; }; echo "table" ;;
+  ps)
+    [[ -z "${DOCKER_PS:-}" ]] && exit 0
+    if [[ "$*" == *-aq* ]]; then echo "$DOCKER_PS"
+    elif [[ "$*" == *agent.devcontainer.devc* ]]; then echo "$DOCKER_PS ${DOCKER_DEVC:-}"
+    else echo table; fi ;;
   top) echo "${DOCKER_TOP:-zsh}" ;;
 esac'
 export PATH="$stubs:$PATH" LOG="$log"
@@ -66,6 +72,7 @@ expect() {
 }
 called() { grep -qF -- "$1" "$log" || fail "no call matching: $1 in: $(cat "$log")"; }
 not_called() { if grep -qF -- "$1" "$log"; then fail "unexpected call matching: $1"; fi; }
+has() { [[ "$out" == *"$1"* ]] || fail "output lacks: $1 in: $out"; }
 
 # Argument handling.
 expect 1 "usage: agent fleet" --
@@ -90,7 +97,7 @@ expect 1 "no org given" -- stop
 expect 0 "" -- fleet acme
 called "devcontainer up --workspace-folder $org"
 called "--id-label agent.devcontainer.profile=fleet | token=token-for-svc-main"
-called "dotfiles=/dotfiles"
+called "dotfiles=/dotfiles org=acme devc=$devc"
 called "agent.devcontainer.profile=fleet zsh |"
 not_called "--remove-existing-container"
 not_called "claude-profile="
@@ -106,24 +113,22 @@ called "--remove-existing-container"
 
 EXEC_RC=7 expect 7 "" -- fleet acme
 
-# Stale detection: rebuild once when the stamp is missing or differs.
-DOCKER_PS=c1 CWD="$org" expect 0 "" -- fleet -p alt
+# Stale detection: rebuild when the container's template label differs.
+DOCKER_PS=c1 DOCKER_DEVC="$devc" CWD="$org" expect 0 "" -- fleet -p alt
 not_called "--remove-existing-container"
-rm -rf "$HOME/.local/state/agent-devcontainer/templates"
-DOCKER_PS=c1 expect 0 "templates changed" -- fleet acme
+DOCKER_PS=c1 DOCKER_DEVC=/nix/store/old-devc expect 0 "templates changed" -- fleet acme
 called "--remove-existing-container"
-DOCKER_PS=c1 expect 0 "" -- fleet acme
-not_called "--remove-existing-container"
+DOCKER_PS=c1 expect 0 "templates changed" -- fleet acme
 
 # Agents left running after the shell exits.
-DOCKER_PS=c1 DOCKER_TOP="node /usr/local/bin/claude" expect 0 "agent stop acme" -- fleet acme
-DOCKER_PS=c1 DOCKER_TOP="zsh" expect 0 "" -- fleet acme
+DOCKER_PS=c1 DOCKER_DEVC="$devc" DOCKER_TOP="node /usr/local/bin/claude" expect 0 "agent stop acme" -- fleet acme
+DOCKER_PS=c1 DOCKER_DEVC="$devc" DOCKER_TOP="zsh" expect 0 "" -- fleet acme
 [[ "$out" != *"agent stop"* ]] || fail "warned about agents with none running"
 
 # Audit: no credentials or agent forwarding; defaults to the current directory.
 CWD="$HOME/audited" expect 0 "" -- audit
 called "devcontainer up --workspace-folder $HOME/audited"
-called "--id-label agent.devcontainer.profile=audit zsh | token=none"
+called "--id-label agent.devcontainer.profile=audit zsh | token=none dotfiles=/dotfiles org= "
 not_called "security"
 not_called "ssh-add"
 expect 0 "" -- audit "$HOME/audited" -- codex
@@ -135,7 +140,7 @@ CWD="$org/repo" expect 0 "" -- trust
 expect 0 "" -- ls
 called "docker ps -a --filter label=agent.devcontainer.profile --format"
 DOCKER_PS=c1 CWD="$org/repo" expect 0 "stopped 1" -- stop
-called "--filter label=devcontainer.local_folder=$org"
+called "--filter label=agent.devcontainer.org=acme"
 called "docker stop c1"
 DOCKER_PS=$'c1\nc2' expect 0 "stopped 2" -- stop --all
 called "docker stop c1 c2"
@@ -143,14 +148,15 @@ expect 0 "no agent containers" -- stop acme
 
 # Doctor: optional secrets warn, mismatches fail.
 expect 1 "FAIL  VM mounts $HOME/sandbox" -- doctor
-[[ "$out" == *"ok    colima.yaml sets runtime"* ]] || fail "doctor: runtime not ok: $out"
-[[ "$out" == *"ok    VM mounts $HOME/ghq"* ]] || fail "doctor: ghq mount not ok"
-[[ "$out" == *"ok    host ~/.ssh hidden from the VM"* ]] || fail "doctor: ssh visibility"
-[[ "$out" == *"ok    signing key loaded"* ]] || fail "doctor: signing key"
-[[ "$out" == *"warn  keychain item codex-api-key missing"* ]] || fail "doctor: codex warn"
+has "ok    VM resources match colima.yaml"
+has "ok    VM mounts $HOME/ghq"
+has "ok    host ~/.ssh hidden from the VM"
+has "ok    SSH agent socket forwarded"
+has "ok    signing key loaded"
+has "ok    keychain item svc-alt"
+has "warn  keychain item codex-api-key missing"
+has "1 check(s) failed"
 VM_CPUS=2 expect 1 "FAIL  VM resources match colima.yaml" -- doctor
-sed -i.bak '/^runtime:/d' "$HOME/.colima/default/colima.yaml"
-expect 1 "FAIL  colima.yaml sets runtime" -- doctor
 
 if ((fails)); then
   echo "$fails agent test(s) failed" >&2
