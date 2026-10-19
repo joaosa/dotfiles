@@ -6,6 +6,10 @@
 
 let
   stateDir = "/var/lib/tailscale";
+  # Shields up, enforced as device policy; "never" allow incoming = ShieldsUp.
+  syspolicy = pkgs.writeText "tailscale-syspolicy.json" (
+    builtins.toJSON { AllowIncomingConnections = "never"; }
+  );
 in
 {
   environment.systemPackages = [ pkgs.tailscale ];
@@ -26,6 +30,7 @@ in
       exec ${lib.getExe' pkgs.tailscale "tailscaled"} \
         --state=${stateDir}/tailscaled.state \
         --socket=/var/run/tailscaled.socket \
+        --syspolicy-file=${syspolicy} \
         --hardware-attestation=false
     '';
     serviceConfig = {
