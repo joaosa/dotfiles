@@ -44,6 +44,7 @@
   pkgs.crane
   # Shadows Apple's curl, whose LibreSSL ignores the bundle's distrust markers
   # (security.pki.caCertificateBlacklist); this one reads NIX_SSL_CERT_FILE.
+  # pkgs.openssl below shadows Apple's openssl for the same reason.
   pkgs.curl
   pkgs.delta
   pkgs.delve
@@ -108,6 +109,7 @@
   pkgs.nodejs_22
   pkgs.opencode
   pkgs.openpgp-card-tools
+  pkgs.openssl
   pkgs.oras
   pkgs.parallel
   pkgs.pkg-config
