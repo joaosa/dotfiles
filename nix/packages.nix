@@ -42,6 +42,9 @@
   # wrappers below.
   pkgs.coreutils-prefixed
   pkgs.crane
+  # Shadows Apple's curl, whose LibreSSL ignores the bundle's distrust markers
+  # (security.pki.caCertificateBlacklist); this one reads NIX_SSL_CERT_FILE.
+  pkgs.curl
   pkgs.delta
   pkgs.delve
   # devcontainer CLI, driven by the pinned `devc` wrapper below.

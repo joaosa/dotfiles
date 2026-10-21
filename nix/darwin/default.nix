@@ -53,6 +53,11 @@
     "emSign Root CA - C1"
     "emSign ECC Root CA - C3"
   ];
+  # sudo's env_reset drops NIX_SSL_CERT_FILE, so nix under `make switch` falls
+  # back to the stale default-profile bundle; drop once nixpkgs #570263 lands.
+  security.sudo.extraConfig = ''
+    Defaults env_keep += "NIX_SSL_CERT_FILE"
+  '';
 
   users.users.${username} = {
     name = username;
