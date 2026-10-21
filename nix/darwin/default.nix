@@ -44,6 +44,16 @@
     stateVersion = 6;
   };
 
+  # CVE-2026-111943: roots chaining to the compromised eMudhra intermediates,
+  # mirroring the NixOS mitigation (nixpkgs #576390). OpenSSL-based tools never
+  # see the browsers' intermediate blocks; drop once nix-darwin #1876 lands.
+  security.pki.caCertificateBlacklist = [
+    "Comodo AAA Services root"
+    "emSign ECC Root CA - G3"
+    "emSign Root CA - C1"
+    "emSign ECC Root CA - C3"
+  ];
+
   users.users.${username} = {
     name = username;
     home = "/Users/${username}";
