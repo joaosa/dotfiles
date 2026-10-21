@@ -1,6 +1,6 @@
 # Claude Code and Codex devcontainer, adapted from Trail of Bits' pinned
 # claude-code-devcontainer template and OpenAI's secure devcontainer example.
-FROM ghcr.io/astral-sh/uv:0.10@sha256:10902f58a1606787602f303954cea099626a4adb02acbac4c69920fe9d278f82 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.4@sha256:9f130421e930bfbdc563c00740466603f8723158e90297d07957c2294640262b AS uv
 FROM mcr.microsoft.com/devcontainers/base:ubuntu24.04@sha256:4bcb1b466771b1ba1ea110e2a27daea2f6093f9527fb75ee59703ec89b5561cb
 
 ARG TZ
@@ -16,7 +16,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # libclang-dev: leptess bindgen; libsqlite3-dev: rusqlite link (mtg tools).
 # cmake + libde265-dev + libx265-dev: build deps and HEVC codecs for the
 # pinned libheif source build below (media tools).
+# ca-certificates is in the base but listed so the pinned digest still picks
+# up root store fixes (eMudhra distrust, CVE-2026-111943).
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates \
   fd-find \
   ripgrep \
   zsh \
@@ -186,9 +189,9 @@ RUN cargo install --locked "bacon@${BACON_VERSION}"
 
 # Go toolchain; digests are the official checksums from go.dev/dl. Module and
 # GOTOOLCHAIN downloads go through the already-allowlisted proxy.golang.org.
-ARG GO_VERSION=1.26.5
-ARG GO_SHA256_amd64=5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053
-ARG GO_SHA256_arm64=fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49
+ARG GO_VERSION=1.26.10
+ARG GO_SHA256_amd64=ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
+ARG GO_SHA256_arm64=3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
 RUN ARCH=$(dpkg --print-architecture) && \
   eval "EXPECT=\${GO_SHA256_${ARCH}}" && \
   [ -n "$EXPECT" ] || { echo "No Go digest for arch ${ARCH}" >&2; exit 1; } && \
