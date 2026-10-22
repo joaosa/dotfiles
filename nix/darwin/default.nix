@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   lib,
   pkgs,
@@ -64,15 +65,24 @@
     home = "/Users/${username}";
   };
 
-  # pkgconfig dirs exposed so /etc/profiles/per-user/${username} carries the
-  # .pc files at a stable path; PKG_CONFIG_PATH (common.nix) points there
-  # instead of at a per-generation store path that GC invalidates.
-  environment.pathsToLink = [
-    "/share/zsh"
-    "/lib/pkgconfig"
-    "/share/pkgconfig"
-  ];
-  environment.shells = [ pkgs.zsh ];
+  environment = {
+    # Apple's curl/git/python3/openssl read /etc/ssl/cert.pem and skip revocation,
+    # so point it at the filtered bundle; the hash is Apple's 15.8.1 file, and an
+    # OS update restoring it fails activation until its new hash is added here.
+    etc."ssl/cert.pem" = {
+      inherit (config.environment.etc."ssl/certs/ca-certificates.crt") source;
+      knownSha256Hashes = [ "9dae8d76e55cb08991f2b672d58999ea15560d910759c16b544f843bdffbb994" ];
+    };
+    # pkgconfig dirs exposed so /etc/profiles/per-user/${username} carries the
+    # .pc files at a stable path; PKG_CONFIG_PATH (common.nix) points there
+    # instead of at a per-generation store path that GC invalidates.
+    pathsToLink = [
+      "/share/zsh"
+      "/lib/pkgconfig"
+      "/share/pkgconfig"
+    ];
+    shells = [ pkgs.zsh ];
+  };
   # nix-darwin owns /etc/zshenv, which puts the Nix profiles on PATH and sets
   # NIX_PROFILES for every zsh; /etc/zshrc is kept inert since Home Manager
   # owns the interactive config (~/.zshrc, plugins, starship).
