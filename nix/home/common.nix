@@ -100,6 +100,22 @@ let
     skipWorkflowUsageWarning = true;
     switchModelsOnFlag = true;
     tui = "default";
+    # Outbound data always prompts, auto mode included. Arrays replace on
+    # merge, so a per-profile permissions.ask is overwritten by this list.
+    permissions.ask = [
+      "WebFetch"
+      "WebSearch"
+      "Artifact"
+      "Bash(curl:*)"
+      "Bash(wget:*)"
+      "Bash(git push:*)"
+      "Bash(gh:*)"
+      "mcp__claude_ai_Notion"
+      "mcp__claude_ai_Gmail"
+      "mcp__claude_ai_Google_Drive"
+      "mcp__claude_ai_Google_Calendar"
+      "mcp__claude_ai_Claude_Docs"
+    ];
     hooks =
       lib.genAttrs
         [

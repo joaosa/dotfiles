@@ -38,6 +38,7 @@
     "source=devc-${localWorkspaceFolderBasename}-audit-codex-${devcontainerId},target=/home/vscode/.codex,type=volume",
     "source=devc-${localWorkspaceFolderBasename}-audit-gh-${devcontainerId},target=/home/vscode/.config/gh,type=volume",
     "source=${localEnv:DOTFILES_PATH}/config/git/gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly",
+    "source=${localEnv:HOME}/.claude-shared/CLAUDE.md,target=/home/vscode/.claude/CLAUDE.md,type=bind,readonly",
     "source=${localEnv:HOME}/.claude-shared/skills,target=/home/vscode/.claude/skills,type=bind,readonly",
     "source=${localEnv:HOME}/.claude-shared/skills,target=/home/vscode/.agents/skills,type=bind,readonly",
     "source=${localWorkspaceFolder}/.git,target=/workspace/.git,type=bind,readonly"
