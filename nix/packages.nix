@@ -13,7 +13,7 @@
   pkgs.ansible
   pkgs.asciinema
   pkgs.asciinema-agg
-  pkgs.azure-cli
+  (pkgs.callPackage ./packages/azure-cli.nix { })
   pkgs.bacon
   pkgs.bash
   pkgs.bat
@@ -25,7 +25,7 @@
   pkgs.cargo-expand
   pkgs.cargo-geiger
   pkgs.cargo-insta
-  pkgs.cargo-llvm-cov
+  (pkgs.callPackage ./packages/cargo-llvm-cov.nix { })
   pkgs.cargo-machete
   pkgs.cargo-mutants
   pkgs.cargo-nextest
@@ -106,7 +106,7 @@
   pkgs.nil
   pkgs.nixfmt
   pkgs.nmap
-  pkgs.nodejs_22
+  (pkgs.callPackage ./packages/nodejs-security.nix { })
   pkgs.opencode
   pkgs.openpgp-card-tools
   pkgs.openssl
