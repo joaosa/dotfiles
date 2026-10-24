@@ -1,40 +1,24 @@
 {
   lib,
   stdenv,
-  path,
   callPackage,
   fetchurl,
-  python3,
   nodejs_22,
   nodejs-slim_22,
-  brotli,
   c-ares,
   sqlite,
   openssl,
 }:
 
-# Temporary bridge until nixpkgs includes the October 21 security release.
-# Keep patched libraries local to Node to avoid rebuilding unrelated packages.
-assert lib.assertMsg (nodejs-slim_22.version == "22.23.3")
+# Temporary bridge until nixpkgs patches c-ares and sqlite for the October 21
+# Node security release (it already patches brotli). Keep them local to Node
+# to avoid rebuilding unrelated packages.
+assert lib.assertMsg (nodejs-slim_22.version == "22.23.4")
   "Reassess nodejs-security.nix: nixpkgs Node changed; remove this override once its shared dependencies are patched.";
 assert lib.assertMsg (lib.versionAtLeast openssl.version "3.5.9")
   "The Node security override requires OpenSSL 3.5.9 or newer.";
 
 let
-  patchedBrotli =
-    if lib.versionAtLeast brotli.version "1.2.1" then
-      brotli
-    else
-      brotli.overrideAttrs (old: {
-        patches = old.patches ++ [
-          # CVE-2026-111497, matching nixpkgs #576794.
-          (fetchurl {
-            url = "https://github.com/google/brotli/commit/0ed4268a4401abcb4472096340477cf4af7d1a2b.patch?full_index=1";
-            hash = "sha256-1vliUJAAIj3vcGKVgim9CEV+XgMuftDR2U+3kLBUsfw=";
-          })
-        ];
-      });
-
   patchedCares =
     if lib.versionAtLeast c-ares.version "1.34.9" then
       c-ares
@@ -63,23 +47,23 @@ let
         };
       };
 
-  buildNode = callPackage "${path}/pkgs/development/web/nodejs/nodejs.nix" {
-    python = python3;
-    brotli = patchedBrotli;
-    c-ares = patchedCares;
-    sqlite = patchedSqlite;
-  };
-
   patchedNode =
-    (buildNode {
-      version = "22.23.4";
-      sha256 = "7b9adc82d612d0a2a863d96c46de2292552e250cee51956ebbe0146c42aacae9";
-      inherit (nodejs-slim_22) patches;
+    (nodejs-slim_22.override {
+      # Inject the patched libraries into nodejs.nix's arguments.
+      callPackage =
+        file: args:
+        callPackage file (
+          args
+          // {
+            c-ares = patchedCares;
+            sqlite = patchedSqlite;
+          }
+        );
     }).overrideAttrs
       (
         old:
         lib.optionalAttrs stdenv.hostPlatform.isDarwin {
-          # Both installed Node 22.23.3 and the official 22.23.4 binary fail
+          # Both Node 22.23.3 and the official 22.23.4 binary fail
           # these host-network tests here: inspector resets, IPv6 UDP times out.
           checkFlags = map (
             flag:

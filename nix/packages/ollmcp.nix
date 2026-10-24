@@ -2,8 +2,38 @@
   lib,
   python3Packages,
   fetchPypi,
+  fetchFromGitHub,
 }:
 
+let
+  # mcp 2.x drops streamablehttp_client; every ollmcp release that supports it
+  # needs any-llm-sdk, which nixpkgs lacks. Keep the last 1.x SDK local here.
+  mcp = python3Packages.mcp.overridePythonAttrs {
+    version = "1.29.0";
+    src = fetchFromGitHub {
+      owner = "modelcontextprotocol";
+      repo = "python-sdk";
+      tag = "v1.29.0";
+      hash = "sha256-lRlj5RT/R5zrYL5XpdQR2l9t99G94WTsubN0gSQekMc=";
+    };
+    pythonRelaxDeps = [ "pydantic-settings" ];
+    dependencies = with python3Packages; [
+      anyio
+      httpx
+      httpx-sse
+      jsonschema
+      pydantic
+      pydantic-settings
+      pyjwt
+      python-multipart
+      sse-starlette
+      starlette
+      uvicorn
+    ];
+    # The 2.x test setup does not apply to the 1.x tree.
+    doCheck = false;
+  };
+in
 python3Packages.buildPythonApplication rec {
   pname = "mcp-client-for-ollama";
   version = "0.29.1";
@@ -17,13 +47,15 @@ python3Packages.buildPythonApplication rec {
 
   build-system = [ python3Packages.setuptools ];
 
-  dependencies = with python3Packages; [
+  dependencies = [
     mcp
+  ]
+  ++ (with python3Packages; [
     ollama
     prompt-toolkit
     rich
     typer
-  ];
+  ]);
 
   # Upstream pins mcp <1.28, rich <14.3 and typer ~=0.21; nixpkgs carries newer
   # minor versions that are API-compatible for this client's usage.

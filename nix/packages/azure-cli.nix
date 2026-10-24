@@ -26,6 +26,9 @@ azure-cli.override {
               sha256 = "515bf49b4a48932b79b024590348da22f39c4942dff991ad1fb8b8baea1be707";
             };
           };
+          # Hydra skips this broken-marked set, so it builds locally, where
+          # black's tests fail on an unclosed scandir ResourceWarning.
+          black = previous.black.overridePythonAttrs { doCheck = false; };
         }
       );
     };
