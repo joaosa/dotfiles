@@ -375,6 +375,7 @@ in
 
     gh = {
       enable = true;
+      extensions = [ pkgs.gh-stack ];
       settings = {
         git_protocol = "https";
         aliases.co = "pr checkout";
