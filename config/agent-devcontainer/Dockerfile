@@ -31,9 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   iproute2 \
   libclang-dev \
   libde265-dev \
-  libleptonica-dev \
   libsqlite3-dev \
-  libtesseract-dev \
   libx265-dev \
   pkg-config \
   && apt-get clean \
