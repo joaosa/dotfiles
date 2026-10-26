@@ -58,17 +58,14 @@
   pkgs.fd
   pkgs.findutils
   pkgs.fluxcd
-  pkgs.fortune
   pkgs.fswatch
   pkgs.fzf
   pkgs.gawk
   pkgs.gettext
   pkgs.ghq
   pkgs.git
-  pkgs.git-crypt
   pkgs.git-extras
   pkgs.git-filter-repo
-  pkgs.git-secret
   pkgs.gitmux
   pkgs.gitleaks
   pkgs.gnugrep
@@ -91,10 +88,8 @@
   pkgs.kubectx
   pkgs.kubernetes-helm
   pkgs.kubeseal
-  pkgs.leptonica
   pkgs.libheif
   pkgs.lua
-  pkgs.luarocks
   pkgs.mcp-server-filesystem
   pkgs.miller
   pkgs.mitmproxy
@@ -108,7 +103,6 @@
   pkgs.nmap
   (pkgs.callPackage ./packages/nodejs-security.nix { })
   pkgs.opencode
-  pkgs.openpgp-card-tools
   pkgs.openssl
   pkgs.oras
   pkgs.parallel
@@ -130,8 +124,6 @@
   pkgs.sox
   pkgs.starship
   pkgs.tailscale
-  pkgs.tcptraceroute
-  pkgs.tesseract
   pkgs.terminal-notifier
   pkgs.tmux
   pkgs.tree
@@ -156,7 +148,6 @@
   (pkgs.callPackage ./packages/context7-mcp.nix { })
   (pkgs.callPackage ./packages/devc.nix { })
   (pkgs.callPackage ./packages/ollmcp.nix { })
-  (pkgs.callPackage ./packages/openpgp-card-tool-git.nix { })
   (pkgs.callPackage ./packages/qpdf.nix { })
   (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
   (pkgs.callPackage ./packages/serena.nix { })
