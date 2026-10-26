@@ -305,10 +305,6 @@ in
   };
 
   services = {
-    # Declarative gpg-agent (launchd on darwin); its zsh integration exports
-    # GPG_TTY. The pinentry program is set per-platform (see darwin.nix).
-    gpg-agent.enable = true;
-
     ollama = {
       enable = true;
       environmentVariables = {

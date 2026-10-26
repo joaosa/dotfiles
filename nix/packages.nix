@@ -69,7 +69,6 @@
   pkgs.gitmux
   pkgs.gitleaks
   pkgs.gnugrep
-  pkgs.gnupg
   pkgs.gnused
   pkgs.go_1_26
   pkgs.gore
