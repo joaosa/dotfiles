@@ -13,7 +13,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # bwrap. A setuid-root bwrap would be latent local-root surface for no benefit,
 # and this profile blocks the user namespaces unprivileged bwrap needs anyway.
 # Only packages the base image lacks (EDITOR=nano ships in the base).
-# libclang-dev: leptess bindgen; libsqlite3-dev: rusqlite link (mtg tools).
+# libclang-dev: bindgen for -sys crates; libsqlite3-dev: rusqlite link (mtg tools).
 # cmake + libde265-dev + libx265-dev: build deps and HEVC codecs for the
 # pinned libheif source build below (media tools).
 # ca-certificates is in the base but listed so the pinned digest still picks
