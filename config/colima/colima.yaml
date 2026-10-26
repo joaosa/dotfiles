@@ -29,3 +29,9 @@ mounts:
 # /run/host-services/ssh-auth.sock, which the fleet devcontainer mounts for
 # in-container commit signing.
 forwardAgent: true
+
+# Colima forwards guest 0.0.0.0 ports to host 0.0.0.0, so a bare `-p 8080:80`
+# would be reachable from the LAN. Default published ports to loopback instead;
+# `-p 0.0.0.0:8080:80` still opts in explicitly.
+docker:
+  ip: 127.0.0.1

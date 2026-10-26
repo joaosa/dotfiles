@@ -46,10 +46,14 @@
   };
 
   # Stealth mode ignores probes; leave blockAllIncoming off so AirDrop works.
+  # Only Apple's own signed software is auto-allowed; other apps must be
+  # approved before they can accept incoming connections.
   networking.applicationFirewall = {
     enable = true;
     enableStealthMode = true;
     blockAllIncoming = false;
+    allowSigned = true;
+    allowSignedApp = false;
   };
 
   # sudo's env_reset drops NIX_SSL_CERT_FILE, so nix under `make switch` falls

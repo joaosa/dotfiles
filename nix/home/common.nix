@@ -323,6 +323,15 @@ in
       enable = true;
       overrideDevices = false;
       overrideFolders = false;
+      # No UPnP port opening on the router, no phoning home, and no
+      # self-upgrade of the Nix-managed binary. Discovery and relays stay on so
+      # off-LAN devices still sync; relays only see TLS ciphertext.
+      settings.options = {
+        natEnabled = false;
+        urAccepted = -1;
+        crashReportingEnabled = false;
+        autoUpgradeIntervalH = 0;
+      };
     };
   };
 
