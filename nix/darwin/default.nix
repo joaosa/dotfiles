@@ -39,6 +39,19 @@
     optimise.automatic = true;
   };
 
+  # Run the weekly jobs' binaries directly instead of through nix-darwin's
+  # /bin/sh wait4path wrapper, so Login Items lists them by name rather than as
+  # yet another "sh". They never run at boot, so /nix is always mounted.
+  launchd.daemons = {
+    nix-gc.serviceConfig.ProgramArguments = lib.mkForce (
+      [ "${config.nix.package}/bin/nix-collect-garbage" ] ++ lib.splitString " " config.nix.gc.options
+    );
+    nix-optimise.serviceConfig.ProgramArguments = lib.mkForce [
+      (lib.getExe' config.nix.package "nix-store")
+      "--optimise"
+    ];
+  };
+
   system = {
     primaryUser = username;
     configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;

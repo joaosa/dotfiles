@@ -106,11 +106,21 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     };
   };
 
-  # Extend Home Manager's Ollama launch agent rather than declaring a second
-  # service that would compete for localhost:11434.
-  launchd.agents.ollama.config = {
-    StandardOutPath = "${config.home.homeDirectory}/Library/Logs/ollama.log";
-    StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/ollama.log";
+  # waitForNixStore = false starts each agent through a launcher named after it
+  # instead of the /bin/sh wait4path wrapper, so Login Items lists it by name
+  # rather than as "sh". They start at login, after the boot job mounts /nix.
+  launchd.agents = {
+    # Extend Home Manager's Ollama launch agent rather than declaring a second
+    # service that would compete for localhost:11434.
+    ollama = {
+      waitForNixStore = false;
+      config = {
+        StandardOutPath = "${config.home.homeDirectory}/Library/Logs/ollama.log";
+        StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/ollama.log";
+      };
+    };
+    syncthing.waitForNixStore = false;
+    syncthing-init.waitForNixStore = false;
   };
 
   # The pinned Home Manager invokes `launchctl bootout --wait`, but macOS 15's
