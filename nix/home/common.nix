@@ -624,30 +624,6 @@ in
             echo "→ $1"
           }
 
-          # Default a bare `ollmcp` to filesystem and serena MCP tools scoped to
-          # the current directory; without server flags ollmcp would otherwise
-          # fall back to auto-discovering Claude's config and expose no tools.
-          # Skip the injection when the caller already names servers, so
-          # `ollmcp --servers-json ...` / `-s` / `-u` still reach the real CLI.
-          # Serena is project-scoped via --project rather than
-          # SERENA_PROJECT_ROOT because ollmcp hands "env" to the MCP SDK as the
-          # entire subprocess environment, which would strip PATH from serena.
-          ollmcp() {
-            if (( ''${@[(I)(--servers-json|-j|--mcp-server|-s|--mcp-server-url|-u|--auto-discovery|-a)]} )); then
-              command ollmcp "$@"
-            else
-              command ollmcp --servers-json =(jq -n --arg dir "$PWD" '{
-                mcpServers: {
-                  filesystem: {command: "mcp-server-filesystem", args: [$dir]},
-                  serena: {
-                    command: "serena",
-                    args: ["start-mcp-server", "--project", $dir]
-                  }
-                }
-              }') "$@"
-            fi
-          }
-
           function sesh-sessions() {
             {
               exec </dev/tty

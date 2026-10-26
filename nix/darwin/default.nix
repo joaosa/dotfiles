@@ -45,6 +45,13 @@
     stateVersion = 6;
   };
 
+  # Stealth mode ignores probes; leave blockAllIncoming off so AirDrop works.
+  networking.applicationFirewall = {
+    enable = true;
+    enableStealthMode = true;
+    blockAllIncoming = false;
+  };
+
   # sudo's env_reset drops NIX_SSL_CERT_FILE, so nix under `make switch` falls
   # back to the stale default-profile bundle; drop once nixpkgs #570263 lands.
   security.sudo.extraConfig = ''

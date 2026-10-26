@@ -52,6 +52,10 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   # loads keys (pairs with AddKeysToAgent in common.nix).
   programs.ssh.settings."*".UseKeychain = "yes";
 
+  # AirPlay Receiver listens on *:5000/*:7000; AirDrop is unaffected.
+  # Apple's key is misspelled.
+  targets.darwin.currentHostDefaults."com.apple.controlcenter".AirplayRecieverEnabled = false;
+
   # zsh's `log` builtin (the watch login report) shadows /usr/bin/log; Apple's
   # stock /etc/zshrc disabled it, but nix-darwin's replacement does not.
   programs.zsh.initContent = "disable log";

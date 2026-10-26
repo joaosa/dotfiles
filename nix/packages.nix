@@ -13,7 +13,6 @@
   pkgs.ansible
   pkgs.asciinema
   pkgs.asciinema-agg
-  (pkgs.callPackage ./packages/azure-cli.nix { })
   pkgs.bacon
   pkgs.bash
   pkgs.bat
@@ -74,7 +73,6 @@
   pkgs.gore
   pkgs.htop
   pkgs.hyperfine
-  pkgs.iftop
   pkgs.imagemagick
   pkgs.inetutils
   pkgs.infisical
@@ -89,9 +87,7 @@
   pkgs.kubeseal
   pkgs.libheif
   pkgs.lua
-  pkgs.mcp-server-filesystem
   pkgs.miller
-  pkgs.mitmproxy
   pkgs.mkcert
   pkgs.mtr
   pkgs.neovim
@@ -99,7 +95,6 @@
   # tools it can download itself; these come from nixpkgs).
   pkgs.nil
   pkgs.nixfmt
-  pkgs.nmap
   (pkgs.callPackage ./packages/nodejs-security.nix { })
   pkgs.opencode
   pkgs.openssl
@@ -132,9 +127,6 @@
   pkgs.vegeta
   pkgs.watch
   pkgs.wasm-pack
-  pkgs.websocat
-  pkgs.wireguard-go
-  pkgs.wireguard-tools
   pkgs.yq-go
   pkgs.yubikey-manager
   pkgs.zoxide
@@ -146,7 +138,6 @@
   # Local derivations for tools missing from nixpkgs at the version we want.
   (pkgs.callPackage ./packages/context7-mcp.nix { })
   (pkgs.callPackage ./packages/devc.nix { })
-  (pkgs.callPackage ./packages/ollmcp.nix { })
   (pkgs.callPackage ./packages/qpdf.nix { })
   (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
   (pkgs.callPackage ./packages/serena.nix { })
