@@ -323,10 +323,11 @@ in
       enable = true;
       overrideDevices = false;
       overrideFolders = false;
-      # No UPnP port opening on the router, no phoning home, and no
-      # self-upgrade of the Nix-managed binary. Discovery and relays stay on so
-      # off-LAN devices still sync; relays only see TLS ciphertext.
+      # Home-network only: LAN discovery, no global discovery, relays or UPnP
+      # port opening. No phoning home and no self-upgrade of the Nix binary.
       settings.options = {
+        globalAnnounceEnabled = false;
+        relaysEnabled = false;
         natEnabled = false;
         urAccepted = -1;
         crashReportingEnabled = false;
