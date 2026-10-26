@@ -7,11 +7,9 @@ let
     "alacritty"
     "obsidian"
     "slack"
-    "orcaslicer"
     "spotify"
     "firefox@developer-edition"
     "google-drive"
-    "vlc"
   ];
 in
 {
