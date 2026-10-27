@@ -52,13 +52,32 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
   # loads keys (pairs with AddKeysToAgent in common.nix).
   programs.ssh.settings."*".UseKeychain = "yes";
 
-  # AirPlay Receiver listens on *:5000/*:7000; AirDrop is unaffected.
-  # Apple's key is misspelled.
-  targets.darwin.currentHostDefaults."com.apple.controlcenter".AirplayRecieverEnabled = false;
+  # AirPlay Receiver listens on *:5000/*:7000; off by default, `airplay on`
+  # when needed. AirDrop is unaffected.
+  targets.darwin.currentHostDefaults."com.apple.controlcenter".AirplayReceiverEnabled = false;
 
-  # zsh's `log` builtin (the watch login report) shadows /usr/bin/log; Apple's
-  # stock /etc/zshrc disabled it, but nix-darwin's replacement does not.
-  programs.zsh.initContent = "disable log";
+  programs.zsh.initContent = ''
+    # zsh's `log` builtin (the watch login report) shadows /usr/bin/log; Apple's
+    # stock /etc/zshrc disabled it, but nix-darwin's replacement does not.
+    disable log
+
+    # ControlCenter only applies the receiver setting when it restarts.
+    airplay() {
+      case "$1" in
+        on | off)
+          defaults -currentHost write com.apple.controlcenter AirplayReceiverEnabled -bool "$([[ $1 == on ]] && echo true || echo false)"
+          killall ControlCenter
+          ;;
+        "" | status)
+          if lsof -nP -iTCP:7000 -sTCP:LISTEN >/dev/null 2>&1; then echo on; else echo off; fi
+          ;;
+        *)
+          echo "usage: airplay [on|off|status]" >&2
+          return 1
+          ;;
+      esac
+    }
+  '';
 
   # Muse Glimmer requires a newer Ollama than the main nixpkgs pin currently
   # carries. Keep the official macOS release independently pinned so updating
