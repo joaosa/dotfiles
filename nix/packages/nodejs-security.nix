@@ -10,42 +10,37 @@
   openssl,
 }:
 
-# Temporary bridge until nixpkgs patches c-ares and sqlite for the October 21
-# Node security release (it already patches brotli). Keep them local to Node
-# to avoid rebuilding unrelated packages.
+# Node-local c-ares/sqlite bump for the October 21 Node security release.
 assert lib.assertMsg (nodejs-slim_22.version == "22.23.4")
   "Reassess nodejs-security.nix: nixpkgs Node changed; remove this override once its shared dependencies are patched.";
 assert lib.assertMsg (lib.versionAtLeast openssl.version "3.5.9")
   "The Node security override requires OpenSSL 3.5.9 or newer.";
 
 let
-  patchedCares =
-    if lib.versionAtLeast c-ares.version "1.34.9" then
-      c-ares
+  atLeast =
+    pkg: version: attrs:
+    if lib.versionAtLeast pkg.version version then
+      pkg
     else
-      c-ares.overrideAttrs {
-        version = "1.34.9";
-        src = fetchurl {
-          url = "https://github.com/c-ares/c-ares/releases/download/v1.34.9/c-ares-1.34.9.tar.gz";
-          hash = "sha256-k2S3ChLrWaBoMPtIjZNX+QEA3/DZiyPqNZOhg9Q+by8=";
-        };
-      };
+      pkg.overrideAttrs ({ inherit version; } // attrs);
 
-  patchedSqlite =
-    if lib.versionAtLeast sqlite.version "3.53.4" then
-      sqlite
-    else
-      sqlite.overrideAttrs {
-        version = "3.53.4";
-        src = fetchurl {
-          url = "https://sqlite.org/2026/sqlite-src-3530400.zip";
-          hash = "sha256-0Y+hWux02MF+FGP4YQla3AG1rRkCVqy0+R0i8DaNIys=";
-        };
-        docsrc = fetchurl {
-          url = "https://sqlite.org/2026/sqlite-doc-3530400.zip";
-          hash = "sha256-odD13ldIXQYnlu1+Z9r/B1i1DQAAGg8jOiwVqvQLvcg=";
-        };
-      };
+  patchedCares = atLeast c-ares "1.34.9" {
+    src = fetchurl {
+      url = "https://github.com/c-ares/c-ares/releases/download/v1.34.9/c-ares-1.34.9.tar.gz";
+      hash = "sha256-k2S3ChLrWaBoMPtIjZNX+QEA3/DZiyPqNZOhg9Q+by8=";
+    };
+  };
+
+  patchedSqlite = atLeast sqlite "3.53.4" {
+    src = fetchurl {
+      url = "https://sqlite.org/2026/sqlite-src-3530400.zip";
+      hash = "sha256-0Y+hWux02MF+FGP4YQla3AG1rRkCVqy0+R0i8DaNIys=";
+    };
+    docsrc = fetchurl {
+      url = "https://sqlite.org/2026/sqlite-doc-3530400.zip";
+      hash = "sha256-odD13ldIXQYnlu1+Z9r/B1i1DQAAGg8jOiwVqvQLvcg=";
+    };
+  };
 
   patchedNode =
     (nodejs-slim_22.override {

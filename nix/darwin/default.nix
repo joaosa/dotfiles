@@ -39,18 +39,12 @@
     optimise.automatic = true;
   };
 
-  # Run the weekly jobs' binaries directly instead of through nix-darwin's
-  # /bin/sh wait4path wrapper, so Login Items lists them by name rather than as
-  # yet another "sh". They never run at boot, so /nix is always mounted.
-  launchd.daemons = {
-    nix-gc.serviceConfig.ProgramArguments = lib.mkForce (
-      [ "${config.nix.package}/bin/nix-collect-garbage" ] ++ lib.splitString " " config.nix.gc.options
+  # Skip the wait4path sh wrapper so Login Items names these non-boot jobs.
+  launchd.daemons = lib.genAttrs [ "nix-gc" "nix-optimise" ] (name: {
+    serviceConfig.ProgramArguments = lib.mkForce (
+      lib.splitString " " config.launchd.daemons.${name}.command
     );
-    nix-optimise.serviceConfig.ProgramArguments = lib.mkForce [
-      (lib.getExe' config.nix.package "nix-store")
-      "--optimise"
-    ];
-  };
+  });
 
   system = {
     primaryUser = username;
@@ -58,9 +52,7 @@
     stateVersion = 6;
   };
 
-  # Stealth mode ignores probes; leave blockAllIncoming off so AirDrop works.
-  # Only Apple's own signed software is auto-allowed; other apps must be
-  # approved before they can accept incoming connections.
+  # Stealth mode; blockAllIncoming stays off so AirDrop works.
   networking.applicationFirewall = {
     enable = true;
     enableStealthMode = true;

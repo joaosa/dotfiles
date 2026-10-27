@@ -6,7 +6,7 @@
 # or dropped in nixpkgs is a hard eval error (surfaced by `nix flake check`)
 # rather than a tool that silently disappears from the environment. Packages
 # whose nixpkgs attribute name varies by version are pinned to the preferred
-# alias here (e.g. go_1_26, nodejs_22); if that alias is dropped the error
+# alias here (e.g. go_1_26); if that alias is dropped the error
 # tells us to bump it, instead of silently falling back to a different one.
 [
   pkgs.age
@@ -41,9 +41,8 @@
   # wrappers below.
   pkgs.coreutils-prefixed
   pkgs.crane
-  # Shadows Apple's curl, whose LibreSSL ignores the bundle's distrust markers
-  # (security.pki.caCertificateBlacklist); this one reads NIX_SSL_CERT_FILE.
-  # pkgs.openssl below shadows Apple's openssl for the same reason.
+  # Shadows Apple's curl, whose LibreSSL ignores the bundle's distrust markers;
+  # this one reads NIX_SSL_CERT_FILE. pkgs.openssl below does the same for openssl.
   pkgs.curl
   pkgs.delta
   pkgs.delve
