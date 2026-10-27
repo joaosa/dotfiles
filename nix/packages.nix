@@ -8,6 +8,10 @@
 # whose nixpkgs attribute name varies by version are pinned to the preferred
 # alias here (e.g. go_1_26); if that alias is dropped the error
 # tells us to bump it, instead of silently falling back to a different one.
+let
+  # One Node for PATH and the Node-based tools.
+  nodejs = pkgs.callPackage ./packages/nodejs-bin.nix { };
+in
 [
   pkgs.age
   pkgs.ansible
@@ -47,7 +51,7 @@
   pkgs.delta
   pkgs.delve
   # devcontainer CLI, driven by the pinned `devc` wrapper below.
-  pkgs.devcontainer
+  (pkgs.devcontainer.override { inherit nodejs; })
   pkgs.direnv
   pkgs.dive
   pkgs.docker
@@ -94,7 +98,7 @@
   # tools it can download itself; these come from nixpkgs).
   pkgs.nil
   pkgs.nixfmt
-  (pkgs.callPackage ./packages/nodejs-security.nix { })
+  nodejs
   pkgs.opencode
   pkgs.openssl
   pkgs.oras
@@ -135,7 +139,7 @@
   pkgs.libheif.dev
 
   # Local derivations for tools missing from nixpkgs at the version we want.
-  (pkgs.callPackage ./packages/context7-mcp.nix { })
+  (pkgs.callPackage ./packages/context7-mcp.nix { inherit nodejs; })
   (pkgs.callPackage ./packages/devc.nix { })
   (pkgs.callPackage ./packages/qpdf.nix { })
   (pkgs.callPackage ./packages/qwen-asr-cli.nix { })

@@ -3,10 +3,11 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   lib,
+  nodejs,
   pnpm_10,
 }:
 
-context7-mcp.overrideAttrs (
+(context7-mcp.override { inherit nodejs; }).overrideAttrs (
   finalAttrs: previousAttrs: {
     version = "4.0.2";
     src = fetchFromGitHub {
