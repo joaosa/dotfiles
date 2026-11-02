@@ -192,9 +192,9 @@ warns, and that agent falls back to interactive login backed by the selected
 profile's persistent volume. Use `/status` in Claude or inspect
 `$AGENT_CLAUDE_PROFILE` to confirm the active fleet account.
 
-Claude and Codex share the host's `~/.claude-shared/skills` tree. Home Manager
-exposes it to Codex at `~/.agents/skills`, and both devcontainer profiles mount
-it read-only at each agent's skill discovery path.
+Claude and Codex share the host's `~/.claude-shared` skills and `CLAUDE.md`.
+Home Manager exposes them to Codex at `~/.agents/skills` and `~/.codex/AGENTS.md`,
+and both devcontainer profiles mount them read-only at each agent's own paths.
 
 Fleet also refreshes both agents on start, at most once a day, because the image
 pins them at build time and a self-update cannot outlive the container. The
