@@ -112,6 +112,7 @@ in
   pkgs.pwgen
   pkgs.qrencode
   pkgs.ripgrep
+  (pkgs.callPackage ./packages/roborev.nix { })
   pkgs.rustup
   pkgs.scc
   pkgs.sccache
