@@ -170,12 +170,19 @@ let
   claudeProfileAliases = lib.mapAttrs' (
     profile: _: lib.nameValuePair "cc${lib.substring 0 1 profile}" "_claude_launch ${profile}"
   ) claudeProfileDirs;
+  # An executable form of `cca`, for tools such as roborev that take a command.
+  claudeAlt = pkgs.writeShellScriptBin "claude-alt" ''
+    CLAUDE_CONFIG_DIR=${lib.escapeShellArg claudeProfileDirs.alt} exec claude "$@"
+  '';
 in
 {
   xdg.enable = true;
 
   home = {
-    packages = homePackages ++ [ agent ];
+    packages = homePackages ++ [
+      agent
+      claudeAlt
+    ];
 
     sessionPath = [
       "${homeDir}/.local/bin"
