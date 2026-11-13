@@ -14,3 +14,5 @@ config/hammerspoon/Spoons/
 # Serena tooling
 .serena/
 flake.lock.bak
+# roborev snapshots
+/.roborev/
