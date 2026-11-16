@@ -88,16 +88,16 @@ let
     "skills"
   ];
   claudeSharedItems = claudeSharedDirs ++ [ "CLAUDE.md" ];
-  # Account-agnostic settings, re-asserted into every profile's own
-  # settings.json on activation (see claudeSettingsMerge). Keys deliberately
-  # absent here — model, theme, enabledPlugins — stay per-profile and remain
-  # freely editable via /config, since plugins are installed per config dir and
-  # the accounts want different models.
   # Rings the tmux pane's terminal; hooks have no controlling tty of their own.
   claudeBellHook = {
     type = "command";
     command = ''if [ -n "$TMUX_PANE" ]; then printf '\a' > "$(tmux display-message -p -t "$TMUX_PANE" '#{pane_tty}')"; fi'';
   };
+  # Account-agnostic settings, re-asserted into every profile's own
+  # settings.json on activation (see claudeSettingsMerge). Keys deliberately
+  # absent here — model, theme, enabledPlugins — stay per-profile and remain
+  # freely editable via /config, since plugins are installed per config dir and
+  # the accounts want different models.
   claudeSharedSettings = {
     alwaysThinkingEnabled = false;
     editorMode = "vim";
@@ -131,8 +131,6 @@ let
           hooks = [ claudeBellHook ];
         }
       ];
-      # Empty, not absent: the settings merge only drops stale top-level keys.
-      UserPromptSubmit = [ ];
     };
   };
   # Read only by claudeSettingsMerge, straight from the store.
@@ -276,7 +274,8 @@ in
 
           tmp="$target.hm-merge"
           if ${pkgs.jq}/bin/jq -s \
-            '((.[1] | keys) - (.[2] | keys) | map([.])) as $stale
+            'def leaves: if type == "object" then keys[] as $k | [$k] + (.[$k] | leaves) else [] end;
+             ([.[1] | leaves] - [.[2] | leaves]) as $stale
              | (.[0] | delpaths($stale)) * .[2]' \
             "$target" "$applied" "${claudeSharedSettingsFile}" > "$tmp"; then
             # Skip the rewrite when the merge is a no-op, so a routine switch
@@ -298,14 +297,20 @@ in
       # Codex rewrites config.toml itself, so set its bell keys in place.
       codexBell = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         target="${homeDir}/.codex/config.toml"
-        /bin/mkdir -p "${homeDir}/.codex"
-        [ -e "$target" ] || : > "$target"
         tmp="$target.hm-bell"
-        for kv in notification_method=bel notification_condition=always; do
-          ${pkgs.toml-cli}/bin/toml set "$target" "tui.''${kv%%=*}" "''${kv#*=}" > "$tmp"
-          /usr/bin/cmp -s "$tmp" "$target" || /bin/cat "$tmp" > "$target"
+        /bin/mkdir -p "${homeDir}/.codex"
+        [ -e "$target" ] || /usr/bin/install -m 600 /dev/null "$target"
+        set_codex() {
+          # An unparseable file must not abort the rest of activation.
+          if ${pkgs.toml-cli}/bin/toml set "$target" "$1" "$2" > "$tmp"; then
+            /usr/bin/cmp -s "$tmp" "$target" || /bin/cat "$tmp" > "$target"
+          else
+            echo "Skipping $1: could not parse $target" >&2
+          fi
           /bin/rm -f "$tmp"
-        done
+        }
+        set_codex tui.notification_method bel
+        set_codex tui.notification_condition always
       '';
     };
   };
