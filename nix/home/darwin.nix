@@ -138,34 +138,54 @@ lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
         StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/ollama.log";
       };
     };
-    syncthing.waitForNixStore = false;
+    # Run the binary directly: behind Home Manager's bash wrapper, macOS
+    # checks bash's privacy grants (~/Documents) instead of Syncthing's.
+    syncthing = {
+      waitForNixStore = false;
+      config.ProgramArguments = lib.mkForce [
+        (lib.getExe config.services.syncthing.package)
+        "serve"
+        "--no-browser"
+        "--no-restart"
+        "--no-upgrade"
+        "--gui-address=127.0.0.1:8384"
+      ];
+    };
     syncthing-init.waitForNixStore = false;
   };
 
   # The pinned Home Manager invokes `launchctl bootout --wait`, but macOS 15's
-  # launchctl does not support that flag. Unload a changed or stale Ollama job
-  # with the compatible syntax and remove its plist so setupLaunchAgents can
-  # bootstrap the new definition without trying the unsupported command.
-  # This also removes the service's former nix-darwin-owned launch agent.
-  home.activation.prepareOllamaLaunchAgent = lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
-    legacyAgent="${config.home.homeDirectory}/Library/LaunchAgents/com.ollama.serve.plist"
+  # launchctl does not support that flag. Unload every changed, removed or
+  # stale Home Manager agent with the compatible syntax and remove its plist so
+  # setupLaunchAgents can bootstrap the new definition without trying the
+  # unsupported command.
+  # This also removes Ollama's former nix-darwin-owned launch agent.
+  home.activation.prepareLaunchAgents = lib.hm.dag.entryBefore [ "setupLaunchAgents" ] ''
+    agentDir="${config.home.homeDirectory}/Library/LaunchAgents"
+    legacyAgent="$agentDir/com.ollama.serve.plist"
     if [ -e "$legacyAgent" ]; then
       run /bin/launchctl bootout "gui/$UID/com.ollama.serve" 2>/dev/null || true
       run /bin/rm -f "$legacyAgent"
     fi
 
-    agentName="org.nix-community.home.ollama"
-    currentAgent="${config.home.homeDirectory}/Library/LaunchAgents/$agentName.plist"
-    nextAgent="$newGenPath/LaunchAgents/$agentName.plist"
-    loadedAgent=$(/bin/launchctl print "gui/$UID/$agentName" 2>/dev/null || true)
+    for currentAgent in "$agentDir"/org.nix-community.home.*.plist; do
+      [ -e "$currentAgent" ] || continue
+      agentName=$(/usr/bin/basename "$currentAgent" .plist)
+      nextAgent="$newGenPath/LaunchAgents/$agentName.plist"
+      loadedAgent=$(/bin/launchctl print "gui/$UID/$agentName" 2>/dev/null || true)
+      nextProgram=$(/usr/bin/plutil -extract ProgramArguments.0 raw "$nextAgent" 2>/dev/null || true)
 
-    if [ -e "$currentAgent" ] && {
-      [ ! -e "$nextAgent" ] \
+      if [ -z "$nextProgram" ] \
         || ! /usr/bin/cmp -s "$nextAgent" "$currentAgent" \
-        || [[ "$loadedAgent" != *"${ollamaPackage}/bin/ollama serve"* ]]
-    }; then
-      run /bin/launchctl bootout "gui/$UID/$agentName" 2>/dev/null || true
-      run /bin/rm -f "$currentAgent"
-    fi
+        || [[ "$loadedAgent" != *"$nextProgram"* ]]; then
+        run /bin/launchctl bootout "gui/$UID/$agentName" 2>/dev/null || true
+        # bootout returns before a slow job has exited; bootstrapping then fails.
+        for _ in {1..60}; do
+          /bin/launchctl print "gui/$UID/$agentName" >/dev/null 2>&1 || break
+          /bin/sleep 0.5
+        done
+        run /bin/rm -f "$currentAgent"
+      fi
+    done
   '';
 }
