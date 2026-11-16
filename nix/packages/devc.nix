@@ -2,6 +2,7 @@
   lib,
   stdenvNoCC,
   python3,
+  callPackage,
 }:
 
 # Repo-owned Claude Code + Codex devcontainer templates, adapted from Trail of
@@ -53,9 +54,11 @@ let
   # again without touching the substitutions below.
   auditDomains = fleetDomains;
 
+  # The image runs the same Node as the host.
+  nodeVersion = (callPackage ./nodejs-bin.nix { }).version;
+
   templateDir = ../../config/agent-devcontainer;
   templateFiles = [
-    "Dockerfile"
     ".zshrc"
     "post_install.py"
     "init-firewall.sh"
@@ -78,11 +81,13 @@ stdenvNoCC.mkDerivation {
     ${lib.concatMapStrings (file: ''
       install -Dm0644 ${templateDir + "/${file}"} "$templates/${file}"
     '') templateFiles}
+    substitute ${templateDir + "/Dockerfile"} "$templates/Dockerfile" \
+      --replace-fail '@NODE_VERSION@' '${nodeVersion}'
     substitute ${templateDir + "/audit.devcontainer.json"} "$templates/audit.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " auditDomains}'
     substitute ${templateDir + "/fleet.devcontainer.json"} "$templates/fleet.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " fleetDomains}'
-    chmod 0644 "$templates/audit.devcontainer.json" "$templates/fleet.devcontainer.json"
+    chmod 0644 "$templates/Dockerfile" "$templates/audit.devcontainer.json" "$templates/fleet.devcontainer.json"
 
     mkdir -p "$out/libexec"
     ${lib.concatMapStrings
@@ -103,7 +108,7 @@ stdenvNoCC.mkDerivation {
     runHook postInstall
   '';
 
-  passthru = { inherit templateFiles; };
+  passthru.templateFiles = [ "Dockerfile" ] ++ templateFiles;
 
   meta = {
     description = "Hardened devcontainers for Claude Code and Codex";

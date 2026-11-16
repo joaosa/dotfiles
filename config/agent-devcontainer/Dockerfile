@@ -225,7 +225,8 @@ USER vscode
 
 # Below the Rust chain: CODEX_VERSION is the most-bumped pin, and above it a
 # bump forced a rustup reinstall plus three source compiles.
-ARG NODE_VERSION=22
+# Filled from nix/packages/nodejs-bin.nix when devc.nix stages this file.
+ARG NODE_VERSION=@NODE_VERSION@
 ARG CODEX_VERSION=0.144.1
 ENV FNM_DIR="/home/vscode/.fnm"
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir "$FNM_DIR" --skip-shell && \

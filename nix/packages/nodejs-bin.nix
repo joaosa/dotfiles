@@ -5,18 +5,18 @@
   nodejs_24,
 }:
 
-# Official Node 24.22.1 (October 20 security release); nixpkgs still ships
+# Official Node 24.22.3 (November 10 security release); nixpkgs still ships
 # 24.21.0 with unpatched c-ares/sqlite. Drop this file for pkgs.nodejs once it catches up.
-assert lib.assertMsg (lib.versionOlder nodejs_24.version "24.22.1")
+assert lib.assertMsg (lib.versionOlder nodejs_24.version "24.22.3")
   "nixpkgs now has Node ${nodejs_24.version}: use pkgs.nodejs and delete nodejs-bin.nix.";
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "nodejs";
-  version = "24.22.1";
+  version = "24.22.3";
 
   src = fetchurl {
     url = "https://nodejs.org/dist/v${finalAttrs.version}/node-v${finalAttrs.version}-darwin-arm64.tar.xz";
-    sha256 = "654ba79de6155647e22321932b45f2a1ccb705976cc337c9b8e278beb085a628";
+    sha256 = "1d64136c8a43d648d1b3bad10797a4c995b1ca032d2bde8799de43b37f058fe5";
   };
 
   installPhase = ''

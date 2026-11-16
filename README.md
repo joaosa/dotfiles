@@ -261,7 +261,8 @@ from a root-owned file the agent cannot rewrite.
 
 The package that stages these templates lives in
 [`nix/packages/devc.nix`](./nix/packages/devc.nix). The pinned `CODEX_VERSION`
-lives in the Dockerfile.
+lives in the Dockerfile; its Node version follows
+[`nix/packages/nodejs-bin.nix`](./nix/packages/nodejs-bin.nix).
 Use `make switch` to install updates. The `agent` wrapper is the only
 entry point; a bare `devc` is a guard that refuses to run
 so upstream's unsafe `up` / `template` / `self-install` / `update` subcommands
