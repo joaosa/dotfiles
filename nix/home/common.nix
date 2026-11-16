@@ -93,6 +93,11 @@ let
   # absent here — model, theme, enabledPlugins — stay per-profile and remain
   # freely editable via /config, since plugins are installed per config dir and
   # the accounts want different models.
+  # Rings the tmux pane's terminal; hooks have no controlling tty of their own.
+  claudeBellHook = {
+    type = "command";
+    command = ''if [ -n "$TMUX_PANE" ]; then printf '\a' > "$(tmux display-message -p -t "$TMUX_PANE" '#{pane_tty}')"; fi'';
+  };
   claudeSharedSettings = {
     alwaysThinkingEnabled = false;
     editorMode = "vim";
@@ -118,25 +123,17 @@ let
       "mcp__claude_ai_Google_Calendar"
       "mcp__claude_ai_Claude_Docs"
     ];
-    hooks =
-      lib.genAttrs
-        [
-          "UserPromptSubmit"
-          "Stop"
-          "Notification"
-        ]
-        (event: [
-          {
-            hooks = [
-              {
-                type = "command";
-                # In .claude-shared, not a profile dir: shared config must not
-                # depend on any one account's directory.
-                command = "python3 ${claudeSharedDir}/ccnotify/ccnotify.py ${event}";
-              }
-            ];
-          }
-        ]);
+    hooks = {
+      Stop = [ { hooks = [ claudeBellHook ]; } ];
+      Notification = [
+        {
+          matcher = "permission_prompt|elicitation_dialog";
+          hooks = [ claudeBellHook ];
+        }
+      ];
+      # Empty, not absent: the settings merge only drops stale top-level keys.
+      UserPromptSubmit = [ ];
+    };
   };
   # Read only by claudeSettingsMerge, straight from the store.
   claudeSharedSettingsFile = pkgs.writeText "claude-shared-settings.json" (
@@ -228,14 +225,6 @@ in
           source = qwen3AsrModel;
           force = true;
         };
-        # Vendored from github.com/dazuiba/CCNotify (source-audited). Staged
-        # because the shared hooks call it: a missing hook target exits 2,
-        # blocking every prompt. abspath(__file__) doesn't resolve symlinks,
-        # so its db/log stay in the real ~/.claude-shared/ccnotify/.
-        "${claudeRelative claudeSharedDir}/ccnotify/ccnotify.py" = {
-          source = link "config/claude/ccnotify.py";
-          force = true;
-        };
       };
 
     activation = {
@@ -303,6 +292,19 @@ in
             echo "Failed to merge shared Claude settings into $target" >&2
             exit 1
           fi
+        done
+      '';
+
+      # Codex rewrites config.toml itself, so set its bell keys in place.
+      codexBell = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        target="${homeDir}/.codex/config.toml"
+        /bin/mkdir -p "${homeDir}/.codex"
+        [ -e "$target" ] || : > "$target"
+        tmp="$target.hm-bell"
+        for kv in notification_method=bel notification_condition=always; do
+          ${pkgs.toml-cli}/bin/toml set "$target" "tui.''${kv%%=*}" "''${kv#*=}" > "$tmp"
+          /usr/bin/cmp -s "$tmp" "$target" || /bin/cat "$tmp" > "$target"
+          /bin/rm -f "$tmp"
         done
       '';
     };

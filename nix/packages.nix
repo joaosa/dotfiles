@@ -122,7 +122,6 @@ in
   pkgs.sox
   pkgs.starship
   pkgs.tailscale
-  pkgs.terminal-notifier
   pkgs.tmux
   pkgs.tree
   pkgs.tree-sitter
