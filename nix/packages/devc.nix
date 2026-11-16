@@ -59,6 +59,7 @@ let
 
   templateDir = ../../config/agent-devcontainer;
   templateFiles = [
+    "Dockerfile"
     ".zshrc"
     "post_install.py"
     "init-firewall.sh"
@@ -81,13 +82,13 @@ stdenvNoCC.mkDerivation {
     ${lib.concatMapStrings (file: ''
       install -Dm0644 ${templateDir + "/${file}"} "$templates/${file}"
     '') templateFiles}
-    substitute ${templateDir + "/Dockerfile"} "$templates/Dockerfile" \
+    substituteInPlace "$templates/Dockerfile" \
       --replace-fail '@NODE_VERSION@' '${nodeVersion}'
     substitute ${templateDir + "/audit.devcontainer.json"} "$templates/audit.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " auditDomains}'
     substitute ${templateDir + "/fleet.devcontainer.json"} "$templates/fleet.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " fleetDomains}'
-    chmod 0644 "$templates/Dockerfile" "$templates/audit.devcontainer.json" "$templates/fleet.devcontainer.json"
+    chmod 0644 "$templates/audit.devcontainer.json" "$templates/fleet.devcontainer.json"
 
     mkdir -p "$out/libexec"
     ${lib.concatMapStrings
@@ -108,7 +109,7 @@ stdenvNoCC.mkDerivation {
     runHook postInstall
   '';
 
-  passthru.templateFiles = [ "Dockerfile" ] ++ templateFiles;
+  passthru = { inherit templateFiles; };
 
   meta = {
     description = "Hardened devcontainers for Claude Code and Codex";
