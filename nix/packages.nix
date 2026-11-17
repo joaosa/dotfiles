@@ -11,8 +11,11 @@
 let
   # One Node for PATH and the Node-based tools.
   nodejs = pkgs.callPackage ./packages/nodejs-bin.nix { };
+  # One Go for PATH and the Go tools built against it.
+  go = pkgs.callPackage ./packages/go.nix { };
 in
 [
+  pkgs.actionlint
   pkgs.age
   pkgs.ansible
   pkgs.asciinema
@@ -72,7 +75,16 @@ in
   pkgs.gitleaks
   pkgs.gnugrep
   pkgs.gnused
-  (pkgs.callPackage ./packages/go.nix { }).package
+  go.package
+  pkgs.golangci-lint
+  pkgs.gopls
+  # Only deadcode: the full set puts some 45 commands on PATH, a `bundle` among them.
+  ((pkgs.gotools.override { inherit (go) buildGoModule; }).overrideAttrs {
+    subPackages = [ "cmd/deadcode" ];
+    # The stock fixup wraps goimports, which this build does not produce.
+    postFixup = "";
+  })
+  pkgs.govulncheck
   pkgs.gore
   pkgs.htop
   pkgs.hyperfine
