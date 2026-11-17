@@ -54,10 +54,25 @@ let
   # again without touching the substitutions below.
   auditDomains = fleetDomains;
 
-  # The image runs the same Node as the host.
-  nodeVersion = (callPackage ./nodejs-bin.nix { }).version;
-  # And the same Go.
-  go = callPackage ./go.nix { };
+  # The image runs the same Node and Go as the host.
+  nodejs = callPackage ./nodejs-bin.nix { };
+  go = (callPackage ./go.nix { }).package;
+  # Official linux archive checksums from go.dev/dl, keyed by Go version.
+  goSha256 =
+    {
+      "1.27.3" = {
+        amd64 = "65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40";
+        arm64 = "a06e99309dbcbdca1a8ccd2282c3ee146e55930886e26b4f1193269587165f49";
+      };
+    }
+    .${go.version} or (throw "devc.nix: add the linux digests for Go ${go.version} to goSha256.");
+  # Each name fills its @NAME@ placeholder in the staged Dockerfile.
+  dockerArgs = {
+    NODE_VERSION = nodejs.version;
+    GO_VERSION = go.version;
+    GO_SHA256_amd64 = goSha256.amd64;
+    GO_SHA256_arm64 = goSha256.arm64;
+  };
 
   templateDir = ../../config/agent-devcontainer;
   templateFiles = [
@@ -84,11 +99,11 @@ stdenvNoCC.mkDerivation {
     ${lib.concatMapStrings (file: ''
       install -Dm0644 ${templateDir + "/${file}"} "$templates/${file}"
     '') templateFiles}
-    substituteInPlace "$templates/Dockerfile" \
-      --replace-fail '@NODE_VERSION@' '${nodeVersion}' \
-      --replace-fail '@GO_VERSION@' '${go.version}' \
-      --replace-fail '@GO_SHA256_amd64@' '${go.linuxSha256.amd64}' \
-      --replace-fail '@GO_SHA256_arm64@' '${go.linuxSha256.arm64}'
+    substituteInPlace "$templates/Dockerfile" ${
+      lib.concatStringsSep " " (
+        lib.mapAttrsToList (name: value: "--replace-fail '@${name}@' '${value}'") dockerArgs
+      )
+    }
     substitute ${templateDir + "/audit.devcontainer.json"} "$templates/audit.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " auditDomains}'
     substitute ${templateDir + "/fleet.devcontainer.json"} "$templates/fleet.devcontainer.json" \

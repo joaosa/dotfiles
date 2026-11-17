@@ -8,9 +8,9 @@
 let
   version = "24.22.3";
 in
-# Official Node security release ahead of nixpkgs; drop for pkgs.nodejs once it catches up.
+# The one Node pin: an official security release ahead of nixpkgs.
 assert lib.assertMsg (lib.versionOlder nodejs_24.version version)
-  "nixpkgs now has Node ${nodejs_24.version}: use pkgs.nodejs here and in devc.nix, then delete nodejs-bin.nix.";
+  "nixpkgs now has Node ${nodejs_24.version}: replace this file's body with nodejs_24.";
 
 stdenvNoCC.mkDerivation {
   pname = "nodejs";
