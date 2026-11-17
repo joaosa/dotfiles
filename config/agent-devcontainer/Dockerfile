@@ -187,9 +187,9 @@ RUN cargo install --locked "bacon@${BACON_VERSION}"
 
 # Go toolchain; digests are the official checksums from go.dev/dl. Module and
 # GOTOOLCHAIN downloads go through the already-allowlisted proxy.golang.org.
-ARG GO_VERSION=1.26.10
-ARG GO_SHA256_amd64=ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
-ARG GO_SHA256_arm64=3f4227ce7b206a513e794f1393adb473a07b46e94d18bd15d1c684bbb7319797
+ARG GO_VERSION=1.27.3
+ARG GO_SHA256_amd64=65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40
+ARG GO_SHA256_arm64=a06e99309dbcbdca1a8ccd2282c3ee146e55930886e26b4f1193269587165f49
 RUN ARCH=$(dpkg --print-architecture) && \
   eval "EXPECT=\${GO_SHA256_${ARCH}}" && \
   [ -n "$EXPECT" ] || { echo "No Go digest for arch ${ARCH}" >&2; exit 1; } && \
