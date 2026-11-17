@@ -6,7 +6,7 @@
 # or dropped in nixpkgs is a hard eval error (surfaced by `nix flake check`)
 # rather than a tool that silently disappears from the environment. Packages
 # whose nixpkgs attribute name varies by version are pinned to the preferred
-# alias here (e.g. go_1_27); if that alias is dropped the error
+# alias (e.g. go_1_27 in packages/go.nix); if that alias is dropped the error
 # tells us to bump it, instead of silently falling back to a different one.
 let
   # One Node for PATH and the Node-based tools.
@@ -72,7 +72,7 @@ in
   pkgs.gitleaks
   pkgs.gnugrep
   pkgs.gnused
-  pkgs.go_1_27
+  (pkgs.callPackage ./packages/go.nix { }).package
   pkgs.gore
   pkgs.htop
   pkgs.hyperfine

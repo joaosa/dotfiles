@@ -56,6 +56,8 @@ let
 
   # The image runs the same Node as the host.
   nodeVersion = (callPackage ./nodejs-bin.nix { }).version;
+  # And the same Go.
+  go = callPackage ./go.nix { };
 
   templateDir = ../../config/agent-devcontainer;
   templateFiles = [
@@ -83,7 +85,10 @@ stdenvNoCC.mkDerivation {
       install -Dm0644 ${templateDir + "/${file}"} "$templates/${file}"
     '') templateFiles}
     substituteInPlace "$templates/Dockerfile" \
-      --replace-fail '@NODE_VERSION@' '${nodeVersion}'
+      --replace-fail '@NODE_VERSION@' '${nodeVersion}' \
+      --replace-fail '@GO_VERSION@' '${go.version}' \
+      --replace-fail '@GO_SHA256_amd64@' '${go.linuxSha256.amd64}' \
+      --replace-fail '@GO_SHA256_arm64@' '${go.linuxSha256.arm64}'
     substitute ${templateDir + "/audit.devcontainer.json"} "$templates/audit.devcontainer.json" \
       --replace-fail '@AGENT_ALLOWED_DOMAINS@' '${lib.concatStringsSep " " auditDomains}'
     substitute ${templateDir + "/fleet.devcontainer.json"} "$templates/fleet.devcontainer.json" \

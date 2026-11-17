@@ -185,11 +185,12 @@ RUN cargo install --locked "cargo-mutants@${CARGO_MUTANTS_VERSION}"
 RUN cargo install --locked "cargo-vet@${CARGO_VET_VERSION}"
 RUN cargo install --locked "bacon@${BACON_VERSION}"
 
-# Go toolchain; digests are the official checksums from go.dev/dl. Module and
-# GOTOOLCHAIN downloads go through the already-allowlisted proxy.golang.org.
-ARG GO_VERSION=1.27.3
-ARG GO_SHA256_amd64=65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40
-ARG GO_SHA256_arm64=a06e99309dbcbdca1a8ccd2282c3ee146e55930886e26b4f1193269587165f49
+# Go toolchain. Module and GOTOOLCHAIN downloads go through the
+# already-allowlisted proxy.golang.org.
+# Filled from nix/packages/go.nix when devc.nix stages this file.
+ARG GO_VERSION=@GO_VERSION@
+ARG GO_SHA256_amd64=@GO_SHA256_amd64@
+ARG GO_SHA256_arm64=@GO_SHA256_arm64@
 RUN ARCH=$(dpkg --print-architecture) && \
   eval "EXPECT=\${GO_SHA256_${ARCH}}" && \
   [ -n "$EXPECT" ] || { echo "No Go digest for arch ${ARCH}" >&2; exit 1; } && \
