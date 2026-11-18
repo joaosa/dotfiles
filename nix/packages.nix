@@ -55,7 +55,6 @@ in
   pkgs.delve
   # devcontainer CLI, driven by the pinned `devc` wrapper below.
   (pkgs.devcontainer.override { inherit nodejs; })
-  pkgs.direnv
   pkgs.dive
   pkgs.docker
   pkgs.docker-buildx

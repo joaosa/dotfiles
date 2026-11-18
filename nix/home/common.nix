@@ -380,11 +380,6 @@ in
       };
     };
 
-    direnv = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-
     zoxide = {
       enable = true;
       enableZshIntegration = true;
