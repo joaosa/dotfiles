@@ -111,6 +111,16 @@ let
     skipWorkflowUsageWarning = true;
     switchModelsOnFlag = true;
     tui = "default";
+    # Mirrors the user-selected synced skills in codex-skill-exclusions.json.
+    # Full names: the bare name of a synced skill can be reserved.
+    skillOverrides = lib.genAttrs (map (name: "anthropic-skills:${name}") [
+      "docx"
+      "morning"
+      "pdf"
+      "pptx"
+      "setup-writing-style"
+      "xlsx"
+    ]) (_: "off");
     # CLAUDE.md requires per-action approval for identifying or private outbound
     # data, including web queries. Generic public web reads need no blanket ask.
     # Arrays replace on merge; this list replaces per-profile permissions.ask.
@@ -311,8 +321,8 @@ in
         set_codex tui.notification_condition always
       '';
 
-      # Keep existing choices (including explicit re-enables) and add only
-      # known duplicate paths present on this machine. Synced bundles stay intact.
+      # Keep existing per-path choices (including re-enables) and add only
+      # matching installed skills. Synced bundles and plugin files stay intact.
       codexSkillExclusions = lib.hm.dag.entryAfter [ "codexBell" "claudeSharedSkeleton" ] ''
         run ${codexSkillsPython}/bin/python ${../../config/agents/merge-codex-skills.py} \
           "${homeDir}/.codex/config.toml" "${claudeSharedDir}/skills" \

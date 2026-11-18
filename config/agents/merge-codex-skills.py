@@ -1,4 +1,4 @@
-"""Add known duplicate skill exclusions without replacing user Codex settings."""
+"""Add configured skill exclusions without replacing user Codex settings."""
 
 import json
 import os
@@ -15,16 +15,24 @@ def merge(config_file: Path, skills_root: Path, policy: Path) -> int:
     original = config_file.read_text() if config_file.exists() else ""
     config = tomlkit.parse(original)
     entries = config.get("skills", {}).get("config", [])
-    configured = {Path(entry["path"]).resolve() for entry in entries}
+    configured = {
+        Path(entry["path"]).resolve() for entry in entries if "path" in entry
+    }
+    roots = {
+        "shared": skills_root,
+        "plugins": config_file.parent / "plugins" / "cache",
+    }
     missing = []
-    for relative in json.loads(policy.read_text()):
-        path = Path(relative)
-        if path.is_absolute() or ".." in path.parts:
-            raise ValueError("skill exclusion paths must be relative to the skills root")
-        path = skills_root / path
-        if path.is_file() and path.resolve() not in configured:
-            missing.append({"path": str(path), "enabled": False})
-            configured.add(path.resolve())
+    for scope, patterns in json.loads(policy.read_text()).items():
+        root = roots[scope]
+        for pattern in patterns:
+            relative = Path(pattern)
+            if relative.is_absolute() or ".." in relative.parts:
+                raise ValueError("skill exclusion paths must be relative to their root")
+            for path in sorted(root.glob(pattern)):
+                if path.is_file() and path.resolve() not in configured:
+                    missing.append({"path": str(path), "enabled": False})
+                    configured.add(path.resolve())
     if not missing:
         return 0
 

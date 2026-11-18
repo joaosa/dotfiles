@@ -1,16 +1,29 @@
-[
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/built-in-browser/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/chrome-browser/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/computer-use/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/deep-research/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/docs/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/docx/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/google-workspace/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/import-memory/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/morning/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/pdf/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/pptx/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/skill-creator/SKILL.md",
-  "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/xlsx/SKILL.md",
-  "synced/a6cc0d8e-34cb-429d-934e-1c4c5b98797f_fb1c33d0-830b-4b64-9b0a-ff6d5d0678d4/skill-creator/SKILL.md"
-]
+{
+  "shared": [
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/built-in-browser/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/chrome-browser/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/computer-use/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/deep-research/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/docs/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/docx/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/google-workspace/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/import-memory/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/morning/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/pdf/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/pptx/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/skill-creator/SKILL.md",
+    "synced/ef3687f5-25e4-400b-8587-e61157296c77_eeffe5ad-4708-47e8-82ec-bafcac2aca9a/xlsx/SKILL.md",
+    "synced/a6cc0d8e-34cb-429d-934e-1c4c5b98797f_fb1c33d0-830b-4b64-9b0a-ff6d5d0678d4/skill-creator/SKILL.md",
+    "synced/*/docx/SKILL.md",
+    "synced/*/morning/SKILL.md",
+    "synced/*/setup-writing-style/SKILL.md",
+    "synced/*/pptx/SKILL.md",
+    "synced/*/xlsx/SKILL.md",
+    "synced/*/pdf/SKILL.md"
+  ],
+  "plugins": [
+    "openai-curated-remote/work-pets/*/skills/*/SKILL.md",
+    "openai-curated-remote/pages/*/skills/*/SKILL.md",
+    "openai-curated-remote/sites/*/skills/*/SKILL.md"
+  ]
+}

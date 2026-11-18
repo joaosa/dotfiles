@@ -18,20 +18,70 @@ failure handling, versioned guidance, skill cleanup, and full verification. They
 also requested roborev awareness. Those local changes are implemented and verified;
 see the continuation details below. No additional feature is selected.
 
-The user requested commits. Created two signed local commits:
+The user requested commits. Created four signed local commits:
+
 - `c470592` — launcher/startup/session diagnostics (484 changed lines).
 - `9fd6090` — versioned shared guidance and skill policy (264 changed lines).
-Both passed gitleaks, nixfmt, statix and deadnix commit hooks. Temporary per-command
+- `38dd558` — workflow documentation, web permissions and repository notes.
+- `215710c` — remove direnv and its Zsh integration (6 deleted lines).
+
+All passed gitleaks, nixfmt, statix and deadnix commit hooks. Temporary per-command
 hook wrappers preserved validation and omitted only the outbound roborev post-commit
 hook; no review was queued. The repository's normal hook configuration is unchanged.
 No pushes, PRs, system-wide activation, or real container launches were made.
-The user then requested committing the remaining web-permission edits in
-common.nix/README, repository instructions in AGENTS.md, and this handoff.
-Those files are included in the follow-up commit. Shared guidance was edited live
-in the earlier session; the new repository-managed configuration still awaits
-authorized activation.
-This continuation did not edit live shared guidance or Codex settings. Their new
-repository-managed configuration takes effect on a separately authorized activation.
+Shared guidance was edited live in the earlier session; its new repository-managed
+link still awaits authorized activation. The later skill exclusions below were
+explicitly requested and applied directly to the host Codex config.
+
+## Latest continuation: direnv and skill exclusions
+
+- Direnv removal is committed in `215710c`, but has not been activated. The live
+  Zsh configuration still has its direnv hook. The user's `TYPESAFE_API_KEY` is
+  stored in `~/.envrc`; its value was not printed or copied into the repository.
+  After removal is activated, `source ~/.envrc` loads it manually. No replacement
+  automatic secret loader was requested or added.
+- Audited explicit skill invocations and tool-call path references across 2,545
+  local Claude/Codex log files. Missing records are only a shortlist signal, not
+  proof of no use. Aggregate report: `/private/tmp/dotfiles-skill-usage-20261118.json`.
+- The user explicitly selected `docx`, `morning`, `setup-writing-style`, `pptx`,
+  `xlsx`, `pdf`, and all Work Pets, Pages and Sites skills for disabling. Pages
+  includes `manage-schedules`. Applied 15 new exclusions to `~/.codex/config.toml`;
+  all 29 installed policy matches, including the 14 previous exclusions, were
+  verified disabled. Existing entries, unrelated settings and file permissions
+  were preserved; a second merge made no changes.
+- Restart Codex to load the exclusions; restart was not performed. This change
+  affects host Codex only. Claude discovery and container settings were not
+  changed, plugins were not uninstalled, and synced skill files remain intact.
+- Updated `config/agents/codex-skill-exclusions.json` from a flat path list to
+  `shared` and `plugins` pattern lists. The merge helper discovers matching sync
+  bundles and cached plugin versions when run, preserving per-path re-enables.
+  New versions installed later require another merge or authorized activation.
+- A later Claude session, asked to match Codex, added `skillOverrides` to
+  `claudeSharedSettings` in `nix/home/common.nix`, turning off the six user-selected
+  synced skills (`docx`, `morning`, `pdf`, `pptx`, `setup-writing-style`, `xlsx`)
+  by their `anthropic-skills:` names. It takes effect on activation only; live
+  profile settings were not edited. Nix formatting, statix and deadnix passed;
+  full `make check` was not rerun and the override is unconfirmed in a live session
+  (check `/skills` after activation). `skill-creator` stays enabled in Claude.
+- The user then requested a commit: the five implementation files and this note
+  were committed together, with the outbound roborev post-commit hook omitted.
+- Live config recovery copy: `config.toml.before` in the temporary directory
+  `codex-skill-exclusions-gkkg_nsy` under macOS `$TMPDIR`; temporary files may expire.
+
+Verification for this continuation passed full offline `make check` (system
+build, flake checks and formatting), focused merge tests, live config preservation
+and idempotence checks, and `git diff --check`. Tests cover overlapping patterns,
+unrelated plugins, new plugin versions and invalid paths. An initial test mismatch
+between macOS `/var` and `/private/var` was fixed by resolving the fixture root.
+The full check command was:
+
+```sh
+make check NIX='/nix/var/nix/profiles/default/bin/nix --extra-experimental-features "nix-command flakes" --offline --option builders "" --option post-build-hook ""'
+```
+
+The requested changes are implemented and verified. No further feature is selected.
+Do not commit, activate the system, or start a fresh roborev review merely because
+this handoff is resumed; those actions still need their applicable authorization.
 
 ## Completed changes
 

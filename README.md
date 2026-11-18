@@ -232,11 +232,20 @@ in `~/.claude-shared/skills`, exposed to Codex at `~/.agents/skills`.
 Shared coding skills use each repository's instructions and verification commands.
 `workflow` handles routine changes in one agent; substantial or sensitive changes
 receive additional planning and review. `code-docs` maintains software documentation,
-while `docs` handles standalone documents. Known duplicate synced skills are listed
+while `docs` handles standalone documents. Skill exclusions are listed
 in [`config/agents/codex-skill-exclusions.json`](./config/agents/codex-skill-exclusions.json).
+The policy excludes duplicate synced skills, `docx`, `morning`, `setup-writing-style`,
+`pptx`, `xlsx`, `pdf`, and all skills in the Work Pets, Pages, and Sites plugins.
+Patterns cover shared sync bundles and locally cached plugin versions; activation
+discovers new matching versions when they are installed.
 Activation adds missing exclusions for installed paths to the host Codex config,
-preserving other settings, comments and explicit re-enables. It does not remove
-skill files or disable the specialized coding/security skills.
+preserving other settings, comments and per-path re-enables. It does not remove
+skill files, uninstall plugins, or disable the specialized coding/security skills.
+Restart Codex after applying the exclusions.
+
+Claude hides the same six synced skills through `skillOverrides` in the shared
+settings in [`nix/home/common.nix`](./nix/home/common.nix), merged into each
+profile on activation. Plugin skills have no Claude counterpart to exclude.
 
 The shared guidance also covers roborev: inspect relevant existing local reviews,
 verify findings against the current code, and track the reviewed commit or snapshot.
