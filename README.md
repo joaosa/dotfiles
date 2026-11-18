@@ -221,9 +221,24 @@ warns, and that agent falls back to interactive login backed by the selected
 profile's persistent volume. Use `/status` in Claude or inspect
 `$AGENT_CLAUDE_PROFILE` to confirm the active fleet account.
 
-Claude and Codex share the host's `~/.claude-shared` skills and `CLAUDE.md`.
-Home Manager exposes them to Codex at `~/.agents/skills` and `~/.codex/AGENTS.md`,
-and both devcontainer profiles mount them read-only at each agent's own paths.
+Shared guidance lives in [`config/agents/CLAUDE.md`](./config/agents/CLAUDE.md).
+On activation, Home Manager links `~/.claude-shared/CLAUDE.md` to that source,
+backing up the previous real file with its configured `.hm-backup` suffix.
+Claude profiles and Codex's `~/.codex/AGENTS.md` keep their shared-tree links.
+Both container profiles mount the repository file directly, read-only, so Colima
+can find it through its existing checkout mount. Skills remain externally managed
+in `~/.claude-shared/skills`, exposed to Codex at `~/.agents/skills`.
+
+Known duplicate synced skills are listed
+in [`config/agents/codex-skill-exclusions.json`](./config/agents/codex-skill-exclusions.json).
+Activation adds missing exclusions for installed paths to the host Codex config,
+preserving other settings, comments and explicit re-enables. It does not remove
+skill files or disable the specialized coding/security skills.
+
+The shared guidance also covers roborev: inspect relevant existing local reviews,
+verify findings against the current code, and track the reviewed commit or snapshot.
+Fresh reviews and automatic review hooks remain subject to the outbound-data rule;
+`roborev fix` and `refine` can edit and commit, so they require appropriate scope.
 
 Fleet also refreshes both agents on start, at most once a day, because the image
 pins them at build time and a self-update cannot outlive the container. The

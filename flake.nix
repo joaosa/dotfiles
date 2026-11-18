@@ -130,6 +130,15 @@
             done
             touch $out
           '';
+          agent-settings =
+            pkgs.runCommand "agent-settings"
+              {
+                nativeBuildInputs = [ (pkgs.python3.withPackages (ps: [ ps.tomlkit ])) ];
+              }
+              ''
+                python ${./nix/packages/codex-skills-test.py} ${./config/agents/merge-codex-skills.py}
+                touch $out
+              '';
           # Runs `agent` against stub host tools; ShellCheck covers the script itself.
           agent =
             let
