@@ -229,7 +229,10 @@ Both container profiles mount the repository file directly, read-only, so Colima
 can find it through its existing checkout mount. Skills remain externally managed
 in `~/.claude-shared/skills`, exposed to Codex at `~/.agents/skills`.
 
-Known duplicate synced skills are listed
+Shared coding skills use each repository's instructions and verification commands.
+`workflow` handles routine changes in one agent; substantial or sensitive changes
+receive additional planning and review. `code-docs` maintains software documentation,
+while `docs` handles standalone documents. Known duplicate synced skills are listed
 in [`config/agents/codex-skill-exclusions.json`](./config/agents/codex-skill-exclusions.json).
 Activation adds missing exclusions for installed paths to the host Codex config,
 preserving other settings, comments and explicit re-enables. It does not remove
@@ -239,6 +242,11 @@ The shared guidance also covers roborev: inspect relevant existing local reviews
 verify findings against the current code, and track the reviewed commit or snapshot.
 Fresh reviews and automatic review hooks remain subject to the outbound-data rule;
 `roborev fix` and `refine` can edit and commit, so they require appropriate scope.
+
+Public web requests containing no private or identifying data do not have a blanket
+Claude permission prompt. The shared outbound-data rule still requires approval for
+each request containing protected data, including web queries. Shell commands and
+account connectors retain their existing prompts.
 
 Fleet also refreshes both agents on start, at most once a day, because the image
 pins them at build time and a self-update cannot outlive the container. The

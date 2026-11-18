@@ -111,11 +111,10 @@ let
     skipWorkflowUsageWarning = true;
     switchModelsOnFlag = true;
     tui = "default";
-    # Outbound data always prompts, auto mode included. Arrays replace on
-    # merge, so a per-profile permissions.ask is overwritten by this list.
+    # CLAUDE.md requires per-action approval for identifying or private outbound
+    # data, including web queries. Generic public web reads need no blanket ask.
+    # Arrays replace on merge; this list replaces per-profile permissions.ask.
     permissions.ask = [
-      "WebFetch"
-      "WebSearch"
       "Artifact"
       "Bash(curl:*)"
       "Bash(wget:*)"
