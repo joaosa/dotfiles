@@ -128,11 +128,40 @@ agent audit [<repo-path-or-url>] # untrusted repo: isolated logins, strict egres
 agent ls                         # list agent containers
 agent stop [<org> | --all]       # stop an org's containers, or all of them
 agent doctor                     # check the VM, mounts, signing and keychain
+agent --help                     # show usage and examples without starting the VM
+agent help fleet                 # command-specific help; agent fleet --help also works
 ```
 
-Inside `~/ghq/github.com/<org>/…` the org can be left out, and `agent audit`
-defaults to the current directory. Zsh completes subcommands, orgs and
-profiles.
+Inside `~/ghq/github.com/<org>/…` the org can be left out. Fleet starts the
+shell or command in the matching repository/subdirectory inside the container,
+so `agent fleet -- claude` and `agent fleet -- codex` keep your project context.
+Launching from outside the selected org starts at the org root. `agent audit`
+defaults to the current directory. Zsh completes subcommands, orgs and profiles.
+Help works without the host container tools installed. Launches check for the
+required host tools before starting the VM; a missing tool names the command
+to install or add to `PATH`. `agent doctor` also reports these dependencies.
+Docker connection failures are errors, including when listing or stopping
+containers. `doctor` checks the default Colima profile and reports failed VM
+probes without treating them as successful checks.
+
+Resume work from the same repository and Claude profile:
+
+```bash
+agent fleet -- claude --resume       # choose a Claude session
+agent fleet --alt -- claude --resume # choose an alt-account session
+agent fleet -- codex resume          # choose a Codex session
+agent fleet -- codex resume --last   # continue the latest matching session
+```
+
+On the host, use `ccm --resume`, `cca --resume`, or `codex resume` from the
+repository. Host and container histories are separate; resume in the environment
+where you started the session.
+
+For a quick launch without the daily agent update, use `agent fleet --no-update`.
+This affects one launch; it keeps authentication and existing update schedules.
+To see where startup time goes, run `AGENT_TIMING=1 agent fleet --no-update -- true`.
+The launcher prints phase times; the container startup hook also times updates
+and Codex authentication. Timings omit command arguments and credentials.
 
 Each container records the template package it was built from. When `make
 switch` changes the image or its allowlist, the next launch rebuilds that
@@ -198,7 +227,9 @@ and both devcontainer profiles mount them read-only at each agent's own paths.
 
 Fleet also refreshes both agents on start, at most once a day, because the image
 pins them at build time and a self-update cannot outlive the container. The
-audit profile keeps the pinned build.
+audit profile keeps the pinned build. Failed or interrupted refreshes wait
+15 minutes before retrying, so repeated launches during an outage do not keep
+paying the update timeout.
 
 Fleet applies an outbound domain allowlist, and additionally admits GitHub's
 published web/api/git IP ranges so SSH pushes through the forwarded agent do

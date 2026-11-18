@@ -68,6 +68,8 @@
     "UV_LINK_MODE": "copy"
   },
   "remoteEnv": {
+    "AGENT_SKIP_UPDATE": "${localEnv:AGENT_SKIP_UPDATE:0}",
+    "AGENT_TIMING": "${localEnv:AGENT_TIMING:0}",
     "AGENT_CLAUDE_PROFILE": "${localEnv:AGENT_CLAUDE_PROFILE:main}",
     "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN:}",
     "CODEX_API_KEY": "${localEnv:CODEX_API_KEY:}"

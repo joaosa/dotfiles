@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+phase_started="${EPOCHREALTIME//[!0-9]/}"
+timing() {
+  local now="${EPOCHREALTIME//[!0-9]/}" elapsed
+  elapsed=$((now - phase_started))
+  if [[ "${AGENT_TIMING:-0}" == 1 ]]; then
+    printf '[devcontainer timing] %s: %d.%03ds\n' "$1" "$((elapsed / 1000000))" "$((elapsed / 1000 % 1000))" >&2
+  fi
+  phase_started="$now"
+}
+
 # Runs as the unprivileged remote user (vscode), which is NOT in sudoers.
 # Every privileged action — arming the firewall, chowning the named volumes,
 # scoping the forwarded SSH agent socket — now happens in the root entrypoint
@@ -17,11 +27,15 @@ set -euo pipefail
 # layer caching keeps serving old builds. Refresh here instead, throttled by a
 # container-local stamp — the binaries are container-local too, so a stamp on
 # a persistent volume would let a recreated container skip the refresh. Fleet
-# opts in; audit stays pinned. The hosts it needs are allowlisted;
-# a blocked fetch keeps the image-pinned build.
-stamp=/home/vscode/.agent-update-stamp
+# opts in; audit stays pinned. A failed or interrupted check waits 15 minutes
+# before retrying, so reopening a shell during an outage stays quick.
+stamp="$HOME/.agent-update-stamp"
+attempt_stamp="$HOME/.agent-update-attempt"
 if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
-  && [ -z "$(find "$stamp" -mtime -1 2>/dev/null)" ]; then
+  && [ "${AGENT_SKIP_UPDATE:-0}" != "1" ] \
+  && [ -z "$(find "$stamp" -mtime -1 2>/dev/null)" ] \
+  && [ -z "$(find "$attempt_stamp" -mmin -15 2>/dev/null)" ]; then
+  touch "$attempt_stamp"
   echo "[devcontainer] Checking for Claude Code and Codex updates"
   update_ok=1
   # The two checks are independent; overlap them so the slower download never
@@ -53,11 +67,12 @@ if [ "${AGENT_UPDATE_AGENTS:-0}" = "1" ] \
       || { echo "[devcontainer] Codex update skipped; keeping installed build" >&2; update_ok=0; }
   fi
   wait "$claude_update" || update_ok=0
-  # Stamp only a fully successful refresh so transient failures retry.
+  # Success keeps the daily interval; failures use the shorter retry cooldown.
   if [ "$update_ok" = 1 ]; then
     touch "$stamp"
   fi
 fi
+timing "agent updates"
 
 # Codex's TUI ignores CODEX_API_KEY, so exchange it for persistent ~/.codex
 # credentials. The hash gate skips the round trip when the key is unchanged;
@@ -65,7 +80,7 @@ fi
 # keep using the previous login.
 if [ -n "${CODEX_API_KEY:-}" ]; then
   key_hash=$(printf '%s' "$CODEX_API_KEY" | sha256sum | cut -d' ' -f1)
-  hash_file=/home/vscode/.codex/.api-key-hash
+  hash_file="$HOME/.codex/.api-key-hash"
   if [ ! -f "$hash_file" ] || [ "$(cat "$hash_file")" != "$key_hash" ]; then
     if printf '%s' "$CODEX_API_KEY" | codex login --with-api-key; then
       printf '%s\n' "$key_hash" > "$hash_file"
@@ -75,3 +90,4 @@ if [ -n "${CODEX_API_KEY:-}" ]; then
     fi
   fi
 fi
+timing "Codex authentication"

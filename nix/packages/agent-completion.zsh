@@ -17,6 +17,7 @@ _agent() {
     'ls:list agent containers'
     'stop:stop an org'"'"'s containers'
     'doctor:check the VM, host and signing setup'
+    'help:show usage and examples'
   )
   if ((CURRENT == 2)); then
     _describe -t commands command subcommands
@@ -27,9 +28,11 @@ _agent() {
   shift words
   ((CURRENT--))
   case "$subcommand" in
+    help) _values 'command' fleet audit trust ls stop doctor ;;
     fleet)
       _arguments \
         '--rebuild[rebuild the container first]' \
+        '--no-update[skip agent updates for this launch]' \
         '(-p --profile)--alt[use the alt Claude profile]' \
         '(--alt -p --profile)'{-p,--profile}"[Claude profile]:profile:($profiles)" \
         '1:org:_agent_orgs' \
