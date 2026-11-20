@@ -61,6 +61,21 @@
     allowSignedApp = false;
   };
 
+  # Nix builds are only ad-hoc signed, so each Syncthing build is a new app to
+  # the firewall: allow the current one by path. An older build may still be
+  # running until Home Manager swaps the agent, so drop one only once GC'd.
+  system.activationScripts.networking.text = lib.mkAfter ''
+    firewall=/usr/libexec/ApplicationFirewall/socketfilterfw
+    syncthing=${lib.getExe config.home-manager.users.${username}.services.syncthing.package}
+    "$firewall" --add "$syncthing" >/dev/null
+    "$firewall" --unblockapp "$syncthing" >/dev/null
+    "$firewall" --listapps \
+      | /usr/bin/grep -o '/nix/store/[^ ]*-syncthing-[^ ]*/bin/syncthing' \
+      | while read -r listed; do
+        [ -e "$listed" ] || "$firewall" --remove "$listed" >/dev/null
+      done
+  '';
+
   # sudo's env_reset drops NIX_SSL_CERT_FILE, so nix under `make switch` falls
   # back to the stale default-profile bundle; drop once nixpkgs #570263 lands.
   security.sudo.extraConfig = ''
