@@ -44,6 +44,16 @@ buildNpmPackage (finalAttrs: {
     install -Dm755 $TMPDIR/better_sqlite3.node -t $sqlite/build/Release
   '';
 
+  # A build alone never starts the CLI or loads the trimmed addon.
+  doInstallCheck = true;
+  installCheckPhase = ''
+    runHook preInstallCheck
+    $out/bin/ob --help > /dev/null
+    (cd $out/lib/node_modules/obsidian-headless && ${nodejs}/bin/node -e \
+      'new (require("better-sqlite3"))(":memory:").prepare("select 1").get()')
+    runHook postInstallCheck
+  '';
+
   meta = {
     description = "Headless client for Obsidian Sync";
     homepage = "https://obsidian.md/help/headless";
