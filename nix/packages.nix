@@ -154,6 +154,7 @@ in
   # Local derivations for tools missing from nixpkgs at the version we want.
   (pkgs.callPackage ./packages/context7-mcp.nix { inherit nodejs; })
   (pkgs.callPackage ./packages/devc.nix { })
+  (pkgs.callPackage ./packages/obsidian-headless { inherit nodejs; })
   (pkgs.callPackage ./packages/qpdf.nix { })
   (pkgs.callPackage ./packages/qwen-asr-cli.nix { })
   (pkgs.callPackage ./packages/serena.nix { })
