@@ -85,6 +85,8 @@ in
   })
   pkgs.govulncheck
   pkgs.gore
+  # Reads a Nintendo Switch's album over USB for `media assets import`.
+  pkgs.gphoto2
   pkgs.htop
   pkgs.hyperfine
   pkgs.imagemagick
