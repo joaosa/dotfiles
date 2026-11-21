@@ -516,9 +516,18 @@ require("lazy").setup({
         end
       end
 
-      -- Repeat the last move with ; and , (like builtin f/t).
-      map({ "n", "x", "o" }, ";", rep.repeat_last_move_next, "Repeat last move forward")
-      map({ "n", "x", "o" }, ",", rep.repeat_last_move_previous, "Repeat last move backward")
+      -- ; repeats the last move in its direction, , reverses it (like builtin f/t)
+      map({ "n", "x", "o" }, ";", rep.repeat_last_move, "Repeat last move")
+      map({ "n", "x", "o" }, ",", rep.repeat_last_move_opposite, "Repeat last move reversed")
+      -- Route f/F/t/T through the plugin so ; and , repeat them too
+      for _, key in ipairs({ "f", "F", "t", "T" }) do
+        vim.keymap.set(
+          { "n", "x", "o" },
+          key,
+          rep["builtin_" .. key .. "_expr"],
+          { expr = true, desc = "Repeatable " .. key }
+        )
+      end
 
       -- Incremental selection: <CR> selects then grows, <BS> shrinks
       local incr_stack = {}
