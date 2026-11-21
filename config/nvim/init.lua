@@ -84,9 +84,7 @@ local function close_keymaps(action)
   return t
 end
 
--- Filetype detection. Keys are Lua patterns matched against the full path;
--- the positive priority makes them win over plain extension lookup (which
--- would otherwise resolve *.yml to yaml first). $ anchors don't work here.
+-- Full-path Lua patterns, no $ anchors; priority beats the *.yml extension match
 local ansible_patterns = {}
 for _, pat in ipairs({
   ".*/playbooks/.*%.ya?ml",
@@ -124,36 +122,24 @@ if not vim.uv.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- LSP servers (defined before lazy.setup so plugin config functions can reference it)
+-- Tools: one source for LSP, conform, nvim-lint, mason and health
+
+-- mason_name = false: installed by Nix (nix/packages.nix); bin: executable for health
 local lsp_servers = {
   lua_ls = {
     mason_name = "lua-language-server",
-    settings = {
-      Lua = {
-        diagnostics = {
-          globals = {
-            "hs",
-            "spoon",
-          },
-        },
-      },
-    },
+    settings = { Lua = { diagnostics = { globals = { "hs", "spoon" } } } },
   },
   gopls = {
     settings = {
       gopls = {
-        analyses = {
-          unusedparams = true,
-          shadow = true,
-        },
+        analyses = { unusedparams = true, shadow = true },
         staticcheck = true,
         gofumpt = true,
       },
     },
   },
-  terraformls = {
-    mason_name = "terraform-ls",
-  },
+  terraformls = { mason_name = "terraform-ls" },
   pyright = {
     settings = {
       python = {
@@ -168,31 +154,15 @@ local lsp_servers = {
     },
   },
   ruff = {},
-  ts_ls = {
-    mason_name = "typescript-language-server",
-  },
-  yamlls = {
-    mason_name = "yaml-language-server",
-  },
-  vimls = {
-    mason_name = "vim-language-server",
-  },
-  ansiblels = {
-    mason_name = "ansible-language-server",
-  },
-  bashls = {
-    mason_name = "bash-language-server",
-  },
-  sqlls = {},
-  -- Installed via Nix (nix/packages.nix), not mason; bin names the executable
-  -- for :checkhealth.
-  nil_ls = {
-    mason_name = false,
-    bin = "nil",
-  },
+  ts_ls = { mason_name = "typescript-language-server" },
+  yamlls = { mason_name = "yaml-language-server" },
+  vimls = { mason_name = "vim-language-server" },
+  ansiblels = { mason_name = "ansible-language-server" },
+  bashls = { mason_name = "bash-language-server" },
+  sqlls = { bin = "sql-language-server" },
+  nil_ls = { mason_name = false, bin = "nil" },
 }
 
--- Formatter config (defined before lazy.setup so plugin config functions can reference it)
 local formatter_fts = {
   prettierd = {
     "javascript",
@@ -213,9 +183,6 @@ local formatter_fts = {
   shfmt = { "sh", "bash" },
 }
 
-local formatters_by_ft = invert_tool_fts(formatter_fts)
-
--- Linter config (defined before lazy.setup so plugin config functions can reference it)
 local linter_fts = {
   sqlfluff = { "sql" },
   yamllint = { "yaml" },
@@ -224,11 +191,9 @@ local linter_fts = {
   ["ansible-lint"] = { FT_ANSIBLE },
 }
 
+local formatters_by_ft = invert_tool_fts(formatter_fts)
 local linters_by_ft = invert_tool_fts(linter_fts)
 
--- Shared LSP mason names (used by health + mason-tool-installer).
--- mason_name = false marks Nix-installed servers: skipped for mason, still
--- health-checked via their bin name.
 local lsp_mason_names = {}
 local health_lsps = {}
 for name, opts in pairs(lsp_servers) do
@@ -238,14 +203,15 @@ for name, opts in pairs(lsp_servers) do
   health_lsps[#health_lsps + 1] = opts.bin or opts.mason_name or name
 end
 
--- Expose tool lists for :checkhealth config
 local health_formatters = {}
 for name in pairs(formatter_fts) do
   health_formatters[#health_formatters + 1] = name == "ruff_format" and "ruff" or name
 end
-local health_linters = vim.tbl_keys(linter_fts)
-vim.g._health_tools = { lsp = health_lsps, formatters = health_formatters, linters = health_linters }
 
+-- Read by lua/config/health.lua
+vim.g._health_tools = { lsp = health_lsps, formatters = health_formatters, linters = vim.tbl_keys(linter_fts) }
+
+-- Plugins
 local second_brain_nvim_dir = "~/ghq/github.com/joaosa/second-brain-tools/extensions/nvim"
 require("lazy").setup({
   -- my work
@@ -425,8 +391,7 @@ require("lazy").setup({
         "vimdoc",
       }
 
-      -- Set of installed parsers, scanned once (get_installed hits the filesystem).
-      -- Install any missing parsers (replaces master's ensure_installed + auto_install).
+      -- Install missing parsers; get_installed hits the filesystem, so scan once
       local installed = {}
       for _, parser in ipairs(ts.get_installed("parsers")) do
         installed[parser] = true
@@ -443,8 +408,7 @@ require("lazy").setup({
 
       vim.treesitter.language.register("diff", "git")
 
-      -- On main, highlighting/indent are enabled per-buffer. Folding is left to nvim-ufo
-      -- (its treesitter provider), so we deliberately do not set foldexpr here.
+      -- Per-buffer highlight and indent; folding is left to nvim-ufo, so no foldexpr
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),
         callback = function(ev)
@@ -457,10 +421,7 @@ require("lazy").setup({
         end,
       })
 
-      -- Textobject definitions: single source of truth for select, move, swap, and peek keymaps.
-      -- sel: a/i select key, mode: selection mode, mov: ]/[ move key
-      -- mov_suf: "inner" overrides default "outer" for move/swap queries
-      -- swap: { next_key, prev_key }, peek: peek definition key
+      -- sel: a/i key, mov: ]/[ key, mov_suf: move/swap query, swap: { next, prev }, peek: key
       local ts_objects = {
         { name = "function", sel = "f", mode = "V", mov = "f", swap = { "f", "F" }, peek = "f" },
         { name = "class", sel = "c", mode = "V", mov = "k", peek = "c" },
@@ -474,7 +435,6 @@ require("lazy").setup({
         { name = "call", sel = "F" },
       }
 
-      -- Per-query selection modes (keyed by query string), passed into textobjects setup.
       local selection_modes = {}
       for _, obj in ipairs(ts_objects) do
         if obj.mode then
@@ -494,7 +454,7 @@ require("lazy").setup({
       local swap = require("nvim-treesitter-textobjects.swap")
       local rep = require("nvim-treesitter-textobjects.repeatable_move")
 
-      --- Peek a textobject's definition in a floating window (replaces master's lsp_interop).
+      --- Peek a textobject's definition in a floating window.
       local function peek(query)
         local range = require("nvim-treesitter-textobjects.shared").textobject_at_point(query, "textobjects", 0)
         if not range then
@@ -560,8 +520,7 @@ require("lazy").setup({
       map({ "n", "x", "o" }, ";", rep.repeat_last_move_next, "Repeat last move forward")
       map({ "n", "x", "o" }, ",", rep.repeat_last_move_previous, "Repeat last move backward")
 
-      -- Incremental selection (removed on main; reimplemented with native treesitter).
-      -- <CR> selects the node under cursor, then grows to the parent on repeat; <BS> shrinks.
+      -- Incremental selection: <CR> selects then grows, <BS> shrinks
       local incr_stack = {}
 
       local function set_visual(range)
@@ -619,8 +578,7 @@ require("lazy").setup({
   { "Wansmer/treesj", cmd = "TSJToggle", opts = {} },
 
   -- lsp
-  -- Data-only on 0.11+: supplies each server's base config (cmd, filetypes,
-  -- root markers) through its lsp/ runtime directory for vim.lsp.enable.
+  -- Data-only: supplies each server's base config via its lsp/ runtime directory
   { "neovim/nvim-lspconfig", lazy = false },
   {
     "mason-org/mason.nvim",
@@ -633,15 +591,14 @@ require("lazy").setup({
     dependencies = { "mason-org/mason.nvim" },
     config = function()
       local ensure_installed = vim.list_extend({}, lsp_mason_names)
-      -- Derive formatter tools from formatter_fts (skip ruff_format — already
-      -- installed as ruff LSP — and nixfmt, which comes from Nix)
+      -- ruff_format ships with the ruff LSP; nixfmt comes from Nix
       local formatter_skip = { ruff_format = true, nixfmt = true }
       for formatter in pairs(formatter_fts) do
         if not formatter_skip[formatter] then
           ensure_installed[#ensure_installed + 1] = formatter
         end
       end
-      -- Derive linter tools from linter_fts (skip tools already installed as formatters or LSP servers)
+      -- Already installed as an LSP server or formatter
       local linter_skip = { ruff = true, sqlfluff = true }
       for linter in pairs(linter_fts) do
         if not linter_skip[linter] then
@@ -978,9 +935,7 @@ require("lazy").setup({
   },
 })
 
--- LSP configuration
--- vim.lsp.config() merges these into nvim-lspconfig's base configs; assigning
--- vim.lsp.config[name] would replace them wholesale (dropping cmd/filetypes).
+-- vim.lsp.config() merges into nvim-lspconfig's base; assigning would replace it
 vim.lsp.config("*", { capabilities = require("blink.cmp").get_lsp_capabilities() })
 for server_name, opts in pairs(lsp_servers) do
   local lsp_opts = vim.tbl_extend("force", {}, opts)
@@ -990,10 +945,9 @@ for server_name, opts in pairs(lsp_servers) do
 end
 vim.lsp.enable(vim.tbl_keys(lsp_servers))
 
--- Autocommands
--- NOTE: nvim-lint autocommands (UserLint group) are in the plugin's config function above.
+-- Autocommands (nvim-lint's live in its plugin config above)
 
--- Unified LSP attach handler (replaces per-server on_attach)
+-- LSP attach
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
   callback = function(event)
@@ -1064,7 +1018,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
   end,
 })
 
--- Native line number toggling (replaces nvim-numbertoggle)
+-- Relative numbers only in the focused window, outside insert mode
 local numbertoggle_group = vim.api.nvim_create_augroup("UserNumberToggle", { clear = true })
 
 vim.api.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave", "CmdlineLeave", "WinEnter" }, {
@@ -1103,31 +1057,11 @@ vim.diagnostic.config({
 -- Keymaps
 local wk_keymaps = {
   -- LSP mappings
-  {
-    "gh",
-    "<cmd>Trouble lsp_references toggle<cr>",
-    desc = "LSP references",
-  },
-  {
-    "gd",
-    vim.lsp.buf.definition,
-    desc = "LSP definition",
-  },
-  {
-    "gD",
-    vim.lsp.buf.declaration,
-    desc = "LSP declaration",
-  },
-  {
-    "gy",
-    vim.lsp.buf.type_definition,
-    desc = "LSP type definition",
-  },
-  {
-    "gi",
-    vim.lsp.buf.implementation,
-    desc = "LSP implementation",
-  },
+  { "gh", "<cmd>Trouble lsp_references toggle<cr>", desc = "LSP references" },
+  { "gd", vim.lsp.buf.definition, desc = "LSP definition" },
+  { "gD", vim.lsp.buf.declaration, desc = "LSP declaration" },
+  { "gy", vim.lsp.buf.type_definition, desc = "LSP type definition" },
+  { "gi", vim.lsp.buf.implementation, desc = "LSP implementation" },
   {
     "K",
     function()
@@ -1153,11 +1087,7 @@ local wk_keymaps = {
     end,
     desc = "code action",
   },
-  {
-    "<leader>cd",
-    vim.diagnostic.open_float,
-    desc = "show cursor diagnostics",
-  },
+  { "<leader>cd", vim.diagnostic.open_float, desc = "show cursor diagnostics" },
   {
     "<leader>ch",
     function()
@@ -1165,11 +1095,7 @@ local wk_keymaps = {
     end,
     desc = "toggle inlay hints",
   },
-  {
-    "<leader>cr",
-    vim.lsp.buf.rename,
-    desc = "rename symbol",
-  },
+  { "<leader>cr", vim.lsp.buf.rename, desc = "rename symbol" },
   {
     "<leader>cf",
     function()
@@ -1180,170 +1106,67 @@ local wk_keymaps = {
 
   -- Telescope group
   { "<leader>t", group = "telescope" },
-  {
-    "<leader>a",
-    "<cmd>Telescope live_grep<cr>",
-    desc = "search word",
-  },
-  {
-    "<leader>tt",
-    "<cmd>Telescope git_files<cr>",
-    desc = "search versioned files",
-  },
-  {
-    "<leader><space>",
-    "<cmd>Telescope find_files<cr>",
-    desc = "search files",
-  },
-  {
-    "<leader>*",
-    "<cmd>Telescope grep_string<cr>",
-    desc = "search cursor",
-  },
-  {
-    "<leader>:",
-    "<cmd>Telescope command_history<cr>",
-    desc = "command history",
-  },
-  {
-    "<leader>tms",
-    "<cmd>Telescope tmux sessions<cr>",
-    desc = "tmux sessions",
-  },
-  {
-    "<leader>tmw",
-    "<cmd>Telescope tmux windows<cr>",
-    desc = "tmux windows",
-  },
-  {
-    "<leader>ts",
-    "<cmd>Telescope treesitter<cr>",
-    desc = "treesitter",
-  },
-  {
-    "<leader>tz",
-    "<cmd>Telescope spell_suggest<cr>",
-    desc = "spelling",
-  },
-  {
-    "<leader>m",
-    "<cmd>Telescope man_pages<cr>",
-    desc = "manpages",
-  },
-  {
-    "<leader>r",
-    "<cmd>Telescope resume<cr>",
-    desc = "telescope resume",
-  },
+  { "<leader>a", "<cmd>Telescope live_grep<cr>", desc = "search word" },
+  { "<leader>tt", "<cmd>Telescope git_files<cr>", desc = "search versioned files" },
+  { "<leader><space>", "<cmd>Telescope find_files<cr>", desc = "search files" },
+  { "<leader>*", "<cmd>Telescope grep_string<cr>", desc = "search cursor" },
+  { "<leader>:", "<cmd>Telescope command_history<cr>", desc = "command history" },
+  { "<leader>tms", "<cmd>Telescope tmux sessions<cr>", desc = "tmux sessions" },
+  { "<leader>tmw", "<cmd>Telescope tmux windows<cr>", desc = "tmux windows" },
+  { "<leader>ts", "<cmd>Telescope treesitter<cr>", desc = "treesitter" },
+  { "<leader>tz", "<cmd>Telescope spell_suggest<cr>", desc = "spelling" },
+  { "<leader>m", "<cmd>Telescope man_pages<cr>", desc = "manpages" },
+  { "<leader>r", "<cmd>Telescope resume<cr>", desc = "telescope resume" },
 
   -- Quickfix/session group
   { "<leader>q", group = "quickfix/session" },
+  { "<leader>qf", "<cmd>Telescope quickfix<cr>", desc = "telescope quickfix" },
+  { "<leader>w", "<cmd>Telescope loclist<cr>", desc = "telescope loclist" },
   {
-    "<leader>qf",
-    "<cmd>Telescope quickfix<cr>",
-    desc = "telescope quickfix",
+    "<leader>qs",
+    function()
+      require("persistence").load()
+    end,
+    desc = "restore session",
   },
   {
-    "<leader>w",
-    "<cmd>Telescope loclist<cr>",
-    desc = "telescope loclist",
+    "<leader>ql",
+    function()
+      require("persistence").load({ last = true })
+    end,
+    desc = "restore last session",
+  },
+  {
+    "<leader>qd",
+    function()
+      require("persistence").stop()
+    end,
+    desc = "stop session recording",
   },
 
   -- Git mappings
   { "<leader>g", group = "git" },
-  {
-    "<leader>gg",
-    "<cmd>Neogit<cr>",
-    desc = "Neogit",
-  },
-  {
-    "<leader>gws",
-    "<cmd>Telescope git_status<cr>",
-    desc = "git status",
-  },
-  {
-    "<leader>gwd",
-    "<cmd>DiffviewOpen<cr>",
-    desc = "git diff",
-  },
-  {
-    "<leader>gco",
-    "<cmd>Gitsigns reset_buffer<cr>",
-    desc = "git checkout",
-  },
-  {
-    "<leader>gcop",
-    "<cmd>Gitsigns reset_hunk<cr>",
-    desc = "git checkout -p",
-  },
-  {
-    "<leader>gia",
-    "<cmd>Gitsigns stage_buffer<cr>",
-    desc = "git add",
-  },
-  {
-    "<leader>giap",
-    "<cmd>Gitsigns stage_hunk<cr>",
-    desc = "git add -p",
-  },
-  {
-    "<leader>gir",
-    "<cmd>Gitsigns reset_buffer_index<cr>",
-    desc = "git reset",
-  },
-  {
-    "<leader>gb",
-    "<cmd>Gitsigns toggle_current_line_blame<cr>",
-    desc = "git blame",
-  },
-  {
-    "<leader>gl",
-    "<cmd>DiffviewFileHistory %<cr>",
-    desc = "git logs",
-  },
-  {
-    "<leader>gL",
-    "<cmd>DiffviewFileHistory<cr>",
-    desc = "git logs (all)",
-  },
-  {
-    "<leader>gp",
-    "<cmd>Octo pr create<cr>",
-    desc = "git pr",
-  },
-  {
-    "<leader>gc",
-    "<cmd>GitConflictListQf<cr>",
-    desc = "git conflicts",
-  },
+  { "<leader>gg", "<cmd>Neogit<cr>", desc = "Neogit" },
+  { "<leader>gws", "<cmd>Telescope git_status<cr>", desc = "git status" },
+  { "<leader>gwd", "<cmd>DiffviewOpen<cr>", desc = "git diff" },
+  { "<leader>gco", "<cmd>Gitsigns reset_buffer<cr>", desc = "git checkout" },
+  { "<leader>gcop", "<cmd>Gitsigns reset_hunk<cr>", desc = "git checkout -p" },
+  { "<leader>gia", "<cmd>Gitsigns stage_buffer<cr>", desc = "git add" },
+  { "<leader>giap", "<cmd>Gitsigns stage_hunk<cr>", desc = "git add -p" },
+  { "<leader>gir", "<cmd>Gitsigns reset_buffer_index<cr>", desc = "git reset" },
+  { "<leader>gb", "<cmd>Gitsigns toggle_current_line_blame<cr>", desc = "git blame" },
+  { "<leader>gl", "<cmd>DiffviewFileHistory %<cr>", desc = "git logs" },
+  { "<leader>gL", "<cmd>DiffviewFileHistory<cr>", desc = "git logs (all)" },
+  { "<leader>gp", "<cmd>Octo pr create<cr>", desc = "git pr" },
+  { "<leader>gc", "<cmd>GitConflictListQf<cr>", desc = "git conflicts" },
 
   -- Trouble mappings
   { "<leader>x", group = "diagnostics" },
-  {
-    "<leader>xx",
-    "<cmd>Trouble diagnostics toggle<cr>",
-    desc = "diagnostics",
-  },
-  {
-    "<leader>xd",
-    "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
-    desc = "buffer diagnostics",
-  },
-  {
-    "<leader>xq",
-    "<cmd>Trouble qflist toggle<cr>",
-    desc = "quickfix",
-  },
-  {
-    "<leader>xl",
-    "<cmd>Trouble loclist toggle<cr>",
-    desc = "loclist",
-  },
-  {
-    "<leader>xt",
-    "<cmd>Trouble todo toggle<cr>",
-    desc = "todos",
-  },
+  { "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "diagnostics" },
+  { "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "buffer diagnostics" },
+  { "<leader>xq", "<cmd>Trouble qflist toggle<cr>", desc = "quickfix" },
+  { "<leader>xl", "<cmd>Trouble loclist toggle<cr>", desc = "loclist" },
+  { "<leader>xt", "<cmd>Trouble todo toggle<cr>", desc = "todos" },
 
   -- Treesitter text object swap mappings
   { "<leader>s", group = "swap" },
@@ -1396,12 +1219,7 @@ local wk_keymaps = {
     desc = "toggle checkbox",
     ft = "markdown",
   },
-  {
-    "<localleader>ll",
-    "<cmd>RenderMarkdown toggle<cr>",
-    desc = "toggle markdown rendering",
-    ft = "markdown",
-  },
+  { "<localleader>ll", "<cmd>RenderMarkdown toggle<cr>", desc = "toggle markdown rendering", ft = "markdown" },
 
   -- Opencode mappings
   { "<localleader>o", group = "opencode" },
@@ -1472,39 +1290,8 @@ local wk_keymaps = {
   { "[s", desc = "Previous misspelled word" },
 
   -- Quick typo fixes
-  {
-    "<leader>f",
-    "1z=",
-    desc = "Fix typo with first suggestion",
-  },
-  {
-    "<leader>F",
-    "<cmd>normal! [s1z=<cr>",
-    desc = "Fix previous typo with first suggestion",
-  },
-
-  -- Session mappings (persistence.nvim)
-  {
-    "<leader>qs",
-    function()
-      require("persistence").load()
-    end,
-    desc = "restore session",
-  },
-  {
-    "<leader>ql",
-    function()
-      require("persistence").load({ last = true })
-    end,
-    desc = "restore last session",
-  },
-  {
-    "<leader>qd",
-    function()
-      require("persistence").stop()
-    end,
-    desc = "stop session recording",
-  },
+  { "<leader>f", "1z=", desc = "Fix typo with first suggestion" },
+  { "<leader>F", "<cmd>normal! [s1z=<cr>", desc = "Fix previous typo with first suggestion" },
 
   -- <esc><esc> mappings
   { "<esc><esc>", "<cmd>noh<cr>", desc = "clear the highlight from the last search" },
